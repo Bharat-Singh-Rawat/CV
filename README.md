@@ -1,6 +1,8 @@
-# Ion Source Theme - Ph.D. Portfolio Website
+# Ion Source Theme - Ph.D. Portfolio 
 
-A modern, interactive portfolio website with a **physics-themed Ion Source aesthetic**. This project features a CRT-style interface, audio-reactive visualizations, parallax effects, and an integrated music jukebox system.
+<img width="1863" height="784" alt="image" src="https://github.com/user-attachments/assets/2518a0e5-211f-4fb3-b050-4dceb50f4d7a" />
+
+This project features a CRT-style interface, audio-reactive visualizations, parallax effects, and an integrated music jukebox system.
 
 ## Overview
 
