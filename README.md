@@ -6,9 +6,7 @@ This project features a CRT-style interface, audio-reactive visualizations, para
 
 ## Overview
 
-This is a personal portfolio website for Bharat Singh Rawat, Ph.D., designed with a unique **plasma/ion source visual theme** that combines scientific aesthetics with interactive web technologies.
-
-## Features
+This is a personal portfolio website designed with a unique **plasma/ion source visual theme**.
 
 ### 🎨 Design & Aesthetics
 - **Ion Source Theme**: Plasma cyan, vacuum black, and phosphor green color scheme inspired by particle physics
@@ -20,7 +18,7 @@ This is a personal portfolio website for Bharat Singh Rawat, Ph.D., designed wit
 - **22-track Playlist**: Curated international music collection including:
   - Indian classical (Bhairav, Kalawati, Malkauns, Yaman)
   - Spanish and Latin music
-  - Russian tracks
+  - Russian pop tracks
   - Jazz and contemporary hits
 - **Shuffle Mode**: Randomized playback
 - **Random Start**: Begins with a random track on load
