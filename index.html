@@ -18,6 +18,8 @@
             --extraction-purple: #bc13fe;
             --electron-gold: #fff176;
             --current-beam-color: var(--plasma-cyan);
+            --plasma-intensity: 0.78;
+            --plasma-hue: 275;
         }
         body, html {
             margin: 0; padding: 0;
@@ -298,21 +300,146 @@
         #ring-cusp-cursor {
             position: fixed; width: 400px; height: 200px;
             pointer-events: none; z-index: 100000;
-            transform: translate(-46px, -100px);
+            transform: translate(-66px, -100px);
         }
-        .chamber-wall {
-            width: 90px; height: 52px; background: rgba(20, 20, 30, 0.98);
-            border: 2px solid #666; position: absolute; top: 74px; left: 0; border-radius: 2px;
+        #ion-beam-canvas { position: absolute; inset: 0; pointer-events: none; z-index: 6; }
+        #electron-canvas { position: absolute; inset: 0; pointer-events: none; z-index: 7; }
+        #erosion-canvas  { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+
+        /* Anode back-plate */
+        .anode-plate {
+            position: absolute; top: 30px; left: 0;
+            width: 6px; height: 142px;
+            background: linear-gradient(to right, #2a2a30, #4a4a52);
+            border-right: 1px solid #6a6a72;
+            border-radius: 2px 0 0 2px;
         }
-        #ion-beam-canvas { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
-        #electron-canvas { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
-        #neutralizer-filament {
-            position: absolute; left: 94px; top: 80px; width: 4px; height: 40px;
-            background: #333; border-radius: 2px; transition: 0.3s; z-index: 10;
+        /* Discharge chamber body */
+        .chamber-body {
+            position: absolute; top: 28px; left: 4px;
+            width: 124px; height: 144px;
+            background: linear-gradient(135deg, rgba(28,28,42,0.96), rgba(14,14,24,0.96));
+            border: 1.5px solid #585866;
+            border-right: none;
+            border-radius: 6px 0 0 6px;
+            box-shadow:
+                inset 0 0 24px rgba(0,255,255,0.05),
+                inset 2px 0 4px rgba(0,0,0,0.6);
         }
-        .magnet { position: absolute; width: 10px; height: 6px; border: 0.5px solid #000; }
-        .north { background: var(--magnet-north); }
-        .south { background: var(--magnet-south); }
+        /* Plasma fill — brightness scales with EXTRACTION_V, hue shifts with NEUTRALIZER_I */
+        .chamber-plasma {
+            position: absolute; top: 38px; left: 12px;
+            width: 110px; height: 124px;
+            background: radial-gradient(ellipse at 65% 50%,
+                hsla(var(--plasma-hue), 95%, 65%, calc(var(--plasma-intensity) * 0.34)) 0%,
+                hsla(var(--plasma-hue), 80%, 50%, calc(var(--plasma-intensity) * 0.18)) 45%,
+                transparent 80%);
+            border-radius: 4px 0 0 4px;
+            pointer-events: none;
+            animation: plasma-pulse 2.4s ease-in-out infinite;
+            mix-blend-mode: screen;
+            transition: background 0.18s ease;
+            z-index: 2;
+        }
+        @keyframes plasma-pulse {
+            0%,100% { opacity: 0.65; transform: scale(1); }
+            50%     { opacity: 1.0;  transform: scale(1.02); }
+        }
+        /* Hollow cathode inside chamber */
+        .hollow-cathode {
+            position: absolute; top: 92px; left: 14px;
+            width: 14px; height: 16px;
+            background: linear-gradient(135deg, #3a3a44, #1a1a22);
+            border: 1px solid #5a5a62;
+            border-radius: 2px;
+            z-index: 3;
+        }
+        .hollow-cathode::after {
+            content: '';
+            position: absolute;
+            top: 5px; right: -4px;
+            width: 5px; height: 6px;
+            background: radial-gradient(circle, #ffd070 0%, #ff7020 60%, transparent 100%);
+            border-radius: 0 50% 50% 0;
+            box-shadow: 0 0 8px rgba(255,180,80,0.8);
+            animation: cathode-glow 1.6s ease-in-out infinite;
+        }
+        @keyframes cathode-glow {
+            0%,100% { opacity: 0.85; }
+            50%     { opacity: 1; box-shadow: 0 0 12px rgba(255,200,100,1); }
+        }
+
+        /* Cusp magnets */
+        .magnet {
+            position: absolute;
+            width: 14px; height: 8px;
+            border: 1px solid #1a1a1a;
+            border-radius: 1.5px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.6);
+            z-index: 4;
+        }
+        .magnet.back { width: 8px; height: 14px; }
+        .north { background: linear-gradient(to bottom, #ff5e5e, #b22222); }
+        .south { background: linear-gradient(to bottom, #5e7eff, #2244aa); }
+        .back.north { background: linear-gradient(to right, #ff5e5e, #b22222); }
+        .back.south { background: linear-gradient(to right, #5e7eff, #2244aa); }
+
+        /* Two-grid extraction stack — period 18px, apertures aligned */
+        .grid {
+            position: absolute;
+            top: 28px;
+            width: 5px;
+            height: 144px;
+            border-radius: 1px;
+            z-index: 4;
+        }
+        .screen-grid {
+            left: 132px;
+            background: repeating-linear-gradient(
+                to bottom,
+                rgba(180,210,255,0.95) 0 3px,
+                transparent 3px 15px,
+                rgba(180,210,255,0.95) 15px 18px
+            );
+            box-shadow: 0 0 5px rgba(120,180,255,0.55);
+        }
+        .accel-grid {
+            left: 146px;
+            background: repeating-linear-gradient(
+                to bottom,
+                rgba(140,90,90,0.95) 0 5px,
+                transparent 5px 13px,
+                rgba(140,90,90,0.95) 13px 18px
+            );
+            box-shadow: 0 0 5px rgba(255,80,80,0.4);
+        }
+
+        /* Wear stats inside control panel */
+        #wear-readout {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px dashed #333;
+            font-size: 0.55rem;
+            color: var(--phosphor-green);
+            line-height: 1.6;
+        }
+        #wear-readout .wear-row { display: flex; justify-content: space-between; }
+        #wear-readout .wear-label { color: #888; }
+        #reset-chamber-btn {
+            display: block; width: 100%; margin-top: 8px;
+            padding: 5px 6px;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid var(--magnet-north);
+            color: var(--magnet-north);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.55rem; letter-spacing: 1px;
+            cursor: pointer; text-transform: uppercase;
+            transition: 0.2s;
+        }
+        #reset-chamber-btn:hover {
+            background: rgba(255,62,62,0.15);
+            box-shadow: 0 0 10px var(--magnet-north);
+        }
       
         #diagnostic-hud {
             position: fixed; bottom: 20px; right: 20px; width: 200px; background: rgba(0, 10, 0, 0.95);
@@ -416,6 +543,12 @@
 
         <button id="tour-btn">▶ GUIDED_TOUR</button>
 
+        <div id="wear-readout">
+            <div class="wear-row"><span class="wear-label">GRID_WEAR:</span><span><span id="wear-pct">0.0</span>%</span></div>
+            <div class="wear-row"><span class="wear-label">IONS_DEPOSITED:</span><span id="ions-tot">0</span></div>
+            <button id="reset-chamber-btn">RESET CHAMBER</button>
+        </div>
+
         <div style="margin-top: 10px;"><a href="https://bharatbharat22.wixsite.com/website" target="_blank" style="color:var(--plasma-cyan); text-decoration:none; font-size:0.8rem;">View Full Portfolio</a></div>
     </div>
 
@@ -427,14 +560,29 @@
     <div id="ring-cusp-cursor">
         <canvas id="ion-beam-canvas" width="400" height="200"></canvas>
         <canvas id="electron-canvas" width="400" height="200"></canvas>
-        <div class="chamber-wall"></div>
-        <div id="neutralizer-filament"></div>
-        <div class="magnet north" style="top:68px; left:8px;"></div>
-        <div class="magnet south" style="top:68px; left:40px;"></div>
-        <div class="magnet north" style="top:68px; left:72px;"></div>
-        <div class="magnet south" style="top:126px; left:8px;"></div>
-        <div class="magnet north" style="top:126px; left:40px;"></div>
-        <div class="magnet south" style="top:126px; left:72px;"></div>
+        <canvas id="erosion-canvas" width="400" height="200"></canvas>
+
+        <!-- Discharge chamber -->
+        <div class="anode-plate"></div>
+        <div class="chamber-body"></div>
+        <div class="chamber-plasma"></div>
+        <div class="hollow-cathode"></div>
+
+        <!-- Ring-cusp magnets (alternating N/S along inner walls) -->
+        <div class="magnet north back" style="top:62px; left:6px;"></div>
+        <div class="magnet south back" style="top:120px; left:6px;"></div>
+        <div class="magnet south" style="top:34px; left:22px;"></div>
+        <div class="magnet north" style="top:34px; left:50px;"></div>
+        <div class="magnet south" style="top:34px; left:78px;"></div>
+        <div class="magnet north" style="top:34px; left:106px;"></div>
+        <div class="magnet north" style="top:158px; left:22px;"></div>
+        <div class="magnet south" style="top:158px; left:50px;"></div>
+        <div class="magnet north" style="top:158px; left:78px;"></div>
+        <div class="magnet south" style="top:158px; left:106px;"></div>
+
+        <!-- Two-grid extraction stack -->
+        <div class="grid screen-grid" title="Screen grid (+HV)"></div>
+        <div class="grid accel-grid"  title="Accel grid (-HV)"></div>
     </div>
 
     <div id="diagnostic-hud">
@@ -560,6 +708,7 @@
         const beamCtx = beamCanvas.getContext('2d');
         const eCanvas = document.getElementById('electron-canvas');
         const eCtx = eCanvas.getContext('2d');
+        const eroCtx = document.getElementById('erosion-canvas').getContext('2d');
         const cursor = document.getElementById('ring-cusp-cursor');
         const filament = document.getElementById('neutralizer-filament');
         const hud = document.getElementById('diagnostic-hud');
@@ -704,19 +853,33 @@
         }
         for(let i=0; i<80; i++) bgParticles.push(new BackgroundParticle());
 
+        // Aperture y-centers (grid period 18, top:28; magnets cover top + bottom apertures)
+        const APERTURE_CENTERS = [55, 73, 91, 109, 127, 145];
         class BeamParticle {
             constructor() { this.reset(); }
             reset() {
-                this.x = 92 + Math.random() * 8;
-                this.y = 100 + (Math.random() - 0.5) * 50;
+                const apY = APERTURE_CENTERS[Math.floor(Math.random() * APERTURE_CENTERS.length)];
+                this.x = 134 + Math.random() * 2;          // emit at screen-grid front face
+                this.y = apY + (Math.random() - 0.5) * 6;  // jitter inside aperture
                 const divAngle = (Math.max(2, 45 - (neutCurrent * 4.3)) * 0.018);
                 const angle = (Math.random() - 0.5) * divAngle;
-                const speed = 6 + beamEnergy * 0.8 + Math.random() * 2.5;
+                const speed = 3.5 + beamEnergy * 0.5 + Math.random() * 1.0;
                 this.vx = Math.cos(angle) * speed;
                 this.vy = Math.sin(angle) * speed * 0.4;
-                this.life = 1.0; this.hue = 180 + neutCurrent * 25;
+                this.life = 1.0;
+                this.hue = 180 + neutCurrent * 25;
+                this.passedAccel = false;
             }
-            update() { this.x += this.vx; this.y += this.vy; this.life -= 0.012; if (this.life <= 0 || this.x > 400) this.reset(); }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                if (!this.passedAccel && this.x > 152) {
+                    // Screen→accel potential drop accelerates the ion
+                    this.vx *= (1.45 + beamEnergy * 0.04);
+                    this.passedAccel = true;
+                }
+                this.life -= 0.012;
+                if (this.life <= 0 || this.x > 400) this.reset();
+            }
             draw() {
                 const alpha = this.life * 0.85;
                 beamCtx.fillStyle = `hsla(${this.hue}, 100%, 75%, ${alpha})`;
@@ -724,6 +887,84 @@
             }
         }
         for(let i=0; i<220; i++) beamParticles.push(new BeamParticle());
+
+        // ─── Persistent sputter erosion (CEX-style pitting on accel grid) ─────
+        const SPUTTER_KEY = 'pybemcs_sputter_v1';
+        const IONS_KEY    = 'pybemcs_ions_v1';
+        const MAX_PITS    = 220;
+        let sputterPits = [];
+        let totalIonsDeposited = 0;
+        let erosionDirty = true;
+        let lastWearSave = 0;
+        try {
+            sputterPits = JSON.parse(localStorage.getItem(SPUTTER_KEY) || '[]');
+            totalIonsDeposited = parseInt(localStorage.getItem(IONS_KEY) || '0', 10);
+        } catch (e) { sputterPits = []; totalIonsDeposited = 0; }
+
+        function generateSputterPit() {
+            // Pick a random period (8 periods of 18px from y=28), web region only
+            const periodIdx = Math.floor(Math.random() * 8);
+            const useUpperWeb = Math.random() < 0.5;
+            const yWithinWeb = useUpperWeb ? Math.random() * 5 : 13 + Math.random() * 5;
+            const y = 28 + periodIdx * 18 + yWithinWeb;
+            const x = 146 + Math.random() * 5;
+            return { x, y };
+        }
+
+        function addSputterEvent() {
+            const p = generateSputterPit();
+            const near = sputterPits.find(q => Math.abs(q.x - p.x) < 4 && Math.abs(q.y - p.y) < 3);
+            if (near) {
+                near.severity = Math.min(1, near.severity + 0.06);
+            } else if (sputterPits.length < MAX_PITS) {
+                sputterPits.push({ x: p.x, y: p.y, severity: 0.18 });
+            }
+            erosionDirty = true;
+        }
+
+        function drawErosion() {
+            if (!erosionDirty) return;
+            eroCtx.clearRect(0, 0, 400, 200);
+            sputterPits.forEach(p => {
+                const r = 1 + p.severity * 2.2;
+                eroCtx.beginPath(); eroCtx.arc(p.x, p.y, r + 0.6, 0, Math.PI*2);
+                eroCtx.strokeStyle = `rgba(255,140,80,${0.30 + 0.45 * p.severity})`;
+                eroCtx.lineWidth = 0.7; eroCtx.stroke();
+                eroCtx.beginPath(); eroCtx.arc(p.x, p.y, r, 0, Math.PI*2);
+                eroCtx.fillStyle = `rgba(20,10,5,${0.55 + 0.4 * p.severity})`;
+                eroCtx.fill();
+            });
+            erosionDirty = false;
+        }
+
+        function updateWearUI() {
+            const wearEl = document.getElementById('wear-pct');
+            const ionsEl = document.getElementById('ions-tot');
+            if (wearEl) wearEl.innerText = (sputterPits.length / MAX_PITS * 100).toFixed(1);
+            if (ionsEl) ionsEl.innerText = totalIonsDeposited.toLocaleString();
+        }
+
+        function maybeSaveWear() {
+            const now = performance.now();
+            if (now - lastWearSave < 3000) return;
+            lastWearSave = now;
+            try {
+                localStorage.setItem(SPUTTER_KEY, JSON.stringify(sputterPits));
+                localStorage.setItem(IONS_KEY, String(totalIonsDeposited));
+            } catch (e) {}
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') {
+                try {
+                    localStorage.setItem(SPUTTER_KEY, JSON.stringify(sputterPits));
+                    localStorage.setItem(IONS_KEY, String(totalIonsDeposited));
+                } catch (e) {}
+            }
+        });
+
+        // Initial render of any persisted wear
+        drawErosion(); updateWearUI();
 
         class Electron {
             constructor() { this.reset(); }
@@ -774,6 +1015,7 @@
             bX += (mX - bX) * 0.15; bY += (mY - bY) * 0.15;
             cursor.style.left = bX + 'px'; cursor.style.top = bY + 'px';
             beamCtx.clearRect(0, 0, 400, 200); eCtx.clearRect(0, 0, eCanvas.width, eCanvas.height);
+            drawErosion();
             const divergence = Math.max(2, 45 - (neutCurrent * 4.3));
             faradayCups.forEach(cup => { cup.hitsThisFrame = 0; });
             if (isFiring) {
@@ -786,6 +1028,12 @@
                         if (cupIndex >= 0 && cupIndex < 25) { faradayCups[cupIndex].hitsThisFrame++; faradayCups[cupIndex].pulse = 1.0; }
                     }
                 });
+
+                // Accumulate ion count + occasional CEX sputter event on accel grid
+                totalIonsDeposited += emitRate;
+                if (Math.random() < 0.045 + neutCurrent * 0.004) addSputterEvent();
+                maybeSaveWear();
+                updateWearUI();
                 if (neutCurrent > 0) {
                     const activeCount = Math.floor(neutCurrent * 7);
                     for(let i=0; i<activeCount; i++) { electrons[i].update(); electrons[i].draw(); }
@@ -829,14 +1077,39 @@
 
         window.addEventListener('pointerup', () => { if (tourActive) return; isFiring = false; hud.classList.remove('active'); stopBeamHum(); });
 
+        const root = document.documentElement;
+        function updatePlasmaCSSVars() {
+            // V=1 → 0.50, V=10 → 1.00 ; I=0 → hue 275 (violet), I=10 → hue 200 (cyan)
+            root.style.setProperty('--plasma-intensity', Math.min(1, 0.45 + beamEnergy * 0.055).toFixed(2));
+            root.style.setProperty('--plasma-hue', (275 - neutCurrent * 7.5).toFixed(0));
+        }
         document.getElementById('v-slider').oninput = (e) => {
             beamEnergy = parseFloat(e.target.value); document.getElementById('v-val').innerText = beamEnergy.toFixed(1);
+            updatePlasmaCSSVars();
         };
         document.getElementById('i-slider').oninput = (e) => {
             neutCurrent = parseFloat(e.target.value); document.getElementById('i-val').innerText = neutCurrent.toFixed(1);
-            filament.style.background = neutCurrent > 0 ? `rgb(255, ${180 + neutCurrent*7}, 50)` : "#333";
-            filament.style.boxShadow = neutCurrent > 0 ? `0 0 ${neutCurrent * 8}px var(--warning-orange)` : "none";
+            if (filament) {
+                filament.style.background = neutCurrent > 0 ? `rgb(255, ${180 + neutCurrent*7}, 50)` : "#333";
+                filament.style.boxShadow  = neutCurrent > 0 ? `0 0 ${neutCurrent * 8}px var(--warning-orange)` : "none";
+            }
+            updatePlasmaCSSVars();
         };
+        updatePlasmaCSSVars();
+
+        document.getElementById('reset-chamber-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            sputterPits = [];
+            totalIonsDeposited = 0;
+            erosionDirty = true;
+            try {
+                localStorage.removeItem(SPUTTER_KEY);
+                localStorage.removeItem(IONS_KEY);
+            } catch (err) {}
+            drawErosion();
+            updateWearUI();
+            playTick();
+        });
 
         // Added touch support to the hobby atoms
         document.querySelectorAll('.hobby-atom').forEach(atom => {
