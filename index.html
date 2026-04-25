@@ -94,12 +94,171 @@
             animation: flicker 0.15s infinite; 
         }
 
-        .preloader-hidden { 
-            opacity: 0; 
-            visibility: hidden; 
-            pointer-events: none; 
+        .preloader-hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
             filter: brightness(2) blur(20px);
         }
+
+        /* --- BOOT SEQUENCE LOG --- */
+        #boot-log {
+            display: none;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            line-height: 1.35;
+            color: var(--phosphor-green);
+            text-shadow: 0 0 8px rgba(0,255,65,0.55);
+            min-width: min(640px, 86vw);
+            max-width: 86vw;
+            padding: 22px 26px;
+            background: rgba(0,12,0,0.55);
+            border: 1px solid rgba(0,255,65,0.35);
+            border-left: 3px solid var(--phosphor-green);
+            box-shadow: 0 0 30px rgba(0,255,65,0.15), inset 0 0 60px rgba(0,255,65,0.04);
+            backdrop-filter: blur(2px);
+        }
+        #boot-log.active { display: flex; }
+        .boot-line {
+            white-space: nowrap;
+            opacity: 0;
+            transform: translateX(-6px);
+            animation: boot-fade-in 0.18s ease-out forwards;
+        }
+        .boot-prefix { color: #5b6d5b; }
+        .boot-label  { color: var(--plasma-cyan); }
+        .boot-dots   { color: #2e3d2e; letter-spacing: 1px; }
+        .boot-value  { color: var(--electron-gold); }
+        .boot-ok     { color: var(--phosphor-green); margin-left: 6px; }
+        .boot-fail   { color: var(--magnet-north); margin-left: 6px; }
+        .boot-ignition {
+            margin-top: 12px;
+            color: var(--warning-orange);
+            text-shadow: 0 0 12px var(--warning-orange), 0 0 24px rgba(255,174,0,0.5);
+            font-weight: bold;
+            letter-spacing: 2px;
+            animation: boot-ignite 0.7s ease-out forwards;
+        }
+        @keyframes boot-fade-in {
+            from { opacity: 0; transform: translateX(-8px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes boot-ignite {
+            0%   { opacity: 0; filter: blur(8px) brightness(0.4); transform: scale(0.96); }
+            55%  { opacity: 1; filter: blur(0)   brightness(2.2); transform: scale(1.02); }
+            100% { opacity: 1; filter: none;                       transform: scale(1); }
+        }
+        @media (max-width: 850px) {
+            #boot-log { font-size: 0.65rem; padding: 14px 16px; }
+            .boot-line { white-space: normal; }
+        }
+
+        /* --- GUIDED TOUR --- */
+        #tour-btn {
+            display: block;
+            width: 100%;
+            margin-top: 12px;
+            padding: 6px 8px;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid var(--phosphor-green);
+            color: var(--phosphor-green);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.2s;
+        }
+        #tour-btn:hover {
+            background: rgba(0,255,65,0.15);
+            box-shadow: 0 0 12px var(--phosphor-green);
+        }
+        #tour-btn.tour-running {
+            border-color: var(--magnet-north);
+            color: var(--magnet-north);
+            box-shadow: 0 0 12px var(--magnet-north);
+        }
+
+        #tour-caption {
+            position: fixed;
+            left: 50%;
+            bottom: 36px;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(0,12,0,0.92);
+            border: 1px solid var(--phosphor-green);
+            border-left: 3px solid var(--phosphor-green);
+            color: #d8ffd8;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            line-height: 1.45;
+            padding: 14px 22px;
+            max-width: min(620px, 90vw);
+            box-shadow: 0 0 24px rgba(0,255,65,0.25);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s, transform 0.4s;
+            z-index: 100002;
+            text-align: center;
+        }
+        #tour-caption.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        #tour-caption .tour-prefix {
+            color: var(--warning-orange);
+            margin-right: 8px;
+            font-weight: bold;
+        }
+        #tour-caption .tour-hint {
+            display: block;
+            margin-top: 8px;
+            font-size: 0.65rem;
+            color: #5b6d5b;
+            letter-spacing: 1px;
+        }
+
+        /* Pulsing ring drawn at the cursor's current target during tour */
+        body.tour-active #ring-cusp-cursor {
+            filter: drop-shadow(0 0 18px var(--phosphor-green)) drop-shadow(0 0 32px var(--plasma-cyan));
+        }
+
+        /* --- CHESS KNIGHT EASTER EGG --- */
+        .knight-ghost {
+            position: fixed;
+            font-size: 2rem;
+            color: var(--electron-gold);
+            text-shadow: 0 0 14px var(--plasma-cyan), 0 0 28px var(--electron-gold);
+            pointer-events: none;
+            z-index: 100001;
+            user-select: none;
+            animation: knight-l-jump 1.6s cubic-bezier(0.5, 0, 0.3, 1) forwards;
+        }
+        @keyframes knight-l-jump {
+            0%   { transform: translate(0, 0)      scale(1)   rotate(0deg); opacity: 0; }
+            10%  { transform: translate(0, 0)      scale(1.5) rotate(0deg); opacity: 1; }
+            48%  { transform: translate(190px, 0)  scale(1.5) rotate(15deg); opacity: 1; }
+            55%  { transform: translate(190px, 0)  scale(1.5) rotate(0deg); opacity: 1; }
+            92%  { transform: translate(190px, -110px) scale(1.5) rotate(-12deg); opacity: 1; }
+            100% { transform: translate(190px, -110px) scale(0.5) rotate(0deg); opacity: 0; }
+        }
+        .knight-trail-dot {
+            position: fixed;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--electron-gold);
+            box-shadow: 0 0 8px var(--electron-gold), 0 0 16px var(--plasma-cyan);
+            pointer-events: none;
+            z-index: 100000;
+            animation: knight-dot-fade 1.2s ease-out forwards;
+        }
+        @keyframes knight-dot-fade {
+            0%   { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.2); }
+        }
+        .hobby-atom.knight-cooldown { cursor: wait; opacity: 0.6; }
 
         /* --- UI COMPONENT PLACEMENT --- */
         #control-panel {
@@ -239,6 +398,7 @@
         <div id="crt-filter"></div>
         <div id="enter-system-overlay">
             <button id="initialize-button">[ INITIALIZE_SYSTEM ]</button>
+            <div id="boot-log" aria-live="polite"></div>
             <p style="color: var(--phosphor-green); font-size: 0.6rem; margin-top: 20px; letter-spacing: 1px; opacity: 0.3;"></p>
         </div>
     </div>
@@ -253,8 +413,15 @@
       
         <label style="font-size:0.55rem; color:var(--warning-orange);">NEUTRALIZER_I: <span id="i-val">0.0</span> mA</label>
         <input type="range" id="i-slider" min="0" max="10" step="0.1" value="0">
-      
+
+        <button id="tour-btn">▶ GUIDED_TOUR</button>
+
         <div style="margin-top: 10px;"><a href="https://bharatbharat22.wixsite.com/website" target="_blank" style="color:var(--plasma-cyan); text-decoration:none; font-size:0.8rem;">View Full Portfolio</a></div>
+    </div>
+
+    <div id="tour-caption" aria-live="polite">
+        <span class="tour-prefix">[ TOUR ]</span><span id="tour-caption-text"></span>
+        <span class="tour-hint">press ESC to abort</span>
     </div>
 
     <div id="ring-cusp-cursor">
@@ -282,9 +449,8 @@
             <h1 style="font-size: 2.8rem; margin:0;">BHARAT SINGH RAWAT, Ph.D.</h1>
             <h3 style="color: var(--plasma-cyan); font-weight: 200; margin-top:5px;">// ION SOURCE & BEAM DIAGNOSTICS EXPERT</h3>
             <p style="color:#ccc;">Expert in manipulating charged particle beams with 7+ years of experience in the design of ion sources, beam extraction/transport systems, and digital twins.</p>
-            <a href="https://bharat26031992.github.io/AEgIS_Outreach_Game/" target="_blank" class="btn-game">PROJECT_DT</a>
-            <a href="https://bharat26031992.github.io/Project-Hbar/" target="_blank" class="btn-game">PROJECT_HBAR</a>
-            <a href="assets/cv/Bharat_Rawat_CV.pdf" target="_blank" download class="btn-game" style="border-color: var(--phosphor-green); color: var(--phosphor-green);">⤓ EJECT_DOSSIER.pdf</a>
+            <a href="https://bharat-singh-rawat.github.io/AEgIS_Electromagnets_Outreach/" target="_blank" class="btn-game">PROJECT_DT</a>
+            <a href="https://github.com/Bharat-Singh-Rawat/PY-BEMCS" target="_blank" class="btn-game">PY-BEMCS</a>
         </section>
 
         <h2 class="module-title">[ 01: EMPLOYMENT HISTORY ]</h2>
@@ -409,6 +575,7 @@
         let mX = window.innerWidth/2, mY = window.innerHeight/2, bX = mX, bY = mY;
         let beamEnergy = 5.0, neutCurrent = 0.0, isFiring = false;
         let bgParticles = [], pulses = [], beamParticles = [], electrons = [], faradayCups = [];
+        let tourActive = false;
 
         // ─── Placement Logic ───────────────────
         let isDraggingPanel = false;
@@ -637,6 +804,7 @@
 
         // ─── Interactions & Event Listeners ───────────────────
         window.addEventListener('pointermove', (e) => {
+            if (tourActive) return;
             mX = e.clientX; mY = e.clientY;
             if (!isDraggingPanel) {
                 const xVal = (mX - window.innerWidth / 2) / (window.innerWidth / 2);
@@ -653,12 +821,13 @@
         });
 
         window.addEventListener('pointerdown', (e) => {
+            if (tourActive) return;
             if(!e.target.closest('#control-panel, .lab-card, .btn-game, #jukebox-card, #video-intro-container')) {
                 isFiring = true; hud.classList.add('active'); if (audioCtx.state === 'suspended') audioCtx.resume(); startBeamHum();
             }
         });
 
-        window.addEventListener('pointerup', () => { isFiring = false; hud.classList.remove('active'); stopBeamHum(); });
+        window.addEventListener('pointerup', () => { if (tourActive) return; isFiring = false; hud.classList.remove('active'); stopBeamHum(); });
 
         document.getElementById('v-slider').oninput = (e) => {
             beamEnergy = parseFloat(e.target.value); document.getElementById('v-val').innerText = beamEnergy.toFixed(1);
@@ -687,14 +856,281 @@
         const introContainer = document.getElementById('video-intro-container');
         const introVideo = document.getElementById('intro-video');
         const initBtn = document.getElementById('initialize-button');
+        const bootLog = document.getElementById('boot-log');
 
-        initBtn.addEventListener('click', () => {
-            playTick(); introContainer.classList.add('preloader-hidden');
+        const BOOT_LINES = [
+            ["CHAMBER VACUUM",   "4.2e-6 Torr"],
+            ["PROPELLANT FLOW",  "12 sccm Xe"],
+            ["CATHODE HEATER",   "1450 K"],
+            ["DISCHARGE PSU",    "28 V / 4.2 A"],
+            ["SCREEN GRID HV",   "+1500 V"],
+            ["ACCEL GRID HV",    "-250 V"],
+            ["NEUTRALIZER",      "ON"],
+            ["INTERLOCKS",       "CLEAR"]
+        ];
+
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        function playIgnitionThump() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(140, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.55);
+            g.gain.setValueAtTime(0.18, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+            osc.connect(g); g.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.62);
+        }
+
+        function appendBootLine(idx, label, value) {
+            const total = BOOT_LINES.length;
+            const padLabel = label.padEnd(18, ' ');
+            const dots = '.'.repeat(Math.max(2, 22 - value.length));
+            const line = document.createElement('div');
+            line.className = 'boot-line';
+            line.innerHTML =
+                `<span class="boot-prefix">[ ${String(idx).padStart(2,'0')}/${String(total).padStart(2,'0')} ]</span> ` +
+                `<span class="boot-label">${padLabel}</span>` +
+                `<span class="boot-dots">${dots}</span> ` +
+                `<span class="boot-value">${value}</span>` +
+                `<span class="boot-ok">[OK]</span>`;
+            bootLog.appendChild(line);
+        }
+
+        let bootRunning = false;
+        async function runBootSequence() {
+            if (bootRunning) return;
+            bootRunning = true;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            initBtn.style.display = 'none';
+            bootLog.classList.add('active');
+            for (let i = 0; i < BOOT_LINES.length; i++) {
+                appendBootLine(i + 1, BOOT_LINES[i][0], BOOT_LINES[i][1]);
+                playTick();
+                await sleep(150 + Math.random() * 100);
+            }
+            const ignition = document.createElement('div');
+            ignition.className = 'boot-line boot-ignition';
+            ignition.textContent = '>> IGNITION ARMED — WELCOME, OPERATOR.';
+            bootLog.appendChild(ignition);
+            playIgnitionThump();
+            await sleep(900);
+            introContainer.classList.add('preloader-hidden');
             setTimeout(() => { introVideo.pause(); }, 1200);
-        });
+        }
+
+        initBtn.addEventListener('click', runBootSequence);
 
         window.addEventListener('keydown', (e) => { if (e.key.toLowerCase() === 's') introContainer.classList.add('preloader-hidden'); });
+
+        // ─── GUIDED TOUR ──────────────────────────────────────────
+        const tourCaption = document.getElementById('tour-caption');
+        const tourCaptionText = document.getElementById('tour-caption-text');
+        const tourBtn = document.getElementById('tour-btn');
+
+        const TOUR_STEPS = [
+            {
+                sel: '.container .lab-card',
+                scroll: true,
+                text: 'Welcome — your operator for this beam line. The cursor is a multicusp ion source: cyan beam, magnets, neutralizer filament. Move it around to warp the magnetic field.',
+                wait: 3500
+            },
+            {
+                sel: '#v-slider',
+                text: 'EXTRACTION_V controls beam energy. Watch the plume sharpen as it ramps up...',
+                action: 'tweak-v', targetVal: 9, wait: 1600
+            },
+            {
+                sel: '#i-slider',
+                text: 'NEUTRALIZER_I adds electrons from the hot filament. The beam tightens, divergence drops, hue shifts gold.',
+                action: 'tweak-i', targetVal: 7, wait: 1600
+            },
+            {
+                center: true,
+                text: 'Hold-click anywhere outside the panels to fire ions at a Faraday cup array. Cups light up by deposited current.',
+                action: 'auto-fire', wait: 2400
+            },
+            {
+                sel: '.hobby-chamber',
+                scroll: true,
+                text: 'Hobbies — click the ♟ CHESS atom for a knight L-jump easter egg. The other atoms ionise on hover.',
+                wait: 3200
+            },
+            {
+                sel: '.container .lab-card',
+                scroll: true,
+                text: 'Tour complete. Beam is yours — explore freely.',
+                wait: 2000
+            }
+        ];
+
+        function showCaption(text) {
+            tourCaptionText.innerText = ' ' + text;
+            tourCaption.classList.add('visible');
+        }
+        function hideCaption() {
+            tourCaption.classList.remove('visible');
+        }
+
+        function tweenCursor(targetX, targetY, duration = 900) {
+            return new Promise(resolve => {
+                const startX = mX, startY = mY;
+                const t0 = performance.now();
+                (function step() {
+                    if (!tourActive) return resolve();
+                    const t = Math.min(1, (performance.now() - t0) / duration);
+                    const e = 0.5 - 0.5 * Math.cos(Math.PI * t);
+                    mX = startX + (targetX - startX) * e;
+                    mY = startY + (targetY - startY) * e;
+                    if (t < 1) requestAnimationFrame(step); else resolve();
+                })();
+            });
+        }
+
+        function tweenSlider(id, target, duration = 1100) {
+            const slider = document.getElementById(id);
+            const startVal = parseFloat(slider.value);
+            const t0 = performance.now();
+            return new Promise(resolve => {
+                (function step() {
+                    if (!tourActive) return resolve();
+                    const t = Math.min(1, (performance.now() - t0) / duration);
+                    const e = 0.5 - 0.5 * Math.cos(Math.PI * t);
+                    slider.value = (startVal + (target - startVal) * e).toFixed(2);
+                    slider.dispatchEvent(new Event('input', { bubbles: true }));
+                    if (t < 1) requestAnimationFrame(step); else resolve();
+                })();
+            });
+        }
+
+        async function runTour() {
+            if (tourActive) return;
+            tourActive = true;
+            document.body.classList.add('tour-active');
+            tourBtn.classList.add('tour-running');
+            tourBtn.innerText = '■ STOP_TOUR';
+
+            for (const step of TOUR_STEPS) {
+                if (!tourActive) break;
+
+                let tx, ty;
+                if (step.center) {
+                    tx = window.innerWidth * 0.55;
+                    ty = window.innerHeight * 0.5;
+                } else {
+                    const el = document.querySelector(step.sel);
+                    if (!el) continue;
+                    if (step.scroll) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        await sleep(750);
+                    }
+                    const r = el.getBoundingClientRect();
+                    tx = r.left + r.width / 2;
+                    ty = r.top + r.height / 2;
+                }
+
+                await tweenCursor(tx, ty, 900);
+                if (!tourActive) break;
+                showCaption(step.text);
+
+                if (step.action === 'tweak-v') await tweenSlider('v-slider', step.targetVal, 1100);
+                else if (step.action === 'tweak-i') await tweenSlider('i-slider', step.targetVal, 1100);
+                else if (step.action === 'auto-fire') {
+                    isFiring = true; hud.classList.add('active'); startBeamHum();
+                    await sleep(step.wait);
+                    isFiring = false; hud.classList.remove('active'); stopBeamHum();
+                    continue;
+                }
+                if (!tourActive) break;
+                await sleep(step.wait);
+            }
+
+            hideCaption();
+            document.body.classList.remove('tour-active');
+            tourBtn.classList.remove('tour-running');
+            tourBtn.innerText = '▶ GUIDED_TOUR';
+            tourActive = false;
+        }
+
+        function abortTour() {
+            if (!tourActive) return;
+            tourActive = false;
+            isFiring = false; hud.classList.remove('active'); stopBeamHum();
+            hideCaption();
+            document.body.classList.remove('tour-active');
+            tourBtn.classList.remove('tour-running');
+            tourBtn.innerText = '▶ GUIDED_TOUR';
+        }
+
+        tourBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (tourActive) abortTour(); else runTour();
+        });
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && tourActive) abortTour();
+        });
+
+        // ─── CHESS KNIGHT EASTER EGG ──────────────────────────────
+        const chessAtom = Array.from(document.querySelectorAll('.hobby-atom'))
+            .find(a => /CHESS/i.test(a.textContent));
+        if (chessAtom) {
+            let knightCooldown = false;
+            const launchKnight = (e) => {
+                if (knightCooldown) return;
+                knightCooldown = true;
+                chessAtom.classList.add('knight-cooldown');
+
+                const rect = chessAtom.getBoundingClientRect();
+                const startX = rect.left + rect.width / 2;
+                const startY = rect.top + rect.height / 2;
+
+                const ghost = document.createElement('div');
+                ghost.className = 'knight-ghost';
+                ghost.textContent = '♞';
+                ghost.style.left = (startX - 14) + 'px';
+                ghost.style.top  = (startY - 22) + 'px';
+                document.body.appendChild(ghost);
+
+                // Trail dots tracing the L-path: 8 along x, then 5 going up
+                const trail = [];
+                for (let i = 1; i <= 8; i++) trail.push({ x: startX + (190 / 8) * i, y: startY,            d: 60 * i });
+                for (let i = 1; i <= 5; i++) trail.push({ x: startX + 190,           y: startY - (110/5)*i, d: 540 + 80 * i });
+                trail.forEach(p => {
+                    setTimeout(() => {
+                        const dot = document.createElement('div');
+                        dot.className = 'knight-trail-dot';
+                        dot.style.left = (p.x - 3) + 'px';
+                        dot.style.top  = (p.y - 3) + 'px';
+                        document.body.appendChild(dot);
+                        setTimeout(() => dot.remove(), 1200);
+                    }, p.d);
+                });
+
+                // Knight clop: square wave dropping 220 → 60 Hz
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.18);
+                g.gain.setValueAtTime(0.07, audioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.22);
+                osc.connect(g); g.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.24);
+
+                document.getElementById('hobby-readout').innerText =
+                    '> KNIGHT_JUMP: L-trajectory executed · ELO 1900 confirmed';
+
+                setTimeout(() => {
+                    ghost.remove();
+                    knightCooldown = false;
+                    chessAtom.classList.remove('knight-cooldown');
+                }, 1700);
+            };
+            chessAtom.addEventListener('click', launchKnight);
+        }
     </script>
 </body>
 </html>
