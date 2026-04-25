@@ -226,7 +226,7 @@ const initJukebox = () => {
 
     function loadTrack(index) {
         const track = playlist[index];
-        audio.src = track.file;
+        audio.src = `assets/audio/${track.file}`;
         // Updating innerText of the span inside track-info
         document.getElementById('track-text').innerText = `TRACK: ${track.title}`;
     }

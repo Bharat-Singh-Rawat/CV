@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bharat Singh Rawat, Ph.D.</title>
-    <script src="parallax.js"></script>
-    <script src="jukebox.js" defer></script>
+    <script src="js/parallax.js"></script>
+    <script src="js/jukebox.js" defer></script>
 
     <style>
         :root {
@@ -234,7 +234,7 @@
 <body>
     <div id="video-intro-container">
         <video id="intro-video" playsinline autoplay muted loop>
-            <source src="IonSource.mp4" type="video/mp4">
+            <source src="assets/video/IonSource.mp4" type="video/mp4">
         </video>
         <div id="crt-filter"></div>
         <div id="enter-system-overlay">
@@ -284,23 +284,33 @@
             <p style="color:#ccc;">Expert in manipulating charged particle beams with 7+ years of experience in the design of ion sources, beam extraction/transport systems, and digital twins.</p>
             <a href="https://bharat26031992.github.io/AEgIS_Outreach_Game/" target="_blank" class="btn-game">PROJECT_DT</a>
             <a href="https://bharat26031992.github.io/Project-Hbar/" target="_blank" class="btn-game">PROJECT_HBAR</a>
+            <a href="assets/cv/Bharat_Rawat_CV.pdf" target="_blank" download class="btn-game" style="border-color: var(--phosphor-green); color: var(--phosphor-green);">⤓ EJECT_DOSSIER.pdf</a>
         </section>
 
         <h2 class="module-title">[ 01: EMPLOYMENT HISTORY ]</h2>
         <div class="lab-card">
+            <span class="sub-role">Lead Developer / Independent Researcher | PY-BEMCS</span>
+            <span class="date-tag">03/2026 — Present</span>
+            <ul>
+                <li>Developing <b>PY-BEMCS</b>, a Python multiphysics suite for simulating ion-beam extraction and Monte Carlo Collision (MCC) physics in ion sources / thrusters and fusion Neutral Beam Injectors (NBI).</li>
+                <li>Developed a self-consistent <b>Poisson solver</b> integrating Bohm-criterion-based extraction.</li>
+                <li>Implemented dynamic <b>sputter erosion and structural failure</b> logic using probabilistic Charge-Exchange (CEX) scattering and in-situ mesh erosion to predict grid <b>End-of-Life (EOL)</b>.</li>
+                <li>Integrated a modular backend coupling <b>thermal heat maps</b> with secondary electron emission (SEE) and RF-based co-extraction models.</li>
+                <li>Built a <b>GUI + DAQ</b> system with real-time visualization of plasma meniscus, damage maps, electron backstreaming potential and beam divergence.</li>
+            </ul>
             <span class="sub-role">Research Associate | University of Liverpool / Cockcroft Institute / CERN</span>
             <span class="date-tag">2023 — 2026</span>
             <ul>
-                <li>Led ballistic antiproton transport optimization utilizing 3D CST Penning Trap models.</li>
-                <li>Creating a Digital Twin of the Penning Malmberg trap apparatus, integrating first principles physics with Machine Learning (ML) models to predict trap behavior and optimize particle confinement.</li>
-                <li>Executing critical on shift responsibilities during beam time, including real-time data acquisition and the management of cryogenic systems for superconducting magnets.</li>
+                <li>Led <b>ballistic antiproton transport</b> optimization during the annual shutdown using a 3D CST Penning Trap model — validated the new Positronium target design and identified settings to achieve antiproton velocities <b>below 2000 m/s</b>.</li>
+                <li>Carried out simulation studies on the <b>Rotating Wall trap</b> of the AEgIS apparatus to identify the optimal frequency for trapping antiprotons.</li>
+                <li>Developed <b>Reduced Order Models (ROMs)</b> for a Digital Twin of the Penning–Malmberg trap, integrating first-principles physics with ML to predict trap behaviour and optimize particle confinement.</li>
+                <li>Executed on-shift responsibilities during beam time, including real-time DAQ and management of cryogenic systems for superconducting magnets.</li>
             </ul>
             <span class="sub-role">Radiation Protection Engineer | Nuvia India Pvt Limited</span>
             <span class="date-tag">2018 — 2018</span>
             <ul>
-                <li>Managed occupational radiation exposure at Kakrapar Atomic Power Station.</li>
-                <li>Developed automated dose tracking systems for proactive safety interventions.</li>
-                <li>Coordinated with the Health Physics and Reactor Management teams to provide real-time notification of dose status.</li>
+                <li>Managed occupational radiation exposure at Kakrapar Atomic Power Station, ensuring strict adherence to weekly, monthly and annual regulatory dose limits.</li>
+                <li>Developed an automated dose-tracking spreadsheet to monitor exposure trends and identify personnel approaching threshold limits, enabling proactive safety interventions.</li>
             </ul>
         </div>
 
@@ -309,23 +319,24 @@
             <span class="sub-role">Ph.D. | Homi Bhabha National Institute / Institute for Plasma Research</span>
             <span class="date-tag">2018 — 2024</span>
             <ul>
-                <li>Designed a ring cusp ion source for Ar⁺ beams (1-2 keV, 100 mA).</li>
-                <li>Utilized CST Studio for magnetic cusp optimization and OPERA-3D for ion optics design.</li>
-                <li>Conducted transient thermo-structural analysis in ANSYS to design a grid mounting system.</li>
-                <li>Engineered a nine-channel Parallel Wire Array (PWA) and a Faraday Cup array (FCA).</li>
+                <li>Designed, developed and characterised a <b>ring cusp ion source</b> for space propulsion and fusion research, producing Ar⁺ beams at <b>1–2 keV / up to 100 mA</b> with an average <b>0.23 mA per aperture</b>.</li>
+                <li>Engineered a nine-channel <b>Parallel Wire Array (PWA)</b> and a <b>Faraday Cup Array (FCA)</b> for real-time, in-situ ion-beam profile monitoring.</li>
+                <li>Investigated space-charge neutralisation using a hot-filament cathode, achieving up to <b>100% degree of neutralisation</b>.</li>
+                <li>Used <b>CST Studio</b> for magnetic cusp optimisation and <b>OPERA-3D</b> for ion-optics design — achieved a low beam divergence of <b>6.5°</b>; transient thermo-structural ANSYS analysis limited grid thermal deformation to <b>&lt;0.1 mm</b>.</li>
             </ul>
             <span class="sub-role">M.Tech. Nuclear Engineering | Pandit Deendayal Petroleum University</span>
             <span class="date-tag">2015 — 2017</span>
             <ul>
-                <li>Developed a 10 kW Faraday cup capable of measuring 20-30 mA beam intensities.</li>
-                <li>Designed cooling systems maintaining copper Faraday Cup at 350.6°C.</li>
-                <li>Calculated suppression voltages (-450V to -500V) via SIMION 8.0 and LORENTZ.</li>
+                <li>Developed a <b>10 kW Faraday Cup</b> for 20–30 mA beam currents — a major upgrade over the legacy 1 kW / 500 µA system.</li>
+                <li>Engineered a water-cooling system holding peak temperature to <b>350.6 °C</b>, well below copper's 1085 °C melting point.</li>
+                <li>Determined optimal suppression voltage of <b>−450 to −500 V</b> via SIMION 8.0 and LORENTZ particle tracking.</li>
+                <li>Optimised a 30° cone geometry, reducing total secondary electron yield by a factor of <b>1.15</b> compared to larger angles.</li>
             </ul>
             <span class="sub-role">B.E. Mechanical Engineering | Gujarat Technological University</span>
             <span class="date-tag">2009 — 2013</span>
             <ul>
-                <li>Provided provisions for thermal judder and overheating in Long Chain Beamer machine.</li>
-                <li>Mitigated alignment errors in icecream packaging machines.</li>
+                <li><b>Thesis — Long Chain Beamer braking system:</b> showed cast iron in place of hardened mild steel reduced per-stop temperature rise by 1.39 °C, improving safety for heat-sensitive cotton.</li>
+                <li><b>Project — Ice-cream cup packaging machine:</b> diagnosed mechanical misalignments and recovered output from <b>9,600 → 11,200 cups/hr</b>, restoring near-design capacity.</li>
             </ul>
         </div>
 
@@ -365,8 +376,13 @@
 
         <h2 class="module-title">[ 06: SOFTWARE STACK & EXPERTISE ]</h2>
         <div class="lab-card" id="tech-expertise-section">
-            <p style="margin-bottom:15px;"><b>Software Stack:</b> CST Studio, OPERA3D, SIMION, COMSOL, RF Track, ANSYS, ASTRA, MAD-X, Geant4, IBISIMU.</p>
-            <p><b>Expertise:</b> Ion Source Design, Beam Transport Optimization, Space Charge Neutralization, and Advanced Beam Diagnostics.</p>
+            <p style="margin-bottom:10px;"><b style="color:var(--plasma-cyan);">Languages:</b> English (fluent), Hindi &amp; Gujarati (native), Spanish (B2), Russian (A1).</p>
+            <p style="margin-bottom:10px;"><b style="color:var(--plasma-cyan);">Coding:</b> Python, MATLAB, C++.</p>
+            <p style="margin-bottom:10px;"><b style="color:var(--plasma-cyan);">Particle &amp; Field Solvers:</b> CST Studio (Particle Tracking, ES/EM-PIC), OPERA-3D, SIMION, IBISIMU, COMSOL, RF Track, ASTRA, MAD-X, Geant4, G4Beamline, BDSIM, TAICHI, <b>PY-BEMCS (developer)</b>.</p>
+            <p style="margin-bottom:10px;"><b style="color:var(--plasma-cyan);">CAD / Multiphysics:</b> SolidWorks, ANSYS (Thermal / Structural / CFD).</p>
+            <p style="margin-bottom:10px;"><b style="color:var(--plasma-cyan);">Outreach:</b> Designed interactive web games for antimatter physics outreach; ran live superconductivity / magnetic-levitation demonstrations.</p>
+            <p style="margin-bottom:10px;"><b style="color:var(--plasma-cyan);">Teaching &amp; Misc.:</b> Co-instructor — <i>Introduction to Beam Diagnostics</i>; HPC computing; doctoral-student supervision.</p>
+            <p style="margin-top:15px;"><b style="color:var(--warning-orange);">Core expertise:</b> Ion source design, beam extraction &amp; transport optimisation, space-charge neutralisation, advanced beam diagnostics, digital twins for charged-particle traps.</p>
         </div>
     </div>
 

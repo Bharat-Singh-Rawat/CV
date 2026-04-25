@@ -38,12 +38,18 @@ This is a personal portfolio website designed with a unique **plasma/ion source 
 ## File Structure
 
 ```
-Ion Source theme/
-├── index.html          # Main HTML structure and styling
-├── jukebox.js          # Audio player and playlist management
-├── visualizer.js       # Web Audio API frequency visualizer
-├── parallax.js         # Parallax scrolling effects
-└── README.md          # This file
+CV-repo/
+├── index.html              # Main HTML structure and styling
+├── README.md               # This file
+├── js/
+│   ├── jukebox.js          # Audio player and playlist management
+│   ├── parallax.js         # Background magnetic-grid + parallax effects
+│   └── visualizer.js       # Web Audio API frequency visualizer
+└── assets/
+    ├── audio/              # 22-track jukebox playlist (track1..22.mp3)
+    ├── video/              # IonSource.mp4 intro + Intro.mp4
+    └── cv/
+        └── Bharat_Rawat_CV.pdf   # Downloadable PDF dossier
 ```
 
 ## Technologies Used
@@ -92,9 +98,11 @@ The theme uses a custom color scheme defined in CSS variables:
 
 ## Media Assets
 
-The project expects the following media files (not included in this repository):
-- `track1.mp3` through `track22.mp3` - Audio files for the playlist
-- Intro video file (referenced in HTML as CRT overlay)
+The project expects the following media files in `assets/`:
+- `assets/audio/track1.mp3` through `track22.mp3` — playlist audio
+- `assets/video/IonSource.mp4` — CRT intro overlay
+- `assets/video/Intro.mp4` — secondary intro clip
+- `assets/cv/Bharat_Rawat_CV.pdf` — downloadable CV linked from the hero card
 
 ## Future Enhancements
 
