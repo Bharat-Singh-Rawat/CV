@@ -516,6 +516,7 @@
             #ring-cusp-cursor { display: none !important; }
         }
     </style>
+    <script src="/Dossier/profile.js"></script>
 </head>
 <body>
     <div id="video-intro-container">
@@ -593,111 +594,51 @@
     </div>
 
     <div class="container">
-        <section class="lab-card">
-            <h1 style="font-size: 2.8rem; margin:0;">BHARAT SINGH RAWAT, Ph.D.</h1>
-            <h3 style="color: var(--plasma-cyan); font-weight: 200; margin-top:5px;">// ION SOURCE & BEAM DIAGNOSTICS EXPERT</h3>
-            <p style="color:#ccc;">Expert in manipulating charged particle beams with 7+ years of experience in the design of ion sources, beam extraction/transport systems, and digital twins.</p>
-            <a href="https://bharat-singh-rawat.github.io/AEgIS_Electromagnets_Outreach/" target="_blank" class="btn-game">PROJECT_DT</a>
-            <a href="https://github.com/Bharat-Singh-Rawat/PY-BEMCS" target="_blank" class="btn-game">PY-BEMCS</a>
-        </section>
+        <!-- CONTENT COMES FROM /Dossier/profile.js (edit that file, not this page) -->
+        <section class="lab-card" id="cv-hero"></section>
 
         <h2 class="module-title">[ 01: EMPLOYMENT HISTORY ]</h2>
-        <div class="lab-card">
-            <span class="sub-role">Lead Developer / Independent Researcher | PY-BEMCS</span>
-            <span class="date-tag">03/2026 — Present</span>
-            <ul>
-                <li>Developing <b>PY-BEMCS</b>, a Python multiphysics suite for simulating ion-beam extraction and Monte Carlo Collision (MCC) physics in ion sources / thrusters and fusion Neutral Beam Injectors (NBI).</li>
-                <li>Developed a self-consistent <b>Poisson solver</b> integrating Bohm-criterion-based extraction.</li>
-                <li>Implemented dynamic <b>sputter erosion and structural failure</b> logic using probabilistic Charge-Exchange (CEX) scattering and in-situ mesh erosion to predict grid <b>End-of-Life (EOL)</b>.</li>
-                <li>Integrated a modular backend coupling <b>thermal heat maps</b> with secondary electron emission (SEE) and RF-based co-extraction models.</li>
-                <li>Built a <b>GUI + DAQ</b> system with real-time visualization of plasma meniscus, damage maps, electron backstreaming potential and beam divergence.</li>
-            </ul>
-            <span class="sub-role">Research Associate | University of Liverpool / Cockcroft Institute / CERN</span>
-            <span class="date-tag">2023 — 2026</span>
-            <ul>
-                <li>Led <b>ballistic antiproton transport</b> optimization during the annual shutdown using a 3D CST Penning Trap model — validated the new Positronium target design and identified settings to achieve antiproton velocities <b>below 2000 m/s</b>.</li>
-                <li>Carried out simulation studies on the <b>Rotating Wall trap</b> of the AEgIS apparatus to identify the optimal frequency for trapping antiprotons.</li>
-                <li>Developed <b>Reduced Order Models (ROMs)</b> for a Digital Twin of the Penning–Malmberg trap, integrating first-principles physics with ML to predict trap behaviour and optimize particle confinement.</li>
-                <li>Executed on-shift responsibilities during beam time, including real-time DAQ and management of cryogenic systems for superconducting magnets.</li>
-            </ul>
-            <span class="sub-role">Radiation Protection Engineer | Nuvia India Pvt Limited</span>
-            <span class="date-tag">2018 — 2018</span>
-            <ul>
-                <li>Managed occupational radiation exposure at Kakrapar Atomic Power Station, ensuring strict adherence to weekly, monthly and annual regulatory dose limits.</li>
-                <li>Developed an automated dose-tracking spreadsheet to monitor exposure trends and identify personnel approaching threshold limits, enabling proactive safety interventions.</li>
-            </ul>
-        </div>
+        <div class="lab-card" id="cv-exp"></div>
 
         <h2 class="module-title">[ 02: RESEARCH & EDUCATION ]</h2>
-        <div class="lab-card">
-            <span class="sub-role">Ph.D. | Homi Bhabha National Institute / Institute for Plasma Research</span>
-            <span class="date-tag">2018 — 2024</span>
-            <ul>
-                <li>Designed, developed and characterised a <b>ring cusp ion source</b> for space propulsion and fusion research, producing Ar⁺ beams at <b>1–2 keV / up to 100 mA</b> with an average <b>0.23 mA per aperture</b>.</li>
-                <li>Engineered a nine-channel <b>Parallel Wire Array (PWA)</b> and a <b>Faraday Cup Array (FCA)</b> for real-time, in-situ ion-beam profile monitoring.</li>
-                <li>Investigated space-charge neutralisation using a hot-filament cathode, achieving up to <b>100% degree of neutralisation</b>.</li>
-                <li>Used <b>CST Studio</b> for magnetic cusp optimisation and <b>OPERA-3D</b> for ion-optics design — achieved a low beam divergence of <b>6.5°</b>; transient thermo-structural ANSYS analysis limited grid thermal deformation to <b>&lt;0.1 mm</b>.</li>
-            </ul>
-            <span class="sub-role">M.Tech. Nuclear Engineering | Pandit Deendayal Petroleum University</span>
-            <span class="date-tag">2015 — 2017</span>
-            <ul>
-                <li>Developed a <b>10 kW Faraday Cup</b> for 20–30 mA beam currents — a major upgrade over the legacy 1 kW / 500 µA system.</li>
-                <li>Engineered a water-cooling system holding peak temperature to <b>350.6 °C</b>, well below copper's 1085 °C melting point.</li>
-                <li>Determined optimal suppression voltage of <b>−450 to −500 V</b> via SIMION 8.0 and LORENTZ particle tracking.</li>
-                <li>Optimised a 30° cone geometry, reducing total secondary electron yield by a factor of <b>1.15</b> compared to larger angles.</li>
-            </ul>
-            <span class="sub-role">B.E. Mechanical Engineering | Gujarat Technological University</span>
-            <span class="date-tag">2009 — 2013</span>
-            <ul>
-                <li><b>Thesis — Long Chain Beamer braking system:</b> showed cast iron in place of hardened mild steel reduced per-stop temperature rise by 1.39 °C, improving safety for heat-sensitive cotton.</li>
-                <li><b>Project — Ice-cream cup packaging machine:</b> diagnosed mechanical misalignments and recovered output from <b>9,600 → 11,200 cups/hr</b>, restoring near-design capacity.</li>
-            </ul>
-        </div>
+        <div class="lab-card" id="cv-edu"></div>
 
         <h2 class="module-title">[ 03: PUBLICATIONS ]</h2>
-        <div class="lab-card">
-            <div class="pub-box"><b>Instruments (2026):</b> Characterization of the extraction system of supersonic gas curtain-based ionization profile monitor for flash proton therapy.</div>
-            <div class="pub-box"><b>IBIC (2025):</b> Design studies of a Retarding Potential Energy Analyser (RPEA) for low energy antimatter experiments.</div>
-            <div class="pub-box"><b>Instruments (2025):</b> Faraday cups: principles, designs, and applications across scientific disciplines—a review.</div>
-            <div class="pub-box"><b>EXA-LEAP (2025):</b> 3D simulation studies of mixed plasma confinement at AEgIS.</div>
-            <div class="pub-box"><b>Phys. Rev. Lett. (2024):</b> Positronium Laser Cooling via the 1³S-2³P Transition with a Broadband Laser Pulse.</div>
-            <div class="pub-box"><b>HBNI Ph.D. Dissertation (2024):</b> Studies on Extraction of an Ion beam and its Transport from a Multi-Cusp Gridded Ion Source.</div>
-            <div class="pub-box"><b>IPAC (2024):</b> Simulation studies for the confinement of antiprotons for the AEgIS experiment.</div>
-            <div class="pub-box"><b>IEEE TPS (2023):</b> Experimental Studies on the Roles of Space Charge Neutralization in a Ring Cusp Ion Source.</div>
-            <div class="pub-box"><b>AIP Advances (2022):</b> Measurement system for ion beam profiles using fixed parallel wires and Faraday cup array.</div>
-            <div class="pub-box"><b>IEEE TPS (2021):</b> Characterization of a Multicusp Ion Source with Two-Grid Extraction System for Studying Extraction and Transport of Ion Beam.</div>
-            <div class="pub-box"><b>ICONE25 (2017):</b> Design and simulation of 10kW Faraday cup for ion beam current.</div>
-        </div>
+        <div class="lab-card" id="cv-pubs"></div>
 
         <h2 class="module-title">[ 04: PRESENTATION & TALKS ]</h2>
-        <div class="lab-card">
-            <div class="pub-box"><b>Invited talk:</b> "Design tutorial on FC design for low energy antimatter research using CST studio" CST User day, 2025, Nottingham, UK.</div>
-            <div class="pub-box"><b>Contributed talk:</b> "Digital Twin-Enabled Modeling of Antimatter Beam Control" EuPRAXIA-DN, 2025, Lisbon, Portugal.</div>
-            <div class="pub-box"><b>Contributed talk:</b> "Trapping Antiprotons: Modeling Penning-Malmberg Traps for AEgIS" SIMULIA RUM, 2025, Manchester, UK.</div>
-            <div class="pub-box"><b>Contributed talk:</b> "Design and Simulation of 10 kW Faraday Cup" ICONE25, 2017, Shanghai, China.</div>
-        </div>
+        <div class="lab-card" id="cv-talks"></div>
 
         <h2 class="module-title">[ 05: HOBBIES ]</h2>
         <div class="lab-card">
-            <div class="hobby-chamber">
-                <div class="hobby-atom" data-info="STRATEGY: Chess player - Level ELO 1725 ,1900 on chess.com">♟ CHESS</div>
-                <div class="hobby-atom" data-info="POLYGLOT: English, Hindi, Gujarati, Spanish (B2), Russian (A1)">🌍 LANGUAGES</div>
-                <div class="hobby-atom" data-info="INSTRUMENTS: Keyboards, Harmonium, Melodica, Keytar and Guitar">🎵 INSTRUMENTS</div>
-                <div class="hobby-atom" data-info="GEOGRAPHY: Travelled over 12 countries and still counting...">✈️ TRAVELING</div>
-                <div id="hobby-readout">// WAITING_FOR_BEAM_PROBE...</div>
-            </div>
+            <div class="hobby-chamber" id="cv-hobbies"></div>
         </div>
 
         <h2 class="module-title">[ 06: SOFTWARE STACK & EXPERTISE ]</h2>
-        <div class="lab-card" id="tech-expertise-section">
-            <p style="margin-bottom:10px;"><b style="color:var(--plasma-cyan);">Languages:</b> English (fluent), Hindi &amp; Gujarati (native), Spanish (B2), Russian (A1).</p>
-            <p style="margin-bottom:10px;"><b style="color:var(--plasma-cyan);">Coding:</b> Python, MATLAB, C++.</p>
-            <p style="margin-bottom:10px;"><b style="color:var(--plasma-cyan);">Particle &amp; Field Solvers:</b> CST Studio (Particle Tracking, ES/EM-PIC), OPERA-3D, SIMION, IBISIMU, COMSOL, RF Track, ASTRA, MAD-X, Geant4, G4Beamline, BDSIM, TAICHI, <b>PY-BEMCS (developer)</b>.</p>
-            <p style="margin-bottom:10px;"><b style="color:var(--plasma-cyan);">CAD / Multiphysics:</b> SolidWorks, ANSYS (Thermal / Structural / CFD).</p>
-            <p style="margin-bottom:10px;"><b style="color:var(--plasma-cyan);">Outreach:</b> Designed interactive web games for antimatter physics outreach; ran live superconductivity / magnetic-levitation demonstrations.</p>
-            <p style="margin-bottom:10px;"><b style="color:var(--plasma-cyan);">Teaching &amp; Misc.:</b> Co-instructor — <i>Introduction to Beam Diagnostics</i>; HPC computing; doctoral-student supervision.</p>
-            <p style="margin-top:15px;"><b style="color:var(--warning-orange);">Core expertise:</b> Ion source design, beam extraction &amp; transport optimisation, space-charge neutralisation, advanced beam diagnostics, digital twins for charged-particle traps.</p>
-        </div>
+        <div class="lab-card" id="tech-expertise-section"></div>
+
+        <script>
+        (function () {
+            const P = window.PROFILE, $ = id => document.getElementById(id);
+            const entries = list => cvMap(list, e => `
+                <span class="sub-role">${e.role} | ${e.org}</span>
+                <span class="date-tag">${e.dates}</span>
+                <ul>${cvMap(e.bullets, b => `<li>${b}</li>`)}</ul>`);
+            $('cv-hero').innerHTML = `
+                <h1 style="font-size: 2.8rem; margin:0;">${P.name}</h1>
+                <h3 style="color: var(--plasma-cyan); font-weight: 200; margin-top:5px;">// ${P.title}</h3>
+                <p style="color:#ccc;">${P.summary}</p>
+                ${cvMap(P.links, l => `<a href="${l.url}" target="_blank" class="btn-game">${l.label}</a> `)}`;
+            $('cv-exp').innerHTML = entries(P.experience);
+            $('cv-edu').innerHTML = entries(P.education);
+            $('cv-pubs').innerHTML = cvMap(P.publications, p => `<div class="pub-box"><b>${p.venue}:</b> ${p.title}</div>`);
+            $('cv-talks').innerHTML = cvMap(P.talks, t => `<div class="pub-box"><b>${t.type}:</b> ${t.text}</div>`);
+            $('cv-hobbies').innerHTML = cvMap(P.hobbies, h => `<div class="hobby-atom" data-info="${h.tag}: ${h.detail}">${h.icon} ${h.name}</div>`)
+                + `<div id="hobby-readout">// WAITING_FOR_BEAM_PROBE...</div>`;
+            $('tech-expertise-section').innerHTML = cvMap(P.skills, s => `<p style="margin-bottom:10px;"><b style="color:var(--plasma-cyan);">${s.label}:</b> ${s.text}</p>`)
+                + `<p style="margin-top:15px;"><b style="color:var(--warning-orange);">Core expertise:</b> ${P.expertise}</p>`;
+        })();
+        </script>
     </div>
 
     <script>
