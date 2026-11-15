@@ -158,75 +158,6 @@
             .boot-line { white-space: normal; }
         }
 
-        /* --- GUIDED TOUR --- */
-        #tour-btn {
-            display: block;
-            width: 100%;
-            margin-top: 12px;
-            padding: 6px 8px;
-            background: rgba(0,0,0,0.6);
-            border: 1px solid var(--phosphor-green);
-            color: var(--phosphor-green);
-            font-family: 'Fira Code', monospace;
-            font-size: 0.6rem;
-            letter-spacing: 1px;
-            cursor: pointer;
-            text-transform: uppercase;
-            transition: 0.2s;
-        }
-        #tour-btn:hover {
-            background: rgba(0,255,65,0.15);
-            box-shadow: 0 0 12px var(--phosphor-green);
-        }
-        #tour-btn.tour-running {
-            border-color: var(--magnet-north);
-            color: var(--magnet-north);
-            box-shadow: 0 0 12px var(--magnet-north);
-        }
-
-        #tour-caption {
-            position: fixed;
-            left: 50%;
-            bottom: 36px;
-            transform: translateX(-50%) translateY(20px);
-            background: rgba(0,12,0,0.92);
-            border: 1px solid var(--phosphor-green);
-            border-left: 3px solid var(--phosphor-green);
-            color: #d8ffd8;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.85rem;
-            line-height: 1.45;
-            padding: 14px 22px;
-            max-width: min(620px, 90vw);
-            box-shadow: 0 0 24px rgba(0,255,65,0.25);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.4s, transform 0.4s;
-            z-index: 100002;
-            text-align: center;
-        }
-        #tour-caption.visible {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-        #tour-caption .tour-prefix {
-            color: var(--warning-orange);
-            margin-right: 8px;
-            font-weight: bold;
-        }
-        #tour-caption .tour-hint {
-            display: block;
-            margin-top: 8px;
-            font-size: 0.65rem;
-            color: #5b6d5b;
-            letter-spacing: 1px;
-        }
-
-        /* Pulsing ring drawn at the cursor's current target during tour */
-        body.tour-active #ring-cusp-cursor {
-            filter: drop-shadow(0 0 18px var(--phosphor-green)) drop-shadow(0 0 32px var(--plasma-cyan));
-        }
-
         /* --- CHESS KNIGHT EASTER EGG --- */
         .knight-ghost {
             position: fixed;
@@ -263,20 +194,6 @@
         .hobby-atom.knight-cooldown { cursor: wait; opacity: 0.6; }
 
         /* --- UI COMPONENT PLACEMENT --- */
-        #control-panel {
-            position: fixed; 
-            top: 20px;     
-            left: 20px;
-            background: rgba(0,0,0,0.92);
-            border: 1px solid var(--plasma-cyan);
-            padding: 15px; z-index: 9999;
-            pointer-events: all; border-radius: 5px;
-            box-shadow: 0 0 20px rgba(0,255,255,0.2);
-            cursor: grab;
-            user-select: none;
-            transition: transform 0.1s ease-out;
-        }
-        
         #jukebox-card {
             position: fixed !important;
             top: 20px !important;
@@ -294,160 +211,61 @@
             background-size: 50px 50px;
             z-index: -1; pointer-events: none;
         }
-        #control-panel:active { cursor: grabbing; }
-        input[type=range] { accent-color: var(--plasma-cyan); width: 140px; cursor: pointer; display: block; margin: 5px 0 10px; }
         
-        #ring-cusp-cursor {
-            position: fixed; width: 400px; height: 200px;
-            pointer-events: none; z-index: 100000;
-            transform: translate(-66px, -100px);
+        /* --- LEFT SIDEBAR: profile card + section navigator (wide screens only) --- */
+        #side-rail { display: none; }
+        @media (min-width: 1200px) {
+            #side-rail {
+                display: flex; flex-direction: column; gap: 14px;
+                position: fixed; top: 20px; left: 20px; width: 200px; z-index: 50;
+                max-height: calc(100vh - 40px); overflow-y: auto; scrollbar-width: none;
+                pointer-events: all;
+            }
+            #side-rail::-webkit-scrollbar { display: none; }
+            /* clear the sidebar on the left and the playlist box on the right */
+            body .container { margin-left: max(240px, calc((100vw - 950px) / 2)); margin-right: auto; max-width: min(950px, calc(100vw - 480px)); }
         }
-        #ion-beam-canvas { position: absolute; inset: 0; pointer-events: none; z-index: 6; }
-        #electron-canvas { position: absolute; inset: 0; pointer-events: none; z-index: 7; }
-        #erosion-canvas  { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+        .rail-card {
+            background: rgba(10, 10, 15, 0.94); border: 1px solid #222; border-left: 3px solid var(--plasma-cyan);
+            padding: 16px 14px;
+        }
+        .rail-avatar {
+            width: 96px; height: 96px; margin: 2px auto 12px; border-radius: 50%; padding: 4px;
+            /* ring of alternating N/S magnets, a nod to the ring-cusp source */
+            background: repeating-conic-gradient(var(--magnet-north) 0 30deg, var(--magnet-south) 30deg 60deg);
+            box-shadow: 0 0 18px rgba(0, 255, 255, 0.25);
+        }
+        .rail-avatar > * {
+            width: 100%; height: 100%; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            background: radial-gradient(circle at 50% 40%, #102028, #05050a 70%); object-fit: cover;
+            color: var(--plasma-cyan); font-size: 1.7rem; font-weight: bold; letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+        }
+        .rail-name { text-align: center; color: #fff; font-weight: bold; font-size: 0.85rem; line-height: 1.3; }
+        .rail-role { text-align: center; color: var(--plasma-cyan); font-size: 0.7rem; margin-top: 4px; line-height: 1.35; }
+        .rail-facts { margin: 12px 0 0; padding: 10px 0 0; border-top: 1px dashed #333; font-size: 0.68rem; line-height: 1.5; }
+        .rail-facts div { display: flex; justify-content: space-between; gap: 8px; }
+        .rail-facts dt { color: #777; }
+        .rail-facts dd { margin: 0; color: #ddd; text-align: right; }
+        .rail-btns { display: flex; gap: 6px; margin-top: 12px; }
+        .rail-btns a {
+            flex: 1; text-align: center; padding: 6px 4px; font-size: 0.65rem; font-weight: bold; text-decoration: none;
+            border: 1px solid var(--bc); color: var(--bc); transition: 0.2s;
+        }
+        .rail-btns a:hover { background: var(--bc); color: #000; box-shadow: 0 0 12px var(--bc); }
+        #rail-nav { display: flex; flex-direction: column; padding: 10px 0; border-left-color: var(--warning-orange); }
+        .rail-nav-title { font-size: 0.6rem; color: var(--warning-orange); letter-spacing: 2px; padding: 0 14px 8px; }
+        #rail-nav a {
+            display: flex; gap: 10px; padding: 6px 14px; font-size: 0.72rem; color: #999; text-decoration: none;
+            border-left: 2px solid transparent; margin-left: -3px; transition: color 0.2s, background 0.2s, border-color 0.2s;
+        }
+        #rail-nav a .num { color: #555; transition: color 0.2s; }
+        #rail-nav a:hover { color: #fff; background: rgba(0, 255, 255, 0.05); }
+        #rail-nav a.active { color: var(--plasma-cyan); border-left-color: var(--plasma-cyan); background: rgba(0, 255, 255, 0.07); }
+        #rail-nav a.active .num { color: var(--plasma-cyan); }
 
-        /* Anode back-plate */
-        .anode-plate {
-            position: absolute; top: 30px; left: 0;
-            width: 6px; height: 142px;
-            background: linear-gradient(to right, #2a2a30, #4a4a52);
-            border-right: 1px solid #6a6a72;
-            border-radius: 2px 0 0 2px;
-        }
-        /* Discharge chamber body */
-        .chamber-body {
-            position: absolute; top: 28px; left: 4px;
-            width: 124px; height: 144px;
-            background: linear-gradient(135deg, rgba(28,28,42,0.96), rgba(14,14,24,0.96));
-            border: 1.5px solid #585866;
-            border-right: none;
-            border-radius: 6px 0 0 6px;
-            box-shadow:
-                inset 0 0 24px rgba(0,255,255,0.05),
-                inset 2px 0 4px rgba(0,0,0,0.6);
-        }
-        /* Plasma fill — brightness scales with EXTRACTION_V, hue shifts with NEUTRALIZER_I */
-        .chamber-plasma {
-            position: absolute; top: 38px; left: 12px;
-            width: 110px; height: 124px;
-            background: radial-gradient(ellipse at 65% 50%,
-                hsla(var(--plasma-hue), 95%, 65%, calc(var(--plasma-intensity) * 0.34)) 0%,
-                hsla(var(--plasma-hue), 80%, 50%, calc(var(--plasma-intensity) * 0.18)) 45%,
-                transparent 80%);
-            border-radius: 4px 0 0 4px;
-            pointer-events: none;
-            animation: plasma-pulse 2.4s ease-in-out infinite;
-            mix-blend-mode: screen;
-            transition: background 0.18s ease;
-            z-index: 2;
-        }
-        @keyframes plasma-pulse {
-            0%,100% { opacity: 0.65; transform: scale(1); }
-            50%     { opacity: 1.0;  transform: scale(1.02); }
-        }
-        /* Hollow cathode inside chamber */
-        .hollow-cathode {
-            position: absolute; top: 92px; left: 14px;
-            width: 14px; height: 16px;
-            background: linear-gradient(135deg, #3a3a44, #1a1a22);
-            border: 1px solid #5a5a62;
-            border-radius: 2px;
-            z-index: 3;
-        }
-        .hollow-cathode::after {
-            content: '';
-            position: absolute;
-            top: 5px; right: -4px;
-            width: 5px; height: 6px;
-            background: radial-gradient(circle, #ffd070 0%, #ff7020 60%, transparent 100%);
-            border-radius: 0 50% 50% 0;
-            box-shadow: 0 0 8px rgba(255,180,80,0.8);
-            animation: cathode-glow 1.6s ease-in-out infinite;
-        }
-        @keyframes cathode-glow {
-            0%,100% { opacity: 0.85; }
-            50%     { opacity: 1; box-shadow: 0 0 12px rgba(255,200,100,1); }
-        }
-
-        /* Cusp magnets */
-        .magnet {
-            position: absolute;
-            width: 14px; height: 8px;
-            border: 1px solid #1a1a1a;
-            border-radius: 1.5px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.6);
-            z-index: 4;
-        }
-        .magnet.back { width: 8px; height: 14px; }
-        .north { background: linear-gradient(to bottom, #ff5e5e, #b22222); }
-        .south { background: linear-gradient(to bottom, #5e7eff, #2244aa); }
-        .back.north { background: linear-gradient(to right, #ff5e5e, #b22222); }
-        .back.south { background: linear-gradient(to right, #5e7eff, #2244aa); }
-
-        /* Two-grid extraction stack — period 18px, apertures aligned */
-        .grid {
-            position: absolute;
-            top: 28px;
-            width: 5px;
-            height: 144px;
-            border-radius: 1px;
-            z-index: 4;
-        }
-        .screen-grid {
-            left: 132px;
-            background: repeating-linear-gradient(
-                to bottom,
-                rgba(180,210,255,0.95) 0 3px,
-                transparent 3px 15px,
-                rgba(180,210,255,0.95) 15px 18px
-            );
-            box-shadow: 0 0 5px rgba(120,180,255,0.55);
-        }
-        .accel-grid {
-            left: 146px;
-            background: repeating-linear-gradient(
-                to bottom,
-                rgba(140,90,90,0.95) 0 5px,
-                transparent 5px 13px,
-                rgba(140,90,90,0.95) 13px 18px
-            );
-            box-shadow: 0 0 5px rgba(255,80,80,0.4);
-        }
-
-        /* Wear stats inside control panel */
-        #wear-readout {
-            margin-top: 12px;
-            padding-top: 10px;
-            border-top: 1px dashed #333;
-            font-size: 0.55rem;
-            color: var(--phosphor-green);
-            line-height: 1.6;
-        }
-        #wear-readout .wear-row { display: flex; justify-content: space-between; }
-        #wear-readout .wear-label { color: #888; }
-        #reset-chamber-btn {
-            display: block; width: 100%; margin-top: 8px;
-            padding: 5px 6px;
-            background: rgba(0,0,0,0.6);
-            border: 1px solid var(--magnet-north);
-            color: var(--magnet-north);
-            font-family: 'Fira Code', monospace;
-            font-size: 0.55rem; letter-spacing: 1px;
-            cursor: pointer; text-transform: uppercase;
-            transition: 0.2s;
-        }
-        #reset-chamber-btn:hover {
-            background: rgba(255,62,62,0.15);
-            box-shadow: 0 0 10px var(--magnet-north);
-        }
-      
-        #diagnostic-hud {
-            position: fixed; bottom: 20px; right: 20px; width: 200px; background: rgba(0, 10, 0, 0.95);
-            border: 1px solid var(--phosphor-green); padding: 12px; opacity: 0; transition: 0.3s; z-index: 9999;
-            border-radius: 4px; pointer-events: none;
-        }
-        #diagnostic-hud.active { opacity: 1; }
-        .diag-label { color: var(--phosphor-green); font-size: 0.6rem; margin-bottom: 4px; text-transform: uppercase;}
+        /* Particle-trail cursor: normal arrow + a short fading wake of ions */
+        #trail-canvas { position: fixed; inset: 0; z-index: 99990; pointer-events: none; }
       
         .container { max-width: 950px; margin: 0 auto; padding: 120px 20px 100px; position: relative; z-index: 10; pointer-events: none; }
         .lab-card {
@@ -477,7 +295,7 @@
         }
         .pulse-active { animation: border-pulse 0.4s ease-out; }
 
-        h2.module-title { color: var(--warning-orange); text-transform: uppercase; letter-spacing: 3px; border-bottom: 1px solid #333; padding-bottom: 8px; font-size: 1rem; margin-top: 40px;}
+        h2.module-title { color: var(--warning-orange); text-transform: uppercase; letter-spacing: 3px; border-bottom: 1px solid #333; padding-bottom: 8px; font-size: 1rem; margin-top: 40px; scroll-margin-top: 24px; }
         .sub-role { color: var(--plasma-cyan); font-weight: bold; font-size: 1.1rem; display: block; margin-top: 20px;}
         .date-tag { color: #888; font-size: 0.85rem; margin-bottom: 8px; display: block; }
         ul { list-style: none; padding: 0; }
@@ -509,15 +327,13 @@
             .lab-card { padding: 20px; margin-bottom: 30px; }
             h1 { font-size: 2rem !important; }
             .sub-role { font-size: 1rem; }
-            #control-panel { top: auto !important; bottom: 20px !important; left: 10px !important; z-index: 100000; }
-            #diagnostic-hud { display: none !important; } /* Hide complex canvas HUD on tiny screens to save space */
             .btn-game { display: block; text-align: center; margin-bottom: 10px; }
             #initialize-button { font-size: 0.9rem; padding: 15px 25px; }
         }
 
-        /* Disable Custom Particle Cursor on Touch Devices */
+        /* No cursor trail on touch devices */
         @media (hover: none) and (pointer: coarse) {
-            #ring-cusp-cursor { display: none !important; }
+            #trail-canvas { display: none !important; }
         }
 
     </style>
@@ -539,88 +355,37 @@
     <canvas id="bg-canvas"></canvas>
     <div id="ui-grid"></div>
     
-    <div id="control-panel">
-        <div style="color:var(--plasma-cyan); font-size:0.6rem; font-weight:bold; margin-bottom:10px; cursor: move;">[ ION_SOURCE_CONTROL ]</div>
-        <label style="font-size:0.55rem;">EXTRACTION_V: <span id="v-val">5.0</span> kV</label>
-        <input type="range" id="v-slider" min="1" max="10" step="0.1" value="5">
-      
-        <label style="font-size:0.55rem; color:var(--warning-orange);">NEUTRALIZER_I: <span id="i-val">0.0</span> mA</label>
-        <input type="range" id="i-slider" min="0" max="10" step="0.1" value="0">
+    <canvas id="trail-canvas" aria-hidden="true"></canvas>
 
-        <button id="tour-btn">▶ GUIDED_TOUR</button>
-
-        <div id="wear-readout">
-            <div class="wear-row"><span class="wear-label">GRID_WEAR:</span><span><span id="wear-pct">0.0</span>%</span></div>
-            <div class="wear-row"><span class="wear-label">IONS_DEPOSITED:</span><span id="ions-tot">0</span></div>
-            <button id="reset-chamber-btn">RESET CHAMBER</button>
-        </div>
-
-        <div style="margin-top: 10px;"><a href="https://bharatbharat22.wixsite.com/website" target="_blank" style="color:var(--plasma-cyan); text-decoration:none; font-size:0.8rem;">View Full Portfolio</a></div>
-    </div>
-
-    <div id="tour-caption" aria-live="polite">
-        <span class="tour-prefix">[ TOUR ]</span><span id="tour-caption-text"></span>
-        <span class="tour-hint">press ESC to abort</span>
-    </div>
-
-    <div id="ring-cusp-cursor">
-        <canvas id="ion-beam-canvas" width="400" height="200"></canvas>
-        <canvas id="electron-canvas" width="400" height="200"></canvas>
-        <canvas id="erosion-canvas" width="400" height="200"></canvas>
-
-        <!-- Discharge chamber -->
-        <div class="anode-plate"></div>
-        <div class="chamber-body"></div>
-        <div class="chamber-plasma"></div>
-        <div class="hollow-cathode"></div>
-
-        <!-- Ring-cusp magnets (alternating N/S along inner walls) -->
-        <div class="magnet north back" style="top:62px; left:6px;"></div>
-        <div class="magnet south back" style="top:120px; left:6px;"></div>
-        <div class="magnet south" style="top:34px; left:22px;"></div>
-        <div class="magnet north" style="top:34px; left:50px;"></div>
-        <div class="magnet south" style="top:34px; left:78px;"></div>
-        <div class="magnet north" style="top:34px; left:106px;"></div>
-        <div class="magnet north" style="top:158px; left:22px;"></div>
-        <div class="magnet south" style="top:158px; left:50px;"></div>
-        <div class="magnet north" style="top:158px; left:78px;"></div>
-        <div class="magnet south" style="top:158px; left:106px;"></div>
-
-        <!-- Two-grid extraction stack -->
-        <div class="grid screen-grid" title="Screen grid (+HV)"></div>
-        <div class="grid accel-grid"  title="Accel grid (-HV)"></div>
-    </div>
-
-    <div id="diagnostic-hud">
-        <div class="diag-label">Beam Profile</div>
-        <canvas id="gaussianCanvas" width="180" height="40"></canvas>
-        <div class="diag-label" style="margin-top: 10px;">Phase Space</div>
-        <canvas id="phaseSpaceCanvas" width="180" height="50"></canvas>
-    </div>
+    <!-- Left sidebar (wide screens only): profile card + section navigator, filled from profile.js -->
+    <aside id="side-rail" aria-label="Profile and sections">
+        <div class="rail-card" id="rail-profile"></div>
+        <nav class="rail-card" id="rail-nav" aria-label="Sections"></nav>
+    </aside>
 
     <div class="container">
         <!-- CONTENT COMES FROM /Dossier/profile.js (edit that file, not this page) -->
         <section class="lab-card" id="cv-hero"></section>
 
 
-        <h2 class="module-title">[ 01: EMPLOYMENT HISTORY ]</h2>
+        <h2 class="module-title" id="sec-employment">[ 01: EMPLOYMENT HISTORY ]</h2>
         <div class="lab-card" id="cv-exp"></div>
 
-        <h2 class="module-title">[ 02: RESEARCH & EDUCATION ]</h2>
+        <h2 class="module-title" id="sec-education">[ 02: RESEARCH & EDUCATION ]</h2>
         <div class="lab-card" id="cv-edu"></div>
 
-        <h2 class="module-title">[ 03: PUBLICATIONS ]</h2>
+        <h2 class="module-title" id="sec-publications">[ 03: PUBLICATIONS ]</h2>
         <div class="lab-card" id="cv-pubs"></div>
 
-        <h2 class="module-title">[ 04: PRESENTATION & TALKS ]</h2>
+        <h2 class="module-title" id="sec-talks">[ 04: PRESENTATION & TALKS ]</h2>
         <div class="lab-card" id="cv-talks"></div>
 
-        <h2 class="module-title">[ 05: HOBBIES ]</h2>
+        <h2 class="module-title" id="sec-hobbies">[ 05: HOBBIES ]</h2>
         <div class="lab-card">
             <div class="hobby-chamber" id="cv-hobbies"></div>
         </div>
 
-        <h2 class="module-title">[ 06: SOFTWARE STACK & EXPERTISE ]</h2>
+        <h2 class="module-title" id="sec-skills">[ 06: SOFTWARE STACK & EXPERTISE ]</h2>
         <div class="lab-card" id="tech-expertise-section"></div>
 
         <script>
@@ -638,6 +403,7 @@
                 <p style="color:#ccc;">${P.summary}</p>
                 <p id="guest-line" hidden></p>
                 ${P.links.map((l, i) => `<a href="${l.url}" target="_blank" rel="noopener" class="btn-game" style="--bc:${LINK_COLORS[i % LINK_COLORS.length]}">${l.label}</a> `).join('')}
+                <a href="https://bharatbharat22.wixsite.com/website" target="_blank" rel="noopener" class="btn-game" style="--bc:var(--electron-gold)">FULL PORTFOLIO</a>
                 <a href="plain.html" target="_blank" rel="noopener" class="btn-game" style="--bc:#d1d1d1">PLAIN CV / PRINT</a>`;
             $('cv-exp').innerHTML = entries(P.experience);
             $('cv-edu').innerHTML = entries(P.education);
@@ -647,6 +413,52 @@
                 + `<div id="hobby-readout">// WAITING_FOR_BEAM_PROBE...</div>`;
             $('tech-expertise-section').innerHTML = cvMap(P.skills, s => `<p style="margin-bottom:10px;"><b style="color:var(--plasma-cyan);">${s.label}:</b> ${s.text}</p>`)
                 + `<p style="margin-top:15px;"><b style="color:var(--warning-orange);">Core expertise:</b> ${P.expertise}</p>`;
+
+            // left sidebar: profile card + section navigator
+            (() => {
+                const prof = $('rail-profile'), nav = $('rail-nav'); if (!prof || !nav) return;
+                const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+                const bare = P.name.replace(/,.*$/, '').trim();
+                const parts = bare.split(/\s+/);
+                const initials = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+                const now = (P.experience || [])[0] || {};
+                const nowOrg = String(now.org || '').split(',')[0];
+                const mail = (P.links || []).find(l => /^mailto:/.test(l.url));
+                const titleCase = s => s.toLowerCase().replace(/(^|[\s(])\S/g, c => c.toUpperCase()).replace(/\bPh\.d\./i, 'Ph.D.');
+                prof.innerHTML = `
+                    <div class="rail-avatar">${P.photo ? `<img src="${esc(P.photo)}" alt="${esc(bare)}">` : `<span aria-hidden="true">${initials}</span>`}</div>
+                    <div class="rail-name">${esc(titleCase(P.name))}</div>
+                    <div class="rail-role">${esc(now.role || '')}${nowOrg ? ` @ ${esc(nowOrg)}` : ''}</div>
+                    <dl class="rail-facts">
+                        ${P.location ? `<div><dt>Location</dt><dd>${esc(P.location)}</dd></div>` : ''}
+                        <div><dt>Publications</dt><dd>${(P.publications || []).length}</dd></div>
+                        <div><dt>Talks</dt><dd>${(P.talks || []).length}</dd></div>
+                    </dl>
+                    <div class="rail-btns">
+                        ${mail ? `<a href="${esc(mail.url)}" style="--bc:var(--plasma-cyan)">EMAIL</a>` : ''}
+                        <a href="assets/cv/Bharat_Rawat_CV.pdf" target="_blank" rel="noopener" style="--bc:var(--warning-orange)">CV PDF</a>
+                    </div>`;
+
+                const secs = [...document.querySelectorAll('h2.module-title[id]')];
+                nav.innerHTML = '<div class="rail-nav-title">// SECTIONS</div>' + secs.map(h => {
+                    const m = h.textContent.match(/\[\s*(\d+):\s*(.+?)\s*\]/);
+                    const slug = h.id.replace(/^sec-/, ''), label = slug[0].toUpperCase() + slug.slice(1);
+                    return `<a href="#${h.id}"><span class="num">${m ? m[1] : ''}</span><span>${esc(label)}</span></a>`;
+                }).join('');
+                const links = [...nav.querySelectorAll('a')];
+                links.forEach(a => a.addEventListener('click', e => {
+                    e.preventDefault();
+                    document.getElementById(a.getAttribute('href').slice(1)).scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }));
+                // highlight the section currently being read
+                const setActive = () => {
+                    let cur = secs[0];
+                    secs.forEach(h => { if (h.getBoundingClientRect().top < window.innerHeight * 0.35) cur = h; });
+                    links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+                };
+                window.addEventListener('scroll', setActive, { passive: true }); setActive();
+                setInterval(setActive, 600);   // backup for scroll jumps that don't fire a scroll event
+            })();
 
             // visitor greeting: the visitor's own country (+ total visits from GoatCounter)
             (async () => {
@@ -674,96 +486,28 @@
         // ─── Setup ───────────────────────────────────────────────
         const bgCanvas = document.getElementById('bg-canvas');
         const bgCtx = bgCanvas.getContext('2d');
-        const beamCanvas = document.getElementById('ion-beam-canvas');
-        const beamCtx = beamCanvas.getContext('2d');
-        const eCanvas = document.getElementById('electron-canvas');
-        const eCtx = eCanvas.getContext('2d');
-        const eroCtx = document.getElementById('erosion-canvas').getContext('2d');
-        const cursor = document.getElementById('ring-cusp-cursor');
-        const filament = document.getElementById('neutralizer-filament');
-        const hud = document.getElementById('diagnostic-hud');
-        const gCtx = document.getElementById('gaussianCanvas').getContext('2d');
-        const pCtx = document.getElementById('phaseSpaceCanvas').getContext('2d');
-        const panel = document.getElementById('control-panel');
+        const trailCanvas = document.getElementById('trail-canvas');
+        const tCtx = trailCanvas.getContext('2d');
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         const gridSpacing = 70;
         const warpRadius = 150;
         const warpStrength = 55;
         const gridOpacity = 0.15;
 
-        let mX = window.innerWidth/2, mY = window.innerHeight/2, bX = mX, bY = mY;
-        let beamEnergy = 5.0, neutCurrent = 0.0, isFiring = false;
-        let bgParticles = [], pulses = [], beamParticles = [], electrons = [], faradayCups = [];
-        let tourActive = false;
+        let mX = window.innerWidth / 2, mY = window.innerHeight / 2;
+        let bgParticles = [], pulses = [], trail = [];
 
-        // ─── Placement Logic ───────────────────
-        let isDraggingPanel = false;
-        let panelOffset = { x: 0, y: 0 };
-
-        window.addEventListener('load', () => {
-            // Keep it dynamic so media queries win if needed
-            const jukebox = document.getElementById('jukebox-card');
-            if(jukebox && window.innerWidth > 850) {
-                jukebox.style.top = '20px';
-                jukebox.style.right = '20px';
-                jukebox.style.left = 'auto';
-            }
-        });
-
-        // Mouse Dragging
-        panel.addEventListener('mousedown', (e) => {
-            isDraggingPanel = true;
-            panelOffset.x = e.clientX - panel.offsetLeft;
-            panelOffset.y = e.clientY - panel.offsetTop;
-            panel.style.transition = 'none';
-            e.stopPropagation();
-        });
-        document.addEventListener('mousemove', (e) => {
-            if (!isDraggingPanel) return;
-            panel.style.left = (e.clientX - panelOffset.x) + 'px';
-            panel.style.top = (e.clientY - panelOffset.y) + 'px';
-        });
-        document.addEventListener('mouseup', () => {
-            if (isDraggingPanel) {
-                isDraggingPanel = false;
-                panel.style.transition = 'transform 0.1s ease-out';
-            }
-        });
-
-        // Touch Dragging for Mobile
-        panel.addEventListener('touchstart', (e) => {
-            isDraggingPanel = true;
-            panelOffset.x = e.touches[0].clientX - panel.offsetLeft;
-            panelOffset.y = e.touches[0].clientY - panel.offsetTop;
-            panel.style.transition = 'none';
-            e.stopPropagation();
-        }, {passive: false});
-        document.addEventListener('touchmove', (e) => {
-            if (!isDraggingPanel) return;
-            panel.style.left = (e.touches[0].clientX - panelOffset.x) + 'px';
-            panel.style.top = (e.touches[0].clientY - panelOffset.y) + 'px';
-            e.preventDefault(); // Prevent scrolling while dragging
-        }, {passive: false});
-        document.addEventListener('touchend', () => {
-            if (isDraggingPanel) {
-                isDraggingPanel = false;
-                panel.style.transition = 'transform 0.1s ease-out';
-            }
-        });
-
-        // ─── Audio Engine & UI Interactions ────────────────────────
+        // ─── Audio (UI ticks) ─────────────────────────────────────
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
-        let beamHumOsc = null, beamHumGain = null, beamHumLfo = null;
 
         function playTick(element) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            
-            // Audio Tick
             const osc = audioCtx.createOscillator();
             const tickGain = audioCtx.createGain();
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(1400, audioCtx.currentTime); 
+            osc.frequency.setValueAtTime(1400, audioCtx.currentTime);
             tickGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
             tickGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
             osc.connect(tickGain);
@@ -771,178 +515,21 @@
             osc.start();
             osc.stop(audioCtx.currentTime + 0.04);
 
-            // Visual Pulse
             if (element && element.classList.contains('lab-card')) {
                 element.classList.remove('pulse-active');
-                void element.offsetWidth; // Trigger reflow
+                void element.offsetWidth;
                 element.classList.add('pulse-active');
                 setTimeout(() => element.classList.remove('pulse-active'), 400);
             }
         }
 
-        function startBeamHum() {
-            if (beamHumOsc) return;
-            beamHumOsc = audioCtx.createOscillator();
-            beamHumGain = audioCtx.createGain();
-            beamHumLfo = audioCtx.createOscillator();
-            beamHumOsc.type = 'triangle';
-            beamHumOsc.frequency.setValueAtTime(100, audioCtx.currentTime);
-            beamHumLfo.type = 'sine';
-            beamHumLfo.frequency.setValueAtTime(0.8, audioCtx.currentTime);
-            const lfoGain = audioCtx.createGain();
-            lfoGain.gain.setValueAtTime(4, audioCtx.currentTime);
-            beamHumLfo.connect(lfoGain);
-            lfoGain.connect(beamHumOsc.frequency);
-            beamHumOsc.connect(beamHumGain);
-            beamHumGain.connect(audioCtx.destination);
-            beamHumGain.gain.setValueAtTime(0, audioCtx.currentTime);
-            beamHumGain.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + 0.12);
-            beamHumOsc.start(); beamHumLfo.start();
-        }
-
-        function updateBeamHum() {
-            if (!beamHumOsc || !beamHumGain) return;
-            beamHumOsc.frequency.setTargetAtTime(88 + neutCurrent * 3.2, audioCtx.currentTime, 0.08);
-            beamHumGain.gain.setTargetAtTime(0.14 + neutCurrent * 0.028, audioCtx.currentTime, 0.10);
-        }
-
-        function stopBeamHum() {
-            if (!beamHumGain) return;
-            beamHumGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.25);
-            setTimeout(() => { if (beamHumOsc) { beamHumOsc.stop(); beamHumLfo.stop(); beamHumOsc = null; beamHumLfo = null; beamHumGain = null; } }, 300);
-        }
-
-        // ─── Particles & Drawing ────────────────────────
-        for (let i = 0; i < 25; i++) faradayCups.push({ y: 30 + i * 16, current: 0, hitsThisFrame: 0, pulse: 0 });
-
+        // ─── Background: drifting ions, warped field grid, annihilation rings ───
         class BackgroundParticle {
             constructor() { this.reset(); this.x = Math.random() * bgCanvas.width; }
             reset() { this.x = -10; this.y = Math.random() * bgCanvas.height; this.v = 1.5 + Math.random() * 3; this.a = 0.1 + Math.random() * 0.3; }
-            update() { this.x += this.v * (beamEnergy * 0.4); if (this.x > bgCanvas.width) this.reset(); }
-            draw() { bgCtx.fillStyle = `rgba(0, 255, 255, ${this.a})`; bgCtx.beginPath(); bgCtx.arc(this.x, this.y, 2.5, 0, Math.PI*2); bgCtx.fill(); }
+            update() { this.x += this.v * 2; if (this.x > bgCanvas.width) this.reset(); }
+            draw() { bgCtx.fillStyle = `rgba(0, 255, 255, ${this.a})`; bgCtx.beginPath(); bgCtx.arc(this.x, this.y, 2.5, 0, Math.PI * 2); bgCtx.fill(); }
         }
-        for(let i=0; i<80; i++) bgParticles.push(new BackgroundParticle());
-
-        // Aperture y-centers (grid period 18, top:28; magnets cover top + bottom apertures)
-        const APERTURE_CENTERS = [55, 73, 91, 109, 127, 145];
-        class BeamParticle {
-            constructor() { this.reset(); }
-            reset() {
-                const apY = APERTURE_CENTERS[Math.floor(Math.random() * APERTURE_CENTERS.length)];
-                this.x = 134 + Math.random() * 2;          // emit at screen-grid front face
-                this.y = apY + (Math.random() - 0.5) * 6;  // jitter inside aperture
-                const divAngle = (Math.max(2, 45 - (neutCurrent * 4.3)) * 0.018);
-                const angle = (Math.random() - 0.5) * divAngle;
-                const speed = 3.5 + beamEnergy * 0.5 + Math.random() * 1.0;
-                this.vx = Math.cos(angle) * speed;
-                this.vy = Math.sin(angle) * speed * 0.4;
-                this.life = 1.0;
-                this.hue = 180 + neutCurrent * 25;
-                this.passedAccel = false;
-            }
-            update() {
-                this.x += this.vx; this.y += this.vy;
-                if (!this.passedAccel && this.x > 152) {
-                    // Screen→accel potential drop accelerates the ion
-                    this.vx *= (1.45 + beamEnergy * 0.04);
-                    this.passedAccel = true;
-                }
-                this.life -= 0.012;
-                if (this.life <= 0 || this.x > 400) this.reset();
-            }
-            draw() {
-                const alpha = this.life * 0.85;
-                beamCtx.fillStyle = `hsla(${this.hue}, 100%, 75%, ${alpha})`;
-                beamCtx.beginPath(); beamCtx.arc(this.x, this.y, 1.6, 0, Math.PI*2); beamCtx.fill();
-            }
-        }
-        for(let i=0; i<220; i++) beamParticles.push(new BeamParticle());
-
-        // ─── Persistent sputter erosion (CEX-style pitting on accel grid) ─────
-        const SPUTTER_KEY = 'pybemcs_sputter_v1';
-        const IONS_KEY    = 'pybemcs_ions_v1';
-        const MAX_PITS    = 220;
-        let sputterPits = [];
-        let totalIonsDeposited = 0;
-        let erosionDirty = true;
-        let lastWearSave = 0;
-        try {
-            sputterPits = JSON.parse(localStorage.getItem(SPUTTER_KEY) || '[]');
-            totalIonsDeposited = parseInt(localStorage.getItem(IONS_KEY) || '0', 10);
-        } catch (e) { sputterPits = []; totalIonsDeposited = 0; }
-
-        function generateSputterPit() {
-            // Pick a random period (8 periods of 18px from y=28), web region only
-            const periodIdx = Math.floor(Math.random() * 8);
-            const useUpperWeb = Math.random() < 0.5;
-            const yWithinWeb = useUpperWeb ? Math.random() * 5 : 13 + Math.random() * 5;
-            const y = 28 + periodIdx * 18 + yWithinWeb;
-            const x = 146 + Math.random() * 5;
-            return { x, y };
-        }
-
-        function addSputterEvent() {
-            const p = generateSputterPit();
-            const near = sputterPits.find(q => Math.abs(q.x - p.x) < 4 && Math.abs(q.y - p.y) < 3);
-            if (near) {
-                near.severity = Math.min(1, near.severity + 0.06);
-            } else if (sputterPits.length < MAX_PITS) {
-                sputterPits.push({ x: p.x, y: p.y, severity: 0.18 });
-            }
-            erosionDirty = true;
-        }
-
-        function drawErosion() {
-            if (!erosionDirty) return;
-            eroCtx.clearRect(0, 0, 400, 200);
-            sputterPits.forEach(p => {
-                const r = 1 + p.severity * 2.2;
-                eroCtx.beginPath(); eroCtx.arc(p.x, p.y, r + 0.6, 0, Math.PI*2);
-                eroCtx.strokeStyle = `rgba(255,140,80,${0.30 + 0.45 * p.severity})`;
-                eroCtx.lineWidth = 0.7; eroCtx.stroke();
-                eroCtx.beginPath(); eroCtx.arc(p.x, p.y, r, 0, Math.PI*2);
-                eroCtx.fillStyle = `rgba(20,10,5,${0.55 + 0.4 * p.severity})`;
-                eroCtx.fill();
-            });
-            erosionDirty = false;
-        }
-
-        function updateWearUI() {
-            const wearEl = document.getElementById('wear-pct');
-            const ionsEl = document.getElementById('ions-tot');
-            if (wearEl) wearEl.innerText = (sputterPits.length / MAX_PITS * 100).toFixed(1);
-            if (ionsEl) ionsEl.innerText = totalIonsDeposited.toLocaleString();
-        }
-
-        function maybeSaveWear() {
-            const now = performance.now();
-            if (now - lastWearSave < 3000) return;
-            lastWearSave = now;
-            try {
-                localStorage.setItem(SPUTTER_KEY, JSON.stringify(sputterPits));
-                localStorage.setItem(IONS_KEY, String(totalIonsDeposited));
-            } catch (e) {}
-        }
-
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'hidden') {
-                try {
-                    localStorage.setItem(SPUTTER_KEY, JSON.stringify(sputterPits));
-                    localStorage.setItem(IONS_KEY, String(totalIonsDeposited));
-                } catch (e) {}
-            }
-        });
-
-        // Initial render of any persisted wear
-        drawErosion(); updateWearUI();
-
-        class Electron {
-            constructor() { this.reset(); }
-            reset() { this.x = 94; this.y = 80 + Math.random() * 40; this.vx = 7 + Math.random() * 10; this.vy = (Math.random() - 0.5) * 5; this.life = 1.0; }
-            update() { this.x += this.vx; this.vy += (100 - this.y) * 0.08; this.y += this.vy + (Math.random()-0.5)*3; this.life -= 0.02; if (this.life <= 0 || this.x > 400) this.reset(); }
-            draw() { eCtx.fillStyle = `rgba(255, 241, 118, ${this.life})`; eCtx.beginPath(); eCtx.arc(this.x, this.y, 1.8, 0, Math.PI*2); eCtx.fill(); }
-        }
-        for(let i=0; i<70; i++) electrons.push(new Electron());
 
         function drawMagneticGrid() {
             bgCtx.strokeStyle = `rgba(0, 255, 255, ${gridOpacity})`; bgCtx.lineWidth = 0.5;
@@ -966,135 +553,88 @@
             });
         }
 
-        function drawDiagnostics(div) {
-            gCtx.clearRect(0, 0, 180, 40); gCtx.strokeStyle = '#00ff41'; gCtx.beginPath();
-            const sigma = div / 2.2;
-            for (let x = 0; x < 180; x++) {
-                const val = 32 * Math.exp(-Math.pow(x - 90, 2) / (2 * Math.pow(sigma, 2)));
-                gCtx.lineTo(x, 38 - val + (Math.random()*2));
+        // ─── Cursor trail: a short wake of ions behind the normal arrow ───
+        const TRAIL_MAX = 140;
+        let lastTX = null, lastTY = null;
+        function spawnTrail(x, y) {
+            const dx = lastTX === null ? 0 : x - lastTX, dy = lastTY === null ? 0 : y - lastTY;
+            lastTX = x; lastTY = y;
+            const speed = Math.hypot(dx, dy);
+            if (speed < 0.5) return;
+            const n = Math.min(3, 1 + Math.floor(speed / 14));
+            for (let k = 0; k < n; k++) {
+                if (trail.length >= TRAIL_MAX) trail.shift();
+                trail.push({
+                    x: x - dx * (k / n) + (Math.random() - 0.5) * 3,
+                    y: y - dy * (k / n) + (Math.random() - 0.5) * 3,
+                    vx: -dx * 0.03 + (Math.random() - 0.5) * 0.5,
+                    vy: -dy * 0.03 + (Math.random() - 0.5) * 0.5,
+                    r: 1 + Math.random() * 1.3,
+                    life: 1,
+                    decay: 0.03 + Math.random() * 0.02,
+                    gold: Math.random() < 0.15          // the odd electron among the ions
+                });
             }
-            gCtx.stroke();
-            pCtx.clearRect(0, 0, 180, 50); pCtx.strokeStyle = '#00ff41'; pCtx.beginPath();
-            pCtx.ellipse(90, 25, 30, 5 + (div/4), div*0.01, 0, Math.PI * 2); pCtx.stroke();
+        }
+
+        function drawTrail() {
+            tCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+            if (!trail.length) return;
+            tCtx.globalCompositeOperation = 'lighter';
+            for (let i = trail.length - 1; i >= 0; i--) {
+                const p = trail[i];
+                p.x += p.vx; p.y += p.vy; p.vx *= 0.96; p.vy *= 0.96; p.life -= p.decay;
+                if (p.life <= 0) { trail.splice(i, 1); continue; }
+                const a = p.life * 0.9;
+                const col = p.gold ? '255, 241, 118' : '0, 255, 255';
+                tCtx.fillStyle = `rgba(${col}, ${a * 0.18})`;
+                tCtx.beginPath(); tCtx.arc(p.x, p.y, p.r * 3, 0, Math.PI * 2); tCtx.fill();
+                tCtx.fillStyle = `rgba(${col}, ${a})`;
+                tCtx.beginPath(); tCtx.arc(p.x, p.y, p.r * p.life + 0.3, 0, Math.PI * 2); tCtx.fill();
+            }
+            tCtx.globalCompositeOperation = 'source-over';
         }
 
         function animate() {
             bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
             drawMagneticGrid(); drawAnnihilation();
             bgParticles.forEach(p => { p.update(); p.draw(); });
-            bX += (mX - bX) * 0.15; bY += (mY - bY) * 0.15;
-            cursor.style.left = bX + 'px'; cursor.style.top = bY + 'px';
-            beamCtx.clearRect(0, 0, 400, 200); eCtx.clearRect(0, 0, eCanvas.width, eCanvas.height);
-            drawErosion();
-            const divergence = Math.max(2, 45 - (neutCurrent * 4.3));
-            faradayCups.forEach(cup => { cup.hitsThisFrame = 0; });
-            if (isFiring) {
-                const emitRate = 3 + Math.floor(beamEnergy * 0.8) + Math.floor(neutCurrent * 1.2);
-                for (let i = 0; i < emitRate; i++) beamParticles[i % beamParticles.length].reset();
-                beamParticles.forEach(p => {
-                    p.update(); p.draw();
-                    if (p.x >= 385 && p.life > 0.1) {
-                        const cupIndex = Math.floor((p.y - 20) / 16);
-                        if (cupIndex >= 0 && cupIndex < 25) { faradayCups[cupIndex].hitsThisFrame++; faradayCups[cupIndex].pulse = 1.0; }
-                    }
-                });
-
-                // Accumulate ion count + occasional CEX sputter event on accel grid
-                totalIonsDeposited += emitRate;
-                if (Math.random() < 0.045 + neutCurrent * 0.004) addSputterEvent();
-                maybeSaveWear();
-                updateWearUI();
-                if (neutCurrent > 0) {
-                    const activeCount = Math.floor(neutCurrent * 7);
-                    for(let i=0; i<activeCount; i++) { electrons[i].update(); electrons[i].draw(); }
-                }
-                drawDiagnostics(divergence); updateBeamHum();
-                faradayCups.forEach((cup, i) => {
-                    cup.current = cup.current * 0.92 + cup.hitsThisFrame * 0.12;
-                    let r = Math.min(255, cup.current * 80); let g = Math.min(255, 255 - cup.current * 40);
-                    beamCtx.fillStyle = `rgb(${r},${g},0)`; beamCtx.fillRect(385, cup.y, 12, 14);
-                    if (cup.pulse > 0.05) { beamCtx.strokeStyle = `rgba(0,255,65,${cup.pulse})`; beamCtx.strokeRect(383, cup.y-2, 16, 18); cup.pulse *= 0.82; }
-                    if(i % 3 === 0) { beamCtx.fillStyle = cup.current > 2 ? '#000' : '#00ff41'; beamCtx.fillText(cup.current.toFixed(1), 400, cup.y + 10); }
-                });
-            }
+            drawTrail();
             requestAnimationFrame(animate);
         }
 
-        // ─── Interactions & Event Listeners ───────────────────
+        // ─── Interactions ─────────────────────────────────────────
         window.addEventListener('pointermove', (e) => {
-            if (tourActive) return;
             mX = e.clientX; mY = e.clientY;
-            if (!isDraggingPanel) {
-                const xVal = (mX - window.innerWidth / 2) / (window.innerWidth / 2);
-                const yVal = (mY - window.innerHeight / 2) / (window.innerHeight / 2);
-                const targets = document.querySelectorAll('.lab-card, #control-panel');
-                targets.forEach(t => { t.style.transform = `perspective(1000px) rotateX(${-yVal * 5}deg) rotateY(${xVal * 5}deg)`; });
-            }
-            const el = document.elementFromPoint(mX, mY);
-            cursor.classList.toggle('hidden', !!el?.closest('a, button, input, #control-panel, .btn-game, #jukebox-card'));
+            const xVal = (mX - window.innerWidth / 2) / (window.innerWidth / 2);
+            const yVal = (mY - window.innerHeight / 2) / (window.innerHeight / 2);
+            document.querySelectorAll('.lab-card').forEach(t => { t.style.transform = `perspective(1000px) rotateX(${-yVal * 5}deg) rotateY(${xVal * 5}deg)`; });
+            if (e.pointerType === 'mouse' && !reduceMotion) spawnTrail(mX, mY);
         });
+        document.addEventListener('mouseleave', () => { lastTX = lastTY = null; });
 
         document.querySelectorAll('.lab-card, .module-title').forEach(item => {
             item.addEventListener('mouseenter', () => playTick(item));
         });
 
-        window.addEventListener('pointerdown', (e) => {
-            if (tourActive) return;
-            if(!e.target.closest('#control-panel, .lab-card, .btn-game, #jukebox-card, #video-intro-container')) {
-                isFiring = true; hud.classList.add('active'); if (audioCtx.state === 'suspended') audioCtx.resume(); startBeamHum();
-            }
-        });
-
-        window.addEventListener('pointerup', () => { if (tourActive) return; isFiring = false; hud.classList.remove('active'); stopBeamHum(); });
-
-        const root = document.documentElement;
-        function updatePlasmaCSSVars() {
-            // V=1 → 0.50, V=10 → 1.00 ; I=0 → hue 275 (violet), I=10 → hue 200 (cyan)
-            root.style.setProperty('--plasma-intensity', Math.min(1, 0.45 + beamEnergy * 0.055).toFixed(2));
-            root.style.setProperty('--plasma-hue', (275 - neutCurrent * 7.5).toFixed(0));
-        }
-        document.getElementById('v-slider').oninput = (e) => {
-            beamEnergy = parseFloat(e.target.value); document.getElementById('v-val').innerText = beamEnergy.toFixed(1);
-            updatePlasmaCSSVars();
-        };
-        document.getElementById('i-slider').oninput = (e) => {
-            neutCurrent = parseFloat(e.target.value); document.getElementById('i-val').innerText = neutCurrent.toFixed(1);
-            if (filament) {
-                filament.style.background = neutCurrent > 0 ? `rgb(255, ${180 + neutCurrent*7}, 50)` : "#333";
-                filament.style.boxShadow  = neutCurrent > 0 ? `0 0 ${neutCurrent * 8}px var(--warning-orange)` : "none";
-            }
-            updatePlasmaCSSVars();
-        };
-        updatePlasmaCSSVars();
-
-        document.getElementById('reset-chamber-btn').addEventListener('click', (e) => {
-            e.stopPropagation();
-            sputterPits = [];
-            totalIonsDeposited = 0;
-            erosionDirty = true;
-            try {
-                localStorage.removeItem(SPUTTER_KEY);
-                localStorage.removeItem(IONS_KEY);
-            } catch (err) {}
-            drawErosion();
-            updateWearUI();
-            playTick();
-        });
-
-        // Added touch support to the hobby atoms
         document.querySelectorAll('.hobby-atom').forEach(atom => {
             const handleHover = () => {
                 document.querySelectorAll('.hobby-atom').forEach(a => a.classList.remove('ionized'));
                 atom.classList.add('ionized'); playTick();
-                document.getElementById('hobby-readout').innerText = `>  ${atom.getAttribute('data-info')}`; 
+                document.getElementById('hobby-readout').innerText = `>  ${atom.getAttribute('data-info')}`;
             };
             atom.addEventListener('mouseenter', handleHover);
             atom.addEventListener('touchstart', handleHover, {passive: true});
             atom.addEventListener('mouseleave', () => { atom.classList.remove('ionized'); document.getElementById('hobby-readout').innerText = "// WAITING_FOR_BEAM_PROBE..."; });
         });
 
-        function resize() { bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight; }
-        window.onresize = resize; resize(); animate();
+        function resize() {
+            bgCanvas.width = trailCanvas.width = window.innerWidth;
+            bgCanvas.height = trailCanvas.height = window.innerHeight;
+        }
+        window.onresize = resize; resize();
+        for (let i = 0; i < 80; i++) bgParticles.push(new BackgroundParticle());
+        animate();
 
         const introContainer = document.getElementById('video-intro-container');
         const introVideo = document.getElementById('intro-video');
@@ -1167,153 +707,6 @@
         initBtn.addEventListener('click', runBootSequence);
 
         window.addEventListener('keydown', (e) => { if (e.key.toLowerCase() === 's') introContainer.classList.add('preloader-hidden'); });
-
-        // ─── GUIDED TOUR ──────────────────────────────────────────
-        const tourCaption = document.getElementById('tour-caption');
-        const tourCaptionText = document.getElementById('tour-caption-text');
-        const tourBtn = document.getElementById('tour-btn');
-
-        const TOUR_STEPS = [
-            {
-                sel: '.container .lab-card',
-                scroll: true,
-                text: 'Welcome — your operator for this beam line. The cursor is a multicusp ion source: cyan beam, magnets, neutralizer filament. Move it around to warp the magnetic field.',
-                wait: 3500
-            },
-            {
-                sel: '#v-slider',
-                text: 'EXTRACTION_V controls beam energy. Watch the plume sharpen as it ramps up...',
-                action: 'tweak-v', targetVal: 9, wait: 1600
-            },
-            {
-                sel: '#i-slider',
-                text: 'NEUTRALIZER_I adds electrons from the hot filament. The beam tightens, divergence drops, hue shifts gold.',
-                action: 'tweak-i', targetVal: 7, wait: 1600
-            },
-            {
-                center: true,
-                text: 'Hold-click anywhere outside the panels to fire ions at a Faraday cup array. Cups light up by deposited current.',
-                action: 'auto-fire', wait: 2400
-            },
-            {
-                sel: '.hobby-chamber',
-                scroll: true,
-                text: 'Hobbies — click the ♟ CHESS atom for a knight L-jump easter egg. The other atoms ionise on hover.',
-                wait: 3200
-            },
-            {
-                sel: '.container .lab-card',
-                scroll: true,
-                text: 'Tour complete. Beam is yours — explore freely.',
-                wait: 2000
-            }
-        ];
-
-        function showCaption(text) {
-            tourCaptionText.innerText = ' ' + text;
-            tourCaption.classList.add('visible');
-        }
-        function hideCaption() {
-            tourCaption.classList.remove('visible');
-        }
-
-        function tweenCursor(targetX, targetY, duration = 900) {
-            return new Promise(resolve => {
-                const startX = mX, startY = mY;
-                const t0 = performance.now();
-                (function step() {
-                    if (!tourActive) return resolve();
-                    const t = Math.min(1, (performance.now() - t0) / duration);
-                    const e = 0.5 - 0.5 * Math.cos(Math.PI * t);
-                    mX = startX + (targetX - startX) * e;
-                    mY = startY + (targetY - startY) * e;
-                    if (t < 1) requestAnimationFrame(step); else resolve();
-                })();
-            });
-        }
-
-        function tweenSlider(id, target, duration = 1100) {
-            const slider = document.getElementById(id);
-            const startVal = parseFloat(slider.value);
-            const t0 = performance.now();
-            return new Promise(resolve => {
-                (function step() {
-                    if (!tourActive) return resolve();
-                    const t = Math.min(1, (performance.now() - t0) / duration);
-                    const e = 0.5 - 0.5 * Math.cos(Math.PI * t);
-                    slider.value = (startVal + (target - startVal) * e).toFixed(2);
-                    slider.dispatchEvent(new Event('input', { bubbles: true }));
-                    if (t < 1) requestAnimationFrame(step); else resolve();
-                })();
-            });
-        }
-
-        async function runTour() {
-            if (tourActive) return;
-            tourActive = true;
-            document.body.classList.add('tour-active');
-            tourBtn.classList.add('tour-running');
-            tourBtn.innerText = '■ STOP_TOUR';
-
-            for (const step of TOUR_STEPS) {
-                if (!tourActive) break;
-
-                let tx, ty;
-                if (step.center) {
-                    tx = window.innerWidth * 0.55;
-                    ty = window.innerHeight * 0.5;
-                } else {
-                    const el = document.querySelector(step.sel);
-                    if (!el) continue;
-                    if (step.scroll) {
-                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        await sleep(750);
-                    }
-                    const r = el.getBoundingClientRect();
-                    tx = r.left + r.width / 2;
-                    ty = r.top + r.height / 2;
-                }
-
-                await tweenCursor(tx, ty, 900);
-                if (!tourActive) break;
-                showCaption(step.text);
-
-                if (step.action === 'tweak-v') await tweenSlider('v-slider', step.targetVal, 1100);
-                else if (step.action === 'tweak-i') await tweenSlider('i-slider', step.targetVal, 1100);
-                else if (step.action === 'auto-fire') {
-                    isFiring = true; hud.classList.add('active'); startBeamHum();
-                    await sleep(step.wait);
-                    isFiring = false; hud.classList.remove('active'); stopBeamHum();
-                    continue;
-                }
-                if (!tourActive) break;
-                await sleep(step.wait);
-            }
-
-            hideCaption();
-            document.body.classList.remove('tour-active');
-            tourBtn.classList.remove('tour-running');
-            tourBtn.innerText = '▶ GUIDED_TOUR';
-            tourActive = false;
-        }
-
-        function abortTour() {
-            if (!tourActive) return;
-            tourActive = false;
-            isFiring = false; hud.classList.remove('active'); stopBeamHum();
-            hideCaption();
-            document.body.classList.remove('tour-active');
-            tourBtn.classList.remove('tour-running');
-            tourBtn.innerText = '▶ GUIDED_TOUR';
-        }
-
-        tourBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (tourActive) abortTour(); else runTour();
-        });
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && tourActive) abortTour();
-        });
 
         // ─── CHESS KNIGHT EASTER EGG ──────────────────────────────
         const chessAtom = Array.from(document.querySelectorAll('.hobby-atom'))
