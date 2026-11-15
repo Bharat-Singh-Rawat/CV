@@ -100,7 +100,7 @@
             ${map(P.education, entry)}
 
             <h2>Publications (${P.publications.length})</h2>
-            <ol class="pubs">${map(P.publications, p => `<li><span class="venue">${p.venue}</span> — ${p.title}</li>`)}</ol>
+            <ol class="pubs">${map(P.publications, p => `<li>${p.authors ? `${p.authors.replace(/(Rawat,?\s*B\.\s*S\.?)/g, '<b>$1</b>')} ` : ''}<span class="venue">${p.venue}</span> — ${p.title}${p.badge ? ` <i>(${p.badge})</i>` : ''}${p.doi ? ` <a href="https://doi.org/${p.doi}">doi:${p.doi}</a>` : ''}${p.url ? ` <a href="${p.url}">${/researchgate/i.test(p.url) ? 'ResearchGate' : 'link'}</a>` : ''}</li>`)}</ol>
 
             <h2>Presentations &amp; Talks</h2>
             <ul>${map(P.talks, t => `<li><b>${t.type}:</b> ${t.text}</li>`)}</ul>
