@@ -1,0 +1,12 @@
+{
+  "name": "Bharat Singh Rawat, Ph.D.",
+  "short_name": "B. S. Rawat",
+  "start_url": "/CV/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    { "src": "/CV/v2/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/CV/v2/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
