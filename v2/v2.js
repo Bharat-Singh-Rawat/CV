@@ -14,7 +14,7 @@
     const links = P.links || [];
     const mail = links.find(l => /^mailto:/.test(l.url));
     const ext = links.filter(l => !/^mailto:/.test(l.url));
-    const CV_PDF = '../assets/cv/Bharat_Rawat_CV.pdf';
+    const CV_PDF = '/CV/assets/cv/Bharat_Rawat_CV.pdf';
     const img = (src, alt) => `<img src="${esc(src)}" alt="${esc(alt || '')}" loading="lazy" decoding="async">`;
     const extLinks = () => ext.map(l => `<a class="link" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join('');
 
@@ -293,7 +293,7 @@
         (mail ? `<a class="contact-mail" href="${esc(mail.url)}">${esc(mail.url.replace(/^mailto:/, ''))}</a>` : '')
         + `<div class="link-row">${extLinks()}
             <a class="link" href="${CV_PDF}" target="_blank" rel="noopener">Download CV</a>
-            <a class="link" href="../plain.html" target="_blank" rel="noopener">Plain CV</a></div>`;
+            <a class="link" href="/CV/plain.html" target="_blank" rel="noopener">Plain CV</a></div>`;
     $('footer-name').textContent = `Copyright © ${new Date().getFullYear()} ${titleCase(bare)}. All rights reserved.`;
 
     // ---------- reveal on scroll (staggered within rows) ----------

@@ -2,771 +2,221 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bharat Singh Rawat, Ph.D.</title>
-    <script src="js/parallax.js"></script>
-    <script src="js/jukebox.js" defer></script>
-
-    <style>
-        :root {
-            --plasma-cyan: #00ffff;
-            --vacuum-black: #020205;
-            --magnet-north: #ff3e3e;
-            --magnet-south: #3e66ff;
-            --phosphor-green: #00ff41;
-            --warning-orange: #ffae00;
-            --extraction-purple: #bc13fe;
-            --electron-gold: #fff176;
-            --current-beam-color: var(--plasma-cyan);
-            --plasma-intensity: 0.78;
-            --plasma-hue: 275;
-        }
-        body, html {
-            margin: 0; padding: 0;
-            background-color: var(--vacuum-black);
-            color: #d1d1d1;
-            font-family: 'Fira Code', monospace;
-            overflow-x: hidden;
-            scroll-behavior: smooth;
-            touch-action: pan-y;
-            cursor: default;
-        }
-
-        /* --- CRT & VIDEO OVERLAY STYLES --- */
-        #video-intro-container {
-            position: fixed;
-            inset: 0;
-            z-index: 1000000;
-            background: var(--vacuum-black);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), visibility 1.2s;
-        }
-
-        #intro-video { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; 
-            filter: saturate(1.2) contrast(1.1);
-        }
-
-        #crt-filter {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            background: 
-                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%),
-                linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
-            background-size: 100% 4px, 3px 100%;
-            z-index: 2;
-        }
-
-        #enter-system-overlay {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: radial-gradient(circle, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.8) 90%);
-            z-index: 3;
-            backdrop-filter: blur(2px);
-        }
-
-        #initialize-button {
-            background: transparent;
-            color: var(--phosphor-green);
-            border: 2px solid var(--phosphor-green);
-            padding: 20px 40px;
-            font-family: 'Fira Code', monospace;
-            font-size: 1.1rem;
-            cursor: pointer;
-            box-shadow: 0 0 20px rgba(0,255,65,0.4);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            transition: 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-        #initialize-button:hover { 
-            background: var(--phosphor-green); 
-            color: #000; 
-            box-shadow: 0 0 50px var(--phosphor-green);
-            animation: flicker 0.15s infinite; 
-        }
-
-        .preloader-hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-            filter: brightness(2) blur(20px);
-        }
-
-        /* --- BOOT SEQUENCE LOG --- */
-        #boot-log {
-            display: none;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 4px;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.85rem;
-            line-height: 1.35;
-            color: var(--phosphor-green);
-            text-shadow: 0 0 8px rgba(0,255,65,0.55);
-            min-width: min(640px, 86vw);
-            max-width: 86vw;
-            padding: 22px 26px;
-            background: rgba(0,12,0,0.55);
-            border: 1px solid rgba(0,255,65,0.35);
-            border-left: 3px solid var(--phosphor-green);
-            box-shadow: 0 0 30px rgba(0,255,65,0.15), inset 0 0 60px rgba(0,255,65,0.04);
-            backdrop-filter: blur(2px);
-        }
-        #boot-log.active { display: flex; }
-        .boot-line {
-            white-space: nowrap;
-            opacity: 0;
-            transform: translateX(-6px);
-            animation: boot-fade-in 0.18s ease-out forwards;
-        }
-        .boot-prefix { color: #5b6d5b; }
-        .boot-label  { color: var(--plasma-cyan); }
-        .boot-dots   { color: #2e3d2e; letter-spacing: 1px; }
-        .boot-value  { color: var(--electron-gold); }
-        .boot-ok     { color: var(--phosphor-green); margin-left: 6px; }
-        .boot-fail   { color: var(--magnet-north); margin-left: 6px; }
-        .boot-ignition {
-            margin-top: 12px;
-            color: var(--warning-orange);
-            text-shadow: 0 0 12px var(--warning-orange), 0 0 24px rgba(255,174,0,0.5);
-            font-weight: bold;
-            letter-spacing: 2px;
-            animation: boot-ignite 0.7s ease-out forwards;
-        }
-        @keyframes boot-fade-in {
-            from { opacity: 0; transform: translateX(-8px); }
-            to   { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes boot-ignite {
-            0%   { opacity: 0; filter: blur(8px) brightness(0.4); transform: scale(0.96); }
-            55%  { opacity: 1; filter: blur(0)   brightness(2.2); transform: scale(1.02); }
-            100% { opacity: 1; filter: none;                       transform: scale(1); }
-        }
-        @media (max-width: 850px) {
-            #boot-log { font-size: 0.65rem; padding: 14px 16px; }
-            .boot-line { white-space: normal; }
-        }
-
-        /* --- CHESS KNIGHT EASTER EGG --- */
-        .knight-ghost {
-            position: fixed;
-            font-size: 2rem;
-            color: var(--electron-gold);
-            text-shadow: 0 0 14px var(--plasma-cyan), 0 0 28px var(--electron-gold);
-            pointer-events: none;
-            z-index: 100001;
-            user-select: none;
-            animation: knight-l-jump 1.6s cubic-bezier(0.5, 0, 0.3, 1) forwards;
-        }
-        @keyframes knight-l-jump {
-            0%   { transform: translate(0, 0)      scale(1)   rotate(0deg); opacity: 0; }
-            10%  { transform: translate(0, 0)      scale(1.5) rotate(0deg); opacity: 1; }
-            48%  { transform: translate(190px, 0)  scale(1.5) rotate(15deg); opacity: 1; }
-            55%  { transform: translate(190px, 0)  scale(1.5) rotate(0deg); opacity: 1; }
-            92%  { transform: translate(190px, -110px) scale(1.5) rotate(-12deg); opacity: 1; }
-            100% { transform: translate(190px, -110px) scale(0.5) rotate(0deg); opacity: 0; }
-        }
-        .knight-trail-dot {
-            position: fixed;
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: var(--electron-gold);
-            box-shadow: 0 0 8px var(--electron-gold), 0 0 16px var(--plasma-cyan);
-            pointer-events: none;
-            z-index: 100000;
-            animation: knight-dot-fade 1.2s ease-out forwards;
-        }
-        @keyframes knight-dot-fade {
-            0%   { opacity: 1; transform: scale(1); }
-            100% { opacity: 0; transform: scale(0.2); }
-        }
-        .hobby-atom.knight-cooldown { cursor: wait; opacity: 0.6; }
-
-        /* --- UI COMPONENT PLACEMENT --- */
-        #jukebox-card {
-            position: fixed !important;
-            top: 20px !important;
-            right: 20px !important;
-            left: auto !important;
-            z-index: 9999;
-        }
-
-        #bg-canvas { position: fixed; inset: 0; z-index: -2; pointer-events: none; background-color: var(--vacuum-black);}
-        #ui-grid {
-            position: fixed; inset: 0;
-            background-image:
-                linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
-            background-size: 50px 50px;
-            z-index: -1; pointer-events: none;
-        }
-        
-        /* --- LEFT SIDEBAR: profile card + section navigator (wide screens only) --- */
-        #side-rail { display: none; }
-        @media (min-width: 1200px) {
-            #side-rail {
-                display: flex; flex-direction: column; gap: 14px;
-                position: fixed; top: 20px; left: 20px; width: 200px; z-index: 50;
-                max-height: calc(100vh - 40px); overflow-y: auto; scrollbar-width: none;
-                pointer-events: all;
-            }
-            #side-rail::-webkit-scrollbar { display: none; }
-            /* clear the sidebar on the left and the playlist box on the right */
-            body .container { margin-left: max(240px, calc((100vw - 950px) / 2)); margin-right: auto; max-width: min(950px, calc(100vw - 480px)); }
-        }
-        .rail-card {
-            background: rgba(10, 10, 15, 0.94); border: 1px solid #222; border-left: 3px solid var(--plasma-cyan);
-            padding: 16px 14px;
-        }
-        .rail-avatar {
-            width: 96px; height: 96px; margin: 2px auto 12px; border-radius: 50%; padding: 4px;
-            /* ring of alternating N/S magnets, a nod to the ring-cusp source */
-            background: repeating-conic-gradient(var(--magnet-north) 0 30deg, var(--magnet-south) 30deg 60deg);
-            box-shadow: 0 0 18px rgba(0, 255, 255, 0.25);
-        }
-        .rail-avatar > * {
-            width: 100%; height: 100%; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            background: radial-gradient(circle at 50% 40%, #102028, #05050a 70%); object-fit: cover;
-            color: var(--plasma-cyan); font-size: 1.7rem; font-weight: bold; letter-spacing: 1px;
-            text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
-        }
-        .rail-name { text-align: center; color: #fff; font-weight: bold; font-size: 0.85rem; line-height: 1.3; }
-        .rail-role { text-align: center; color: var(--plasma-cyan); font-size: 0.7rem; margin-top: 4px; line-height: 1.35; }
-        .rail-facts { margin: 12px 0 0; padding: 10px 0 0; border-top: 1px dashed #333; font-size: 0.68rem; line-height: 1.5; }
-        .rail-facts div { display: flex; justify-content: space-between; gap: 8px; }
-        .rail-facts dt { color: #777; }
-        .rail-facts dd { margin: 0; color: #ddd; text-align: right; }
-        .rail-btns { display: flex; gap: 6px; margin-top: 12px; }
-        .rail-btns a {
-            flex: 1; text-align: center; padding: 6px 4px; font-size: 0.65rem; font-weight: bold; text-decoration: none;
-            border: 1px solid var(--bc); color: var(--bc); transition: 0.2s;
-        }
-        .rail-btns a:hover { background: var(--bc); color: #000; box-shadow: 0 0 12px var(--bc); }
-        #rail-nav { display: flex; flex-direction: column; padding: 10px 0; border-left-color: var(--warning-orange); }
-        .rail-nav-title { font-size: 0.6rem; color: var(--warning-orange); letter-spacing: 2px; padding: 0 14px 8px; }
-        #rail-nav a {
-            display: flex; gap: 10px; padding: 6px 14px; font-size: 0.72rem; color: #999; text-decoration: none;
-            border-left: 2px solid transparent; margin-left: -3px; transition: color 0.2s, background 0.2s, border-color 0.2s;
-        }
-        #rail-nav a .num { color: #555; transition: color 0.2s; }
-        #rail-nav a:hover { color: #fff; background: rgba(0, 255, 255, 0.05); }
-        #rail-nav a.active { color: var(--plasma-cyan); border-left-color: var(--plasma-cyan); background: rgba(0, 255, 255, 0.07); }
-        #rail-nav a.active .num { color: var(--plasma-cyan); }
-
-        /* Particle-trail cursor: normal arrow + a short fading wake of ions */
-        #trail-canvas { position: fixed; inset: 0; z-index: 99990; pointer-events: none; }
-      
-        .container { max-width: 950px; margin: 0 auto; padding: 120px 20px 100px; position: relative; z-index: 10; pointer-events: none; }
-        .lab-card {
-            background: rgba(10, 10, 15, 0.94); border: 1px solid #222; border-left: 4px solid var(--plasma-cyan);
-            padding: 30px; margin-bottom: 40px; pointer-events: all;
-            transition: all 0.3s ease, transform 0.1s ease-out;
-            transform-style: preserve-3d;
-        }
-        
-        @media (hover: hover) and (pointer: fine) {
-            .lab-card:hover { box-shadow: 0 0 30px rgba(0, 255, 255, 0.25); transform: translateY(-3px); }
-            .lab-card:hover h1 { color: #ffdd00; text-shadow: 0 0 12px #ffae00, 0 0 24px #00ffff; }
-            .lab-card:hover h2.module-title { color: #ffae00; text-shadow: 0 0 10px #ffae00, 0 0 20px rgba(255,174,0,0.6); }
-            .lab-card:hover .sub-role { color: #00ffff; text-shadow: 0 0 8px #00ffff, 0 0 16px rgba(0,255,255,0.5); }
-            .lab-card:hover .date-tag { color: #bc13fe; text-shadow: 0 0 6px #bc13fe; }
-            .lab-card:hover p, .lab-card:hover li { color: #e0ffff; text-shadow: 0 0 6px rgba(0,255,255,0.4); }
-            .lab-card:hover .pub-box { border-left-color: #bc13fe; background: rgba(188,19,254,0.08); box-shadow: 0 0 12px rgba(188,19,254,0.4); color: #e0ccff; }
-            .lab-card:hover .btn-game { box-shadow: 0 0 12px var(--bc, var(--warning-orange)); }
-            .btn-game:hover { background: var(--bc, var(--warning-orange)); color: #000; box-shadow: 0 0 20px var(--bc, var(--warning-orange)); transform: scale(1.05); }
-        }
-
-        /* Visual Pulse Animation */
-        @keyframes border-pulse {
-            0% { border-left-color: var(--plasma-cyan); box-shadow: 0 0 0px var(--phosphor-green); }
-            50% { border-left-color: var(--phosphor-green); box-shadow: 0 0 25px var(--phosphor-green); }
-            100% { border-left-color: var(--plasma-cyan); box-shadow: 0 0 0px var(--phosphor-green); }
-        }
-        .pulse-active { animation: border-pulse 0.4s ease-out; }
-
-        h2.module-title { color: var(--warning-orange); text-transform: uppercase; letter-spacing: 3px; border-bottom: 1px solid #333; padding-bottom: 8px; font-size: 1rem; margin-top: 40px; scroll-margin-top: 24px; }
-        .sub-role { color: var(--plasma-cyan); font-weight: bold; font-size: 1.1rem; display: block; margin-top: 20px;}
-        .date-tag { color: #888; font-size: 0.85rem; margin-bottom: 8px; display: block; }
-        ul { list-style: none; padding: 0; }
-        li::before { content: ">> "; color: var(--current-beam-color); }
-        li { margin-bottom: 10px; font-size: 0.95rem; line-height: 1.6; }
-        .pub-box { background: rgba(255,255,255,0.03); padding: 10px; border-left: 2px solid var(--extraction-purple); margin-bottom: 8px; font-size: 0.85rem; transition: 0.3s; }
-        .btn-game {
-            display: inline-block; padding: 12px 25px; border: 1px solid var(--bc, var(--warning-orange));
-            color: var(--bc, var(--warning-orange)); text-decoration: none; font-weight: bold; transition: all 0.3s ease; margin-top: 15px; font-size: 0.85rem;
-        }
-
-        #guest-line { margin: 0 0 6px; font-size: 0.85rem; color: var(--phosphor-green); }
-        #guest-line img { width: 20px; height: 15px; vertical-align: -2px; margin-right: 6px; border: 1px solid #333; }
-        #guest-line b { color: #fff; }
-        .hobby-chamber { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; padding: 15px; background: rgba(0, 255, 255, 0.02); border: 1px dashed #333; border-radius: 8px; }
-        .hobby-atom { padding: 6px 14px; border: 1px solid #444; border-radius: 20px; font-size: 0.75rem; cursor: crosshair; transition: 0.3s; background: #000; user-select: none; }
-        .hobby-atom.ionized { border-color: var(--plasma-cyan); color: #fff; box-shadow: 0 0 15px var(--plasma-cyan); transform: scale(1.1); background: rgba(0, 255, 255, 0.1); }
-        #hobby-readout { width: 100%; margin-top: 12px; font-size: 0.7rem; color: var(--phosphor-green); min-height: 1.2rem; font-family: 'Fira Code', monospace; }
-
-        @keyframes flicker {
-            0% { opacity: 1; }
-            50% { opacity: 0.8; }
-            100% { opacity: 1; }
-        }
-
-        /* --- MOBILE & TABLET RESPONSIVE CSS --- */
-        @media (max-width: 850px) {
-            .container { padding: 180px 15px 100px; }
-            .lab-card { padding: 20px; margin-bottom: 30px; }
-            h1 { font-size: 2rem !important; }
-            .sub-role { font-size: 1rem; }
-            .btn-game { display: block; text-align: center; margin-bottom: 10px; }
-            #initialize-button { font-size: 0.9rem; padding: 15px 25px; }
-        }
-
-        /* No cursor trail on touch devices */
-        @media (hover: none) and (pointer: coarse) {
-            #trail-canvas { display: none !important; }
-        }
-
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bharat Singh Rawat, Ph.D. — Accelerator Physicist</title>
+    <meta name="description" content="Bharat Singh Rawat, Ph.D. — accelerator physicist specialising in ion sources, beam extraction & transport, beam diagnostics and digital twins.">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="canonical" href="https://bharat-singh-rawat.github.io/CV/">
+    <!-- Link preview (LinkedIn, Slack, WhatsApp, X…) -->
+    <meta property="og:type" content="profile">
+    <meta property="og:site_name" content="Bharat Singh Rawat">
+    <meta property="og:title" content="Bharat Singh Rawat, Ph.D. — Accelerator Physicist">
+    <meta property="og:description" content="Accelerator physicist working on ion & electron sources, beam diagnostics and digital twins. Research, lab instruments, publications, lectures and simulations.">
+    <meta property="og:url" content="https://bharat-singh-rawat.github.io/CV/">
+    <meta property="og:image" content="https://bharat-singh-rawat.github.io/CV/v2/img/og-card.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Bharat Singh Rawat at the AEgIS experiment, CERN">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Bharat Singh Rawat, Ph.D. — Accelerator Physicist">
+    <meta name="twitter:description" content="Accelerator physicist working on ion & electron sources, beam diagnostics and digital twins. Research, lab instruments, publications, lectures and simulations.">
+    <meta name="twitter:image" content="https://bharat-singh-rawat.github.io/CV/v2/img/og-card.jpg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- ALL CV CONTENT COMES FROM /Dossier/profile.js — edit that file, not this page -->
     <script src="/Dossier/profile.js"></script>
+    <link rel="stylesheet" href="/CV/v2/v2.css">
 </head>
 <body>
-    <div id="video-intro-container">
-        <video id="intro-video" playsinline autoplay muted loop>
-            <source src="assets/video/IonSource.mp4" type="video/mp4">
-        </video>
-        <div id="crt-filter"></div>
-        <div id="enter-system-overlay">
-            <button id="initialize-button">[ INITIALIZE_SYSTEM ]</button>
-            <div id="boot-log" aria-live="polite"></div>
-            <p style="color: var(--phosphor-green); font-size: 0.6rem; margin-top: 20px; letter-spacing: 1px; opacity: 0.3;"></p>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <!-- Apple-style sticky section bar: name left, section links, blue pill right -->
+    <header class="topbar" id="topbar">
+        <a class="ln-title" id="ln-title" href="#top"></a>
+        <button type="button" class="ln-toggle" id="ln-toggle" aria-label="Sections" aria-expanded="false" aria-controls="ln-nav">
+            <svg viewBox="0 0 14 8" aria-hidden="true"><path d="M1 1.5 7 6.5 13 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <nav class="topnav" id="ln-nav" aria-label="Sections">
+            <a href="#about">About</a>
+            <a href="#career">Career</a>
+            <a href="#research">Research</a>
+            <a href="#lab">Lab</a>
+            <a href="#videos">Videos</a>
+            <a href="#publications">Publications</a>
+            <a href="#offer">Offer</a>
+            <a href="/CV/plain.html" target="_blank" rel="noopener" class="ln-ext">Plain CV</a>
+        </nav>
+        <a class="topbar-cta" id="ln-cta" href="#contact">Get in touch</a>
+    </header>
+
+    <main id="main">
+        <!-- HERO -->
+        <section class="hero" id="top">
+            <canvas id="field" aria-hidden="true"></canvas>
+            <div class="wrap hero-inner">
+                <p class="eyebrow" id="hero-eyebrow"></p>
+                <h1 class="hero-name" id="hero-name"></h1>
+                <p class="hero-pitch" id="hero-pitch"></p>
+                <div class="hero-ctas" id="hero-ctas"></div>
+                <p class="greeting" id="greeting" hidden></p>
+            </div>
+        </section>
+
+        <!-- STATEMENT: words light up as you scroll -->
+        <section class="statement" aria-label="Statement">
+            <div class="wrap">
+                <p class="statement-text" id="statement"></p>
+            </div>
+        </section>
+
+        <!-- ABOUT -->
+        <section class="section" id="about">
+            <div class="wrap about">
+                <figure class="about-photo reveal" id="about-photo"></figure>
+                <div class="about-text reveal">
+                    <p class="eyebrow">About</p>
+                    <h2 class="about-title">Hi, I'm <span id="about-first"></span>.</h2>
+                    <p class="about-body" id="about-body"></p>
+                    <div class="link-row" id="about-links"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CAREER -->
+        <section class="section alt" id="career">
+            <div class="wrap">
+                <header class="sec-head reveal">
+                    <p class="eyebrow">Career</p>
+                    <h2>The beamline so far.</h2>
+                </header>
+                <ol class="beamline" id="beamline"></ol>
+            </div>
+        </section>
+
+        <!-- RESEARCH -->
+        <section class="section" id="research">
+            <div class="wrap">
+                <header class="sec-head reveal">
+                    <p class="eyebrow">Research</p>
+                    <h2>Highlights.</h2>
+                    <p class="sec-sub" id="expertise"></p>
+                </header>
+                <div class="projects" id="projects"></div>
+            </div>
+        </section>
+
+        <!-- LAB GALLERY: pinned while you scroll; the photos slide sideways and the centred one grows -->
+        <section class="lab alt" id="lab">
+            <div class="lab-pin">
+                <div class="wrap">
+                    <header class="sec-head lab-head">
+                        <p class="eyebrow">In the lab</p>
+                        <h2>Instruments I've built.</h2>
+                        <p class="sec-sub">Ion sources, grids and the diagnostics that measure their beams.</p>
+                    </header>
+                </div>
+                <div class="lab-track" id="gallery"></div>
+                <div class="lab-progress" aria-hidden="true"><span id="lab-bar"></span></div>
+            </div>
+        </section>
+
+        <!-- VIDEOS: hover to preview, click to watch -->
+        <section class="section" id="videos">
+            <div class="wrap">
+                <header class="sec-head reveal">
+                    <p class="eyebrow">Watch</p>
+                    <h2>Lectures &amp; simulations.</h2>
+                    <p class="sec-sub">Hover to preview. Click to watch with sound.</p>
+                </header>
+                <div class="video-grid lectures" id="lectures"></div>
+                <div class="video-grid sims" id="sims"></div>
+                <p class="channel-link reveal"><a class="link" id="channel-link" href="#" target="_blank" rel="noopener">More on YouTube</a></p>
+            </div>
+        </section>
+
+        <!-- PUBLICATIONS -->
+        <section class="section" id="publications">
+            <div class="wrap narrow">
+                <header class="sec-head reveal">
+                    <p class="eyebrow">Publications</p>
+                    <h2>In print.</h2>
+                    <p class="sec-sub" id="pub-sub"></p>
+                </header>
+                <div class="pubs" id="pubs"></div>
+            </div>
+        </section>
+
+        <!-- TALKS -->
+        <section class="section alt" id="talks">
+            <div class="wrap">
+                <header class="sec-head reveal">
+                    <p class="eyebrow">Talks</p>
+                    <h2>On stage.</h2>
+                </header>
+                <ul class="talks" id="talk-list"></ul>
+            </div>
+        </section>
+
+        <!-- OFFER -->
+        <section class="section" id="offer">
+            <div class="wrap">
+                <header class="sec-head reveal">
+                    <p class="eyebrow">What I offer</p>
+                    <h2>How I can help.</h2>
+                </header>
+                <div class="offers" id="offers"></div>
+            </div>
+        </section>
+
+        <!-- SKILLS -->
+        <section class="section alt" id="skills">
+            <div class="wrap">
+                <header class="sec-head reveal">
+                    <p class="eyebrow">Skills</p>
+                    <h2>Instrument rack.</h2>
+                    <p class="sec-sub">Codes, tools and hardware I work with.</p>
+                </header>
+                <div class="rack" id="rack"></div>
+            </div>
+        </section>
+
+        <!-- OFF-BEAM -->
+        <section class="section" id="offbeam">
+            <div class="wrap">
+                <header class="sec-head reveal">
+                    <p class="eyebrow">Off-beam</p>
+                    <h2>Beyond the lab.</h2>
+                </header>
+                <div class="hobbies" id="hobbies"></div>
+            </div>
+        </section>
+
+        <!-- CONTACT -->
+        <section class="section contact alt" id="contact">
+            <div class="wrap">
+                <p class="eyebrow">Contact</p>
+                <h2 class="contact-title">Let's talk beams.</h2>
+                <div id="contact-links"></div>
+            </div>
+        </section>
+    </main>
+
+    <div class="vmodal" id="vmodal" hidden>
+        <div class="vmodal-box" role="dialog" aria-modal="true" aria-label="Video player">
+            <button type="button" class="vmodal-close" id="vmodal-close" aria-label="Close video">✕</button>
+            <div class="vmodal-frame" id="vmodal-frame"></div>
         </div>
     </div>
 
-    <canvas id="bg-canvas"></canvas>
-    <div id="ui-grid"></div>
-    
-    <canvas id="trail-canvas" aria-hidden="true"></canvas>
-
-    <!-- Left sidebar (wide screens only): profile card + section navigator, filled from profile.js -->
-    <aside id="side-rail" aria-label="Profile and sections">
-        <div class="rail-card" id="rail-profile"></div>
-        <nav class="rail-card" id="rail-nav" aria-label="Sections"></nav>
-    </aside>
-
-    <div class="container">
-        <!-- CONTENT COMES FROM /Dossier/profile.js (edit that file, not this page) -->
-        <section class="lab-card" id="cv-hero"></section>
-
-
-        <h2 class="module-title" id="sec-employment">[ 01: EMPLOYMENT HISTORY ]</h2>
-        <div class="lab-card" id="cv-exp"></div>
-
-        <h2 class="module-title" id="sec-education">[ 02: RESEARCH & EDUCATION ]</h2>
-        <div class="lab-card" id="cv-edu"></div>
-
-        <h2 class="module-title" id="sec-publications">[ 03: PUBLICATIONS ]</h2>
-        <div class="lab-card" id="cv-pubs"></div>
-
-        <h2 class="module-title" id="sec-talks">[ 04: PRESENTATION & TALKS ]</h2>
-        <div class="lab-card" id="cv-talks"></div>
-
-        <h2 class="module-title" id="sec-hobbies">[ 05: HOBBIES ]</h2>
-        <div class="lab-card">
-            <div class="hobby-chamber" id="cv-hobbies"></div>
+    <footer class="footer">
+        <div class="wrap footer-inner">
+            <span id="footer-name"></span>
+            <span><a href="/CV/classic.html">Classic site</a> · <a href="/Dossier/">All themes</a> · <a href="/CV/plain.html">Plain CV</a></span>
         </div>
+    </footer>
 
-        <h2 class="module-title" id="sec-skills">[ 06: SOFTWARE STACK & EXPERTISE ]</h2>
-        <div class="lab-card" id="tech-expertise-section"></div>
-
-        <script>
-        (function () {
-            const P = window.PROFILE, $ = id => document.getElementById(id);
-            // one colour per link button so neighbouring links stay distinct
-            const LINK_COLORS = ['var(--plasma-cyan)', 'var(--warning-orange)', 'var(--extraction-purple)', 'var(--phosphor-green)', 'var(--magnet-north)'];
-            const entries = list => cvMap(list, e => `
-                <span class="sub-role">${e.role} | ${e.org}</span>
-                <span class="date-tag">${e.dates}</span>
-                <ul>${cvMap(e.bullets, b => `<li>${b}</li>`)}</ul>`);
-            $('cv-hero').innerHTML = `
-                <h1 style="font-size: 2.8rem; margin:0;">${P.name}</h1>
-                <h3 style="color: var(--plasma-cyan); font-weight: 200; margin-top:5px;">// ${P.title}</h3>
-                <p style="color:#ccc;">${P.summary}</p>
-                <p id="guest-line" hidden></p>
-                ${P.links.map((l, i) => `<a href="${l.url}" target="_blank" rel="noopener" class="btn-game" style="--bc:${LINK_COLORS[i % LINK_COLORS.length]}">${l.label}</a> `).join('')}
-                <a href="https://bharatbharat22.wixsite.com/website" target="_blank" rel="noopener" class="btn-game" style="--bc:var(--electron-gold)">FULL PORTFOLIO</a>
-                <a href="plain.html" target="_blank" rel="noopener" class="btn-game" style="--bc:#d1d1d1">PLAIN CV / PRINT</a>`;
-            $('cv-exp').innerHTML = entries(P.experience);
-            $('cv-edu').innerHTML = entries(P.education);
-            $('cv-pubs').innerHTML = cvMap(P.publications, p => `<div class="pub-box"><b>${p.venue}:</b> ${p.title}</div>`);
-            $('cv-talks').innerHTML = cvMap(P.talks, t => `<div class="pub-box"><b>${t.type}:</b> ${t.text}</div>`);
-            $('cv-hobbies').innerHTML = cvMap(P.hobbies, h => `<div class="hobby-atom" data-info="${h.tag}: ${h.detail}">${h.icon} ${h.name}</div>`)
-                + `<div id="hobby-readout">// WAITING_FOR_BEAM_PROBE...</div>`;
-            $('tech-expertise-section').innerHTML = cvMap(P.skills, s => `<p style="margin-bottom:10px;"><b style="color:var(--plasma-cyan);">${s.label}:</b> ${s.text}</p>`)
-                + `<p style="margin-top:15px;"><b style="color:var(--warning-orange);">Core expertise:</b> ${P.expertise}</p>`;
-
-            // left sidebar: profile card + section navigator
-            (() => {
-                const prof = $('rail-profile'), nav = $('rail-nav'); if (!prof || !nav) return;
-                const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-                const bare = P.name.replace(/,.*$/, '').trim();
-                const parts = bare.split(/\s+/);
-                const initials = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-                const now = (P.experience || [])[0] || {};
-                const nowOrg = String(now.org || '').split(',')[0];
-                const mail = (P.links || []).find(l => /^mailto:/.test(l.url));
-                const titleCase = s => s.toLowerCase().replace(/(^|[\s(])\S/g, c => c.toUpperCase()).replace(/\bPh\.d\./i, 'Ph.D.');
-                prof.innerHTML = `
-                    <div class="rail-avatar">${P.photo ? `<img src="${esc(P.photo)}" alt="${esc(bare)}">` : `<span aria-hidden="true">${initials}</span>`}</div>
-                    <div class="rail-name">${esc(titleCase(P.name))}</div>
-                    <div class="rail-role">${esc(now.role || '')}${nowOrg ? ` @ ${esc(nowOrg)}` : ''}</div>
-                    <dl class="rail-facts">
-                        ${P.location ? `<div><dt>Location</dt><dd>${esc(P.location)}</dd></div>` : ''}
-                        <div><dt>Publications</dt><dd>${(P.publications || []).length}</dd></div>
-                        <div><dt>Talks</dt><dd>${(P.talks || []).length}</dd></div>
-                    </dl>
-                    <div class="rail-btns">
-                        ${mail ? `<a href="${esc(mail.url)}" style="--bc:var(--plasma-cyan)">EMAIL</a>` : ''}
-                        <a href="assets/cv/Bharat_Rawat_CV.pdf" target="_blank" rel="noopener" style="--bc:var(--warning-orange)">CV PDF</a>
-                    </div>`;
-
-                const secs = [...document.querySelectorAll('h2.module-title[id]')];
-                nav.innerHTML = '<div class="rail-nav-title">// SECTIONS</div>' + secs.map(h => {
-                    const m = h.textContent.match(/\[\s*(\d+):\s*(.+?)\s*\]/);
-                    const slug = h.id.replace(/^sec-/, ''), label = slug[0].toUpperCase() + slug.slice(1);
-                    return `<a href="#${h.id}"><span class="num">${m ? m[1] : ''}</span><span>${esc(label)}</span></a>`;
-                }).join('');
-                const links = [...nav.querySelectorAll('a')];
-                links.forEach(a => a.addEventListener('click', e => {
-                    e.preventDefault();
-                    document.getElementById(a.getAttribute('href').slice(1)).scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }));
-                // highlight the section currently being read
-                const setActive = () => {
-                    let cur = secs[0];
-                    secs.forEach(h => { if (h.getBoundingClientRect().top < window.innerHeight * 0.35) cur = h; });
-                    links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
-                };
-                window.addEventListener('scroll', setActive, { passive: true }); setActive();
-                setInterval(setActive, 600);   // backup for scroll jumps that don't fire a scroll event
-            })();
-
-            // visitor greeting: the visitor's own country (+ total visits from GoatCounter)
-            (async () => {
-                const g = $('guest-line'); if (!g) return;
-                try {
-                    const ctl = new AbortController(); setTimeout(() => ctl.abort(), 5000);
-                    const cc = String((await (await fetch('https://api.country.is/', { signal: ctl.signal })).json()).country || '').toUpperCase();
-                    if (!/^[A-Z]{2}$/.test(cc)) return;
-                    let name = cc;
-                    try { name = new Intl.DisplayNames(['en'], { type: 'region' }).of(cc) || cc; } catch (e) { /* old browser */ }
-                    let visits = '';
-                    const gc = String(P.goatcounter || '').trim();
-                    if (/^[a-z0-9-]+$/i.test(gc)) {
-                        try { visits = (await (await fetch(`https://${gc}.goatcounter.com/counter/TOTAL.json`)).json()).count || ''; } catch (e) { /* counter unavailable */ }
-                    }
-                    g.innerHTML = `<img src="https://flagcdn.com/40x30/${cc.toLowerCase()}.png" alt="">// welcome, visitor from <b>${name}</b>${visits && visits !== '0' ? ` · ${visits} visits` : ''}`;
-                    g.hidden = false;
-                } catch (e) { /* lookup blocked or offline: keep it hidden */ }
-            })();
-        })();
-        </script>
-    </div>
-
-    <script>
-        // ─── Setup ───────────────────────────────────────────────
-        const bgCanvas = document.getElementById('bg-canvas');
-        const bgCtx = bgCanvas.getContext('2d');
-        const trailCanvas = document.getElementById('trail-canvas');
-        const tCtx = trailCanvas.getContext('2d');
-        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-        const gridSpacing = 70;
-        const warpRadius = 150;
-        const warpStrength = 55;
-        const gridOpacity = 0.15;
-
-        let mX = window.innerWidth / 2, mY = window.innerHeight / 2;
-        let bgParticles = [], pulses = [], trail = [];
-
-        // ─── Audio (UI ticks) ─────────────────────────────────────
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
-
-        function playTick(element) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const tickGain = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(1400, audioCtx.currentTime);
-            tickGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-            tickGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
-            osc.connect(tickGain);
-            tickGain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.04);
-
-            if (element && element.classList.contains('lab-card')) {
-                element.classList.remove('pulse-active');
-                void element.offsetWidth;
-                element.classList.add('pulse-active');
-                setTimeout(() => element.classList.remove('pulse-active'), 400);
-            }
-        }
-
-        // ─── Background: drifting ions, warped field grid, annihilation rings ───
-        class BackgroundParticle {
-            constructor() { this.reset(); this.x = Math.random() * bgCanvas.width; }
-            reset() { this.x = -10; this.y = Math.random() * bgCanvas.height; this.v = 1.5 + Math.random() * 3; this.a = 0.1 + Math.random() * 0.3; }
-            update() { this.x += this.v * 2; if (this.x > bgCanvas.width) this.reset(); }
-            draw() { bgCtx.fillStyle = `rgba(0, 255, 255, ${this.a})`; bgCtx.beginPath(); bgCtx.arc(this.x, this.y, 2.5, 0, Math.PI * 2); bgCtx.fill(); }
-        }
-
-        function drawMagneticGrid() {
-            bgCtx.strokeStyle = `rgba(0, 255, 255, ${gridOpacity})`; bgCtx.lineWidth = 0.5;
-            for (let x = 0; x <= bgCanvas.width; x += gridSpacing) {
-                bgCtx.beginPath();
-                for (let y = 0; y <= bgCanvas.height; y += 30) {
-                    const dx = mX - x; const dy = mY - y; const dist = Math.sqrt(dx * dx + dy * dy);
-                    const warp = dist < warpRadius ? (1 - dist / warpRadius) * warpStrength : 0;
-                    bgCtx.lineTo(x + (dx / dist || 0) * warp, y + (dy / dist || 0) * warp);
-                }
-                bgCtx.stroke();
-            }
-        }
-
-        function drawAnnihilation() {
-            if (Math.random() < 0.015) pulses.push({ x: Math.random() * bgCanvas.width, y: Math.random() * bgCanvas.height, r: 0, a: 0.5 });
-            pulses.forEach((p, i) => {
-                p.r += 2.5; p.a -= 0.01; if (p.a <= 0) pulses.splice(i, 1);
-                bgCtx.beginPath(); bgCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-                bgCtx.strokeStyle = `rgba(188, 19, 254, ${p.a})`; bgCtx.lineWidth = 2; bgCtx.stroke();
-            });
-        }
-
-        // ─── Cursor trail: a short wake of ions behind the normal arrow ───
-        const TRAIL_MAX = 140;
-        let lastTX = null, lastTY = null;
-        function spawnTrail(x, y) {
-            const dx = lastTX === null ? 0 : x - lastTX, dy = lastTY === null ? 0 : y - lastTY;
-            lastTX = x; lastTY = y;
-            const speed = Math.hypot(dx, dy);
-            if (speed < 0.5) return;
-            const n = Math.min(3, 1 + Math.floor(speed / 14));
-            for (let k = 0; k < n; k++) {
-                if (trail.length >= TRAIL_MAX) trail.shift();
-                trail.push({
-                    x: x - dx * (k / n) + (Math.random() - 0.5) * 3,
-                    y: y - dy * (k / n) + (Math.random() - 0.5) * 3,
-                    vx: -dx * 0.03 + (Math.random() - 0.5) * 0.5,
-                    vy: -dy * 0.03 + (Math.random() - 0.5) * 0.5,
-                    r: 1 + Math.random() * 1.3,
-                    life: 1,
-                    decay: 0.03 + Math.random() * 0.02,
-                    gold: Math.random() < 0.15          // the odd electron among the ions
-                });
-            }
-        }
-
-        function drawTrail() {
-            tCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
-            if (!trail.length) return;
-            tCtx.globalCompositeOperation = 'lighter';
-            for (let i = trail.length - 1; i >= 0; i--) {
-                const p = trail[i];
-                p.x += p.vx; p.y += p.vy; p.vx *= 0.96; p.vy *= 0.96; p.life -= p.decay;
-                if (p.life <= 0) { trail.splice(i, 1); continue; }
-                const a = p.life * 0.9;
-                const col = p.gold ? '255, 241, 118' : '0, 255, 255';
-                tCtx.fillStyle = `rgba(${col}, ${a * 0.18})`;
-                tCtx.beginPath(); tCtx.arc(p.x, p.y, p.r * 3, 0, Math.PI * 2); tCtx.fill();
-                tCtx.fillStyle = `rgba(${col}, ${a})`;
-                tCtx.beginPath(); tCtx.arc(p.x, p.y, p.r * p.life + 0.3, 0, Math.PI * 2); tCtx.fill();
-            }
-            tCtx.globalCompositeOperation = 'source-over';
-        }
-
-        function animate() {
-            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
-            drawMagneticGrid(); drawAnnihilation();
-            bgParticles.forEach(p => { p.update(); p.draw(); });
-            drawTrail();
-            requestAnimationFrame(animate);
-        }
-
-        // ─── Interactions ─────────────────────────────────────────
-        window.addEventListener('pointermove', (e) => {
-            mX = e.clientX; mY = e.clientY;
-            const xVal = (mX - window.innerWidth / 2) / (window.innerWidth / 2);
-            const yVal = (mY - window.innerHeight / 2) / (window.innerHeight / 2);
-            document.querySelectorAll('.lab-card').forEach(t => { t.style.transform = `perspective(1000px) rotateX(${-yVal * 5}deg) rotateY(${xVal * 5}deg)`; });
-            if (e.pointerType === 'mouse' && !reduceMotion) spawnTrail(mX, mY);
-        });
-        document.addEventListener('mouseleave', () => { lastTX = lastTY = null; });
-
-        document.querySelectorAll('.lab-card, .module-title').forEach(item => {
-            item.addEventListener('mouseenter', () => playTick(item));
-        });
-
-        document.querySelectorAll('.hobby-atom').forEach(atom => {
-            const handleHover = () => {
-                document.querySelectorAll('.hobby-atom').forEach(a => a.classList.remove('ionized'));
-                atom.classList.add('ionized'); playTick();
-                document.getElementById('hobby-readout').innerText = `>  ${atom.getAttribute('data-info')}`;
-            };
-            atom.addEventListener('mouseenter', handleHover);
-            atom.addEventListener('touchstart', handleHover, {passive: true});
-            atom.addEventListener('mouseleave', () => { atom.classList.remove('ionized'); document.getElementById('hobby-readout').innerText = "// WAITING_FOR_BEAM_PROBE..."; });
-        });
-
-        function resize() {
-            bgCanvas.width = trailCanvas.width = window.innerWidth;
-            bgCanvas.height = trailCanvas.height = window.innerHeight;
-        }
-        window.onresize = resize; resize();
-        for (let i = 0; i < 80; i++) bgParticles.push(new BackgroundParticle());
-        animate();
-
-        const introContainer = document.getElementById('video-intro-container');
-        const introVideo = document.getElementById('intro-video');
-        const initBtn = document.getElementById('initialize-button');
-        const bootLog = document.getElementById('boot-log');
-
-        const BOOT_LINES = [
-            ["CHAMBER VACUUM",   "4.2e-6 Torr"],
-            ["PROPELLANT FLOW",  "12 sccm Xe"],
-            ["CATHODE HEATER",   "1450 K"],
-            ["DISCHARGE PSU",    "28 V / 4.2 A"],
-            ["SCREEN GRID HV",   "+1500 V"],
-            ["ACCEL GRID HV",    "-250 V"],
-            ["NEUTRALIZER",      "ON"],
-            ["INTERLOCKS",       "CLEAR"]
-        ];
-
-        const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-        function playIgnitionThump() {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(140, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.55);
-            g.gain.setValueAtTime(0.18, audioCtx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
-            osc.connect(g); g.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.62);
-        }
-
-        function appendBootLine(idx, label, value) {
-            const total = BOOT_LINES.length;
-            const padLabel = label.padEnd(18, ' ');
-            const dots = '.'.repeat(Math.max(2, 22 - value.length));
-            const line = document.createElement('div');
-            line.className = 'boot-line';
-            line.innerHTML =
-                `<span class="boot-prefix">[ ${String(idx).padStart(2,'0')}/${String(total).padStart(2,'0')} ]</span> ` +
-                `<span class="boot-label">${padLabel}</span>` +
-                `<span class="boot-dots">${dots}</span> ` +
-                `<span class="boot-value">${value}</span>` +
-                `<span class="boot-ok">[OK]</span>`;
-            bootLog.appendChild(line);
-        }
-
-        let bootRunning = false;
-        async function runBootSequence() {
-            if (bootRunning) return;
-            bootRunning = true;
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            initBtn.style.display = 'none';
-            bootLog.classList.add('active');
-            for (let i = 0; i < BOOT_LINES.length; i++) {
-                appendBootLine(i + 1, BOOT_LINES[i][0], BOOT_LINES[i][1]);
-                playTick();
-                await sleep(150 + Math.random() * 100);
-            }
-            const ignition = document.createElement('div');
-            ignition.className = 'boot-line boot-ignition';
-            ignition.textContent = '>> IGNITION ARMED — WELCOME, OPERATOR.';
-            bootLog.appendChild(ignition);
-            playIgnitionThump();
-            await sleep(900);
-            introContainer.classList.add('preloader-hidden');
-            setTimeout(() => { introVideo.pause(); }, 1200);
-        }
-
-        initBtn.addEventListener('click', runBootSequence);
-
-        window.addEventListener('keydown', (e) => { if (e.key.toLowerCase() === 's') introContainer.classList.add('preloader-hidden'); });
-
-        // ─── CHESS KNIGHT EASTER EGG ──────────────────────────────
-        const chessAtom = Array.from(document.querySelectorAll('.hobby-atom'))
-            .find(a => /CHESS/i.test(a.textContent));
-        if (chessAtom) {
-            let knightCooldown = false;
-            const launchKnight = (e) => {
-                if (knightCooldown) return;
-                knightCooldown = true;
-                chessAtom.classList.add('knight-cooldown');
-
-                const rect = chessAtom.getBoundingClientRect();
-                const startX = rect.left + rect.width / 2;
-                const startY = rect.top + rect.height / 2;
-
-                const ghost = document.createElement('div');
-                ghost.className = 'knight-ghost';
-                ghost.textContent = '♞';
-                ghost.style.left = (startX - 14) + 'px';
-                ghost.style.top  = (startY - 22) + 'px';
-                document.body.appendChild(ghost);
-
-                // Trail dots tracing the L-path: 8 along x, then 5 going up
-                const trail = [];
-                for (let i = 1; i <= 8; i++) trail.push({ x: startX + (190 / 8) * i, y: startY,            d: 60 * i });
-                for (let i = 1; i <= 5; i++) trail.push({ x: startX + 190,           y: startY - (110/5)*i, d: 540 + 80 * i });
-                trail.forEach(p => {
-                    setTimeout(() => {
-                        const dot = document.createElement('div');
-                        dot.className = 'knight-trail-dot';
-                        dot.style.left = (p.x - 3) + 'px';
-                        dot.style.top  = (p.y - 3) + 'px';
-                        document.body.appendChild(dot);
-                        setTimeout(() => dot.remove(), 1200);
-                    }, p.d);
-                });
-
-                // Knight clop: square wave dropping 220 → 60 Hz
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                const osc = audioCtx.createOscillator();
-                const g = audioCtx.createGain();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(220, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.18);
-                g.gain.setValueAtTime(0.07, audioCtx.currentTime);
-                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.22);
-                osc.connect(g); g.connect(audioCtx.destination);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.24);
-
-                document.getElementById('hobby-readout').innerText =
-                    '> KNIGHT_JUMP: L-trajectory executed · ELO 1900 confirmed';
-
-                setTimeout(() => {
-                    ghost.remove();
-                    knightCooldown = false;
-                    chessAtom.classList.remove('knight-cooldown');
-                }, 1700);
-            };
-            chessAtom.addEventListener('click', launchKnight);
-        }
-    </script>
+    <script src="/CV/v2/v2.js"></script>
+    <script src="/CV/v2/music.js"></script>
 </body>
 </html>

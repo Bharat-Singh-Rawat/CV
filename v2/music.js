@@ -8,7 +8,7 @@
         "O Descobridor Dos Sete Mares", "Amores Lejanos", "Mi Manera de querer", "Aja mahi", "خونه ی ما",
         "Vienna Calling", "Ciudad de la furia", "ВИРТУАЛЬНАЯ ЛЮБОВЬ", "Oye mi amor", "Come", "Mas que nada",
         "Ring my bell", "Soledad y el mar", "Take 5", "Babaji ki Booti"
-    ].map((title, i) => ({ title, file: `../assets/audio/track${i + 1}.mp3` }));
+    ].map((title, i) => ({ title, file: `/CV/assets/audio/track${i + 1}.mp3` }));
 
     const $ = id => document.getElementById(id);
     const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
