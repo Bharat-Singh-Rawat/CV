@@ -78,6 +78,22 @@
         addEventListener('resize', update); update();
     }
 
+    // ---------- theme: auto (follows the system), light or dark ----------
+    const root = document.documentElement, mq = matchMedia('(prefers-color-scheme: dark)');
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
+    function applyTheme(pref, save) {
+        if (save) { try { localStorage.setItem('cv-theme', pref); } catch (e) { /* private mode */ } }
+        const dark = pref === 'dark' || (pref === 'auto' && mq.matches);
+        root.dataset.theme = dark ? 'dark' : 'light'; root.dataset.themePref = pref;
+        window.cvInkRGB = dark ? '245, 245, 247' : '29, 29, 31';
+        if (themeMeta) themeMeta.content = dark ? '#000000' : '#ffffff';
+        document.querySelectorAll('.foot-theme button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.theme === pref)));
+        window.dispatchEvent(new Event('resize'));          // canvas scenes redraw in the new ink
+    }
+    mq.addEventListener?.('change', () => { if ((root.dataset.themePref || 'auto') === 'auto') applyTheme('auto'); });
+    window.cvTheme = { set: p => applyTheme(p, true), get: () => root.dataset.themePref || 'auto' };
+    if (themeMeta && root.dataset.theme === 'dark') themeMeta.content = '#000000';
+
     // ---------- 3. Apple-style footer ----------
     const footer = document.querySelector('.footer');
     if (footer) {
@@ -105,10 +121,15 @@
                 </nav>
                 <div class="foot-bottom">
                     <span id="footer-name">${esc(name)}</span>
-                    <span class="foot-langs">${langs}</span>
+                    <span class="foot-right">
+                        <span class="foot-theme" role="group" aria-label="${T('Appearance')}">${[['auto', T('Auto')], ['light', T('Light')], ['dark', T('Dark')]]
+                            .map(([k, l]) => `<button type="button" data-theme="${k}" aria-pressed="${(root.dataset.themePref || 'auto') === k}">${l}</button>`).join('')}</span>
+                        <span class="foot-langs">${langs}</span>
+                    </span>
                 </div>
             </div>`;
         footer.classList.add('foot-apple');
+        footer.querySelectorAll('.foot-theme button').forEach(b => b.addEventListener('click', () => applyTheme(b.dataset.theme, true)));
         footer.querySelector('[data-play]')?.addEventListener('click', e => { if (window.cvGame) { e.preventDefault(); window.cvGame.open(); } });
         footer.querySelectorAll('[data-lang]').forEach(l => l.addEventListener('click', () => { try { localStorage.setItem('cv-lang', l.dataset.lang); } catch (e) { /* private mode */ } }));
     }

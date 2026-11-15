@@ -507,7 +507,7 @@
                 const [px, py, pz] = project(x, r * c, r * sn); zSum += pz;
                 k ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
             }
-            ctx.strokeStyle = `rgba(29, 29, 31, ${(0.11 * depthAlpha(zSum / (seg + 1)) * (ln.sh < 1 ? 0.7 : 1)).toFixed(3)})`;
+            ctx.strokeStyle = `rgba(${window.cvInkRGB || '29, 29, 31'}, ${(0.11 * depthAlpha(zSum / (seg + 1)) * (ln.sh < 1 ? 0.7 : 1)).toFixed(3)})`;
             ctx.stroke();
         }
         // ions: helix around a field line, bouncing between the mirrors, with a short fading trail
@@ -526,11 +526,11 @@
             for (let k = 1; k <= trail; k++) {
                 const cur = pos(t - k * dt);
                 const a = (1 - k / trail) * 0.38 * depthAlpha(prev[2]);
-                ctx.strokeStyle = `rgba(29, 29, 31, ${a.toFixed(3)})`;
+                ctx.strokeStyle = `rgba(${window.cvInkRGB || '29, 29, 31'}, ${a.toFixed(3)})`;
                 ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(cur[0], cur[1]); ctx.stroke();
                 prev = cur;
             }
-            ctx.fillStyle = `rgba(29, 29, 31, ${(0.55 * depthAlpha(head[2])).toFixed(3)})`;
+            ctx.fillStyle = `rgba(${window.cvInkRGB || '29, 29, 31'}, ${(0.55 * depthAlpha(head[2])).toFixed(3)})`;
             ctx.beginPath(); ctx.arc(head[0], head[1], 1.7, 0, Math.PI * 2); ctx.fill();
         }
         if (!reduceMotion && visible) requestAnimationFrame(draw);

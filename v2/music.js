@@ -134,6 +134,7 @@
         if (bass > avg * 1.15 && bass > 0.3 && now - lastBeat > 240) { lastBeat = now; level = 1; }
         level *= 0.86;                                 // each kick fades out quickly
         mp.style.setProperty('--beat', level.toFixed(3));
+        levels.beat = level; levels.b1 = Math.min(1, 0.25 + bass * 1.1); levels.b2 = Math.min(1, 0.25 + mid * 1.6); levels.b3 = Math.min(1, 0.25 + high * 2.4);
         mp.style.setProperty('--b1', Math.min(1, 0.25 + bass * 1.1).toFixed(3));
         mp.style.setProperty('--b2', Math.min(1, 0.25 + mid * 1.6).toFixed(3));
         mp.style.setProperty('--b3', Math.min(1, 0.25 + high * 2.4).toFixed(3));
@@ -172,7 +173,11 @@
                 artwork: t.img ? [{ src: t.img, sizes: '250x250', type: 'image/jpeg' }] : [] });
         }
         if (autoplay) play();
+        notify();
     }
+    // tell the rest of the page what's playing (the Dynamic Island listens)
+    const notify = () => window.dispatchEvent(new CustomEvent('cvmusic', { detail: { track: idx >= 0 ? TRACKS[idx] : null, playing: !audio.paused, collapsed: mp.classList.contains('collapsed') } }));
+    const levels = { beat: 0, b1: 0.4, b2: 0.4, b3: 0.4 };
     function play() {
         initBeat();
         if (actx && actx.state !== 'running') actx.resume();
@@ -181,8 +186,8 @@
     }
     const pause = () => audio.pause();
 
-    audio.addEventListener('play', () => { $('mp-play').innerHTML = ICON.pause; $('mp-play').setAttribute('aria-label', 'Pause'); mp.classList.add('playing'); beatStart(); });
-    audio.addEventListener('pause', () => { $('mp-play').innerHTML = ICON.play; $('mp-play').setAttribute('aria-label', 'Play'); mp.classList.remove('playing'); beatStop(); });
+    audio.addEventListener('play', () => { $('mp-play').innerHTML = ICON.pause; $('mp-play').setAttribute('aria-label', 'Pause'); mp.classList.add('playing'); beatStart(); notify(); });
+    audio.addEventListener('pause', () => { $('mp-play').innerHTML = ICON.play; $('mp-play').setAttribute('aria-label', 'Play'); mp.classList.remove('playing'); beatStop(); notify(); });
     audio.addEventListener('ended', () => load(nextIndex(1), true));
     audio.addEventListener('loadedmetadata', () => { $('mp-dur').textContent = fmt(audio.duration); });
     audio.addEventListener('timeupdate', () => {
@@ -253,6 +258,7 @@
         mp.classList.toggle('collapsed', !open);
         if (!open && !queue.hidden) toggleQueue(false);
         store.set('open', open);
+        notify();
     };
     $('mp-fab').addEventListener('click', () => setOpen(true));
     $('mp-min').addEventListener('click', e => { e.stopPropagation(); setOpen(false); });
@@ -319,5 +325,14 @@
     }
 
     // let the rest of the page pause the music (e.g. when a video with sound opens)
-    window.cvMusic = { pause, isPlaying: () => !audio.paused };
+    window.cvMusic = {
+        pause, isPlaying: () => !audio.paused,
+        toggle: () => (audio.paused ? play() : pause()),
+        next: () => load(nextIndex(1), true),
+        prev: () => { if (audio.currentTime > 3) audio.currentTime = 0; else load(nextIndex(-1), true); },
+        playIndex: i => load(i, true),
+        open: () => setOpen(true),
+        tracks: TRACKS, current: () => (idx >= 0 ? TRACKS[idx] : null),
+        levels, beatLive: () => !!beatRaf
+    };
 })();

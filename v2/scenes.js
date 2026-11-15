@@ -8,7 +8,7 @@
 (function () {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const small = () => window.innerWidth < 760;
-    const INK = a => `rgba(29, 29, 31, ${Math.max(0, a).toFixed(3)})`;
+    const INK = a => `rgba(${window.cvInkRGB || '29, 29, 31'}, ${Math.max(0, a).toFixed(3)})`;
     const rng = seed => () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };   // deterministic events
     const scenes = [];
 
@@ -247,7 +247,7 @@
         }
         // rock
         if (s.broken < 0 || t - s.broken < 0) {
-            ctx.fillStyle = 'rgba(29, 29, 31, 0.035)'; ctx.strokeStyle = INK(0.22);
+            ctx.fillStyle = INK(0.035); ctx.strokeStyle = INK(0.22);
             ctx.beginPath(); s.verts.forEach(([x, y], k) => k ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); ctx.fill(); ctx.stroke();
             ctx.strokeStyle = INK(0.28);
             for (const c of s.cracks) { ctx.beginPath(); c.forEach(([x, y], k) => k ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); }

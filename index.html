@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="color-scheme" content="light dark">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="/CV/v2/icons/favicon.ico" sizes="any">
     <link rel="icon" type="image/png" sizes="32x32" href="/CV/v2/icons/favicon-32.png">
@@ -28,6 +29,16 @@
     <meta name="twitter:image" content="https://bharat-singh-rawat.github.io/CV/v2/img/og-card.jpg">
     <!-- ALL CV CONTENT COMES FROM /Dossier/profile.js — edit that file, not this page -->
     <script src="/Dossier/profile.js"></script>
+    <script>
+        /* theme: follow the system unless the visitor picked one (footer / search); decided before the page paints */
+        (function () {
+            var pref = 'auto'; try { pref = localStorage.getItem('cv-theme') || 'auto'; } catch (e) {}
+            var dark = pref === 'dark' || (pref === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+            document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+            document.documentElement.dataset.themePref = pref;
+            window.cvInkRGB = dark ? '245, 245, 247' : '29, 29, 31';   /* line colour for the canvas scenes */
+        })();
+    </script>
     <link rel="stylesheet" href="/CV/v2/v2.css">
 </head>
 <body>
@@ -222,5 +233,6 @@
     <script src="/CV/v2/clips.js"></script>
     <script src="/CV/v2/game.js"></script>
     <script src="/CV/v2/polish.js"></script>
+    <script src="/CV/v2/apple.js"></script>
 </body>
 </html>
