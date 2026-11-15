@@ -39,6 +39,7 @@ def iso(dt):
 def main():
     if not TOKEN:
         sys.exit("GOATCOUNTER_TOKEN is not set")
+    print(f"token length: {len(TOKEN)} characters")      # length only, never the value
     now = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
     since = SINCE if SINCE < now else now - timedelta(days=1)
 
