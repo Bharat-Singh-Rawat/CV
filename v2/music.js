@@ -101,6 +101,53 @@
     audio.preload = 'none';
     let idx = -1, shuffle = true, order = [], seeking = false;
     const mp = $('mp');
+    const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // ---- beat-reactive animation (desktop only) ----
+    // The song is routed through a Web Audio analyser; the bass energy drives a CSS variable (--beat) and
+    // three frequency bands drive the little equaliser bars. Phones keep plain playback, because routing
+    // audio through Web Audio can stop music when a phone locks or the tab goes to the background.
+    const AC = window.AudioContext || window.webkitAudioContext;
+    const beatOK = fine && !reduce && !!AC;
+    let actx = null, an = null, bins = null, beatRaf = 0, avg = 0, level = 0, lastBeat = 0;
+    function initBeat() {                            // called from a click, so the browser allows audio
+        if (!beatOK || actx) return;
+        try {
+            actx = new AC();
+            const src = actx.createMediaElementSource(audio);
+            an = actx.createAnalyser(); an.fftSize = 1024; an.smoothingTimeConstant = 0.55;
+            src.connect(an); an.connect(actx.destination);
+            bins = new Uint8Array(an.frequencyBinCount);
+        } catch (e) { actx = null; an = null; }
+    }
+    const band = (a, b) => { let s = 0; for (let i = a; i <= b; i++) s += bins[i]; return s / ((b - a + 1) * 255); };
+    function beatLoop() {
+        beatRaf = requestAnimationFrame(beatLoop);
+        an.getByteFrequencyData(bins);
+        const hz = actx.sampleRate / an.fftSize;        // ≈ 43–47 Hz per bin
+        const bass = band(1, Math.max(2, Math.round(150 / hz)));
+        const mid = band(Math.round(400 / hz), Math.round(2000 / hz));
+        const high = band(Math.round(3000 / hz), Math.round(9000 / hz));
+        avg = avg * 0.94 + bass * 0.06;               // running average of the bass
+        const now = performance.now();
+        if (bass > avg * 1.15 && bass > 0.3 && now - lastBeat > 240) { lastBeat = now; level = 1; }
+        level *= 0.86;                                 // each kick fades out quickly
+        mp.style.setProperty('--beat', level.toFixed(3));
+        mp.style.setProperty('--b1', Math.min(1, 0.25 + bass * 1.1).toFixed(3));
+        mp.style.setProperty('--b2', Math.min(1, 0.25 + mid * 1.6).toFixed(3));
+        mp.style.setProperty('--b3', Math.min(1, 0.25 + high * 2.4).toFixed(3));
+    }
+    function beatStart() {
+        if (!an) return;
+        if (actx.state !== 'running') actx.resume();
+        if (!beatRaf) { mp.classList.add('beat'); beatLoop(); }
+    }
+    function beatStop() {
+        cancelAnimationFrame(beatRaf); beatRaf = 0;
+        mp.classList.remove('beat'); mp.style.setProperty('--beat', 0);
+    }
+    document.addEventListener('visibilitychange', () => { if (document.hidden) beatStop(); else if (!audio.paused) beatStart(); });
 
     const shuffled = () => { const a = TRACKS.map((_, i) => i); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
     const nextIndex = dir => {
@@ -127,13 +174,15 @@
         if (autoplay) play();
     }
     function play() {
+        initBeat();
+        if (actx && actx.state !== 'running') actx.resume();
         if (idx < 0) load(shuffle ? (order = shuffled())[0] : 0, false);
         audio.play().catch(() => { /* blocked until a user gesture */ });
     }
     const pause = () => audio.pause();
 
-    audio.addEventListener('play', () => { $('mp-play').innerHTML = ICON.pause; $('mp-play').setAttribute('aria-label', 'Pause'); mp.classList.add('playing'); });
-    audio.addEventListener('pause', () => { $('mp-play').innerHTML = ICON.play; $('mp-play').setAttribute('aria-label', 'Play'); mp.classList.remove('playing'); });
+    audio.addEventListener('play', () => { $('mp-play').innerHTML = ICON.pause; $('mp-play').setAttribute('aria-label', 'Pause'); mp.classList.add('playing'); beatStart(); });
+    audio.addEventListener('pause', () => { $('mp-play').innerHTML = ICON.play; $('mp-play').setAttribute('aria-label', 'Play'); mp.classList.remove('playing'); beatStop(); });
     audio.addEventListener('ended', () => load(nextIndex(1), true));
     audio.addEventListener('loadedmetadata', () => { $('mp-dur').textContent = fmt(audio.duration); });
     audio.addEventListener('timeupdate', () => {
@@ -223,6 +272,51 @@
         if (now - lastSave > 3000) { lastSave = now; store.set('pos', { i: idx, t: audio.currentTime }); }
     });
     window.addEventListener('pagehide', () => { if (idx >= 0) store.set('pos', { i: idx, t: audio.currentTime }); });
+
+    // ---- drag the player anywhere with the mouse (position remembered) ----
+    // Anchored by its bottom-right corner, so the playlist still opens upwards.
+    const clampPos = (r, b) => {
+        const w = mp.offsetWidth, h = mp.offsetHeight, m = 8;
+        return { r: Math.min(Math.max(m, r), Math.max(m, innerWidth - w - m)), b: Math.min(Math.max(m, b), Math.max(m, innerHeight - h - m)) };
+    };
+    const place = (pos, save) => {
+        const p = clampPos(pos.r, pos.b);
+        mp.style.right = p.r + 'px'; mp.style.bottom = p.b + 'px';
+        if (save) store.set('xy', p);
+    };
+    if (fine) {
+        const xy = store.get('xy');
+        if (xy) place(xy, false);
+        let drag = null, moved = false;
+        mp.addEventListener('pointerdown', e => {
+            if (e.pointerType !== 'mouse' || e.button !== 0) return;
+            if (e.target.closest('.mp-progress, .mp-queue')) return;   // seeking and the playlist keep their own behaviour
+            const r = mp.getBoundingClientRect();
+            drag = { x: e.clientX, y: e.clientY, r: innerWidth - r.right, b: innerHeight - r.bottom, id: e.pointerId };
+            moved = false;
+        });
+        window.addEventListener('pointermove', e => {
+            if (!drag || e.pointerId !== drag.id) return;
+            const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+            if (!moved && Math.hypot(dx, dy) < 5) return;          // a small wobble is still a click
+            if (!moved) { moved = true; mp.classList.add('dragging'); }
+            place({ r: drag.r - dx, b: drag.b - dy }, false);
+        });
+        window.addEventListener('pointerup', () => {
+            if (!drag) return;
+            if (moved) { place({ r: parseFloat(mp.style.right), b: parseFloat(mp.style.bottom) }, true); mp.classList.remove('dragging'); }
+            drag = null;
+        });
+        // a drag that ends on a button must not also press it
+        mp.addEventListener('click', e => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
+        mp.addEventListener('dblclick', e => {                       // double-click empty space: back to the corner
+            if (e.target.closest('button, .mp-progress, .mp-queue')) return;
+            mp.style.right = ''; mp.style.bottom = ''; store.set('xy', null);
+        });
+        const keepInside = () => { if (mp.style.right) place({ r: parseFloat(mp.style.right), b: parseFloat(mp.style.bottom) }, false); };
+        window.addEventListener('resize', keepInside);
+        new ResizeObserver(keepInside).observe(mp);                   // opening the playlist or expanding the player
+    }
 
     // let the rest of the page pause the music (e.g. when a video with sound opens)
     window.cvMusic = { pause, isPlaying: () => !audio.paused };

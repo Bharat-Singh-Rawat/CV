@@ -619,3 +619,19 @@ html[lang="es"] .topnav a, html[lang="ru"] .topnav a { padding: 6px 8px; font-si
 .mp-art.has-photo svg { opacity: 0; }
 .mp-q-title small { display: block; font-size: 0.74rem; font-weight: 400; color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
 .mp-queue li button.current .mp-q-title small { font-weight: 400; }
+
+/* ---------- player: drag to move (desktop) ---------- */
+@media (hover: hover) and (pointer: fine) {
+    .mp .mp-bar, .mp .mp-times { cursor: grab; }
+    .mp.dragging, .mp.dragging * { cursor: grabbing !important; user-select: none; }
+    .mp.dragging { transition: none; box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.12), 0 22px 60px rgba(0, 0, 0, 0.24); }
+}
+
+/* ---------- player: moves with the beat (desktop, while playing) ---------- */
+.mp.beat { box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.1), 0 10px calc(40px + var(--beat, 0) * 26px) rgba(0, 0, 0, calc(0.16 + var(--beat, 0) * 0.1)); transition: transform 0.5s var(--ease); }
+.mp.beat .mp-art { transform: scale(calc(1.02 + var(--beat, 0) * 0.08)); transition: background 0.6s; }
+.mp.beat.collapsed { transform: scale(calc(1 + var(--beat, 0) * 0.07)); transition: none; }
+.mp.beat .mp-fab-eq i, .mp.beat .mp-q-eq i { animation: none; transition: transform 0.08s linear; }
+.mp.beat .mp-fab-eq i:nth-child(1), .mp.beat .mp-q-eq i:nth-child(1) { transform: scaleY(var(--b1, 0.4)); }
+.mp.beat .mp-fab-eq i:nth-child(2), .mp.beat .mp-q-eq i:nth-child(2) { transform: scaleY(var(--b2, 0.4)); }
+.mp.beat .mp-fab-eq i:nth-child(3), .mp.beat .mp-q-eq i:nth-child(3) { transform: scaleY(var(--b3, 0.4)); }
