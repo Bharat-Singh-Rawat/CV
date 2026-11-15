@@ -220,6 +220,7 @@ a.key.key-plain { color: var(--fg-bright); border-style: dashed; border-bottom-s
 .mp-vol input { flex: 1; accent-color: var(--amber); }
 #mp-viz { display: block; width: 100%; height: 30px; margin-top: 8px; }
 #mp-shuffle[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
+.kv .guest-flag { width: 20px; height: 15px; vertical-align: -2px; margin-right: 6px; border: 1px solid var(--line-hi); }
 #side-links { display: flex; flex-direction: column; gap: 6px; }
 #side-links a { display: flex; justify-content: space-between; gap: 8px; border: none; padding: 2px 4px; }
 #side-links a .u { color: var(--dim); font-size: 0.7rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

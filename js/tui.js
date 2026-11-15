@@ -62,6 +62,7 @@ window.TUI = (function () {
                             <span class="k">Field</span><span class="v">${P.title.toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase())}</span>
                             ${yrsExp ? `<span class="k">Uptime</span><span class="v">${yrsExp} years</span>` : ''}
                             <span class="k">Packages</span><span class="v">${P.publications.length} publications · ${P.talks.length} talks</span>
+                            <span class="k guest-row" hidden>Guest</span><span class="v guest-row" id="guest-v" hidden></span>
                             <span class="k">Shell</span><span class="v">press <kbd>\`</kbd> for a console</span>
                         </div>
                         <div class="palette" aria-hidden="true"><i style="background:var(--accent)"></i><i style="background:var(--accent-2)"></i><i style="background:var(--amber)"></i><i style="background:var(--magenta)"></i><i style="background:var(--red)"></i><i style="background:var(--blue)"></i><i style="background:var(--fg)"></i></div>
@@ -152,6 +153,25 @@ window.TUI = (function () {
         + `<a href="/Dossier/"><span>← all themes</span><span class="u">Dossier portal</span></a>`
         + `<a href="plain.html" target="_blank" rel="noopener"><span>plain CV ↗</span><span class="u">clean, printable version</span></a>`
         + `<a href="classic.html"><span>classic layout</span><span class="u">previous Terminal_View design</span></a>`;
+
+    // visitor greeting: the visitor's own country (+ total visits if GoatCounter is set up)
+    (async () => {
+        const v = $('guest-v'); if (!v) return;
+        try {
+            const ctl = new AbortController(); setTimeout(() => ctl.abort(), 5000);
+            const cc = String((await (await fetch('https://api.country.is/', { signal: ctl.signal })).json()).country || '').toUpperCase();
+            if (!/^[A-Z]{2}$/.test(cc)) return;
+            let name = cc;
+            try { name = new Intl.DisplayNames(['en'], { type: 'region' }).of(cc) || cc; } catch (e) { /* old browser */ }
+            let visits = '';
+            const gc = String(P.goatcounter || '').trim();
+            if (/^[a-z0-9-]+$/i.test(gc)) {
+                try { visits = (await (await fetch(`https://${gc}.goatcounter.com/counter/TOTAL.json`)).json()).count || ''; } catch (e) { /* counter not public yet */ }
+            }
+            v.innerHTML = `<img class="guest-flag" src="https://flagcdn.com/40x30/${cc.toLowerCase()}.png" alt="">welcome, visitor from <b>${name}</b>${visits ? ` · ${visits} visits` : ''}`;
+            document.querySelectorAll('.guest-row').forEach(el => el.hidden = false);
+        } catch (e) { /* lookup blocked or offline: keep the row hidden */ }
+    })();
 
     // ── typing reveal ──
     const sleep = ms => new Promise(r => setTimeout(r, ms));
