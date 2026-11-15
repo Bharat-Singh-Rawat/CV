@@ -711,3 +711,105 @@ html.game-open { overflow: hidden; }
 @media (hover: none), (pointer: coarse) { .game-touch .fire { flex: 0.8; background: #ffd60a; } }
 .g-msg .g-board b { font-size: inherit; letter-spacing: 0; font-variant-numeric: tabular-nums; }
 .g-msg .g-board { line-height: 1.5; }
+
+/* =====================================================================
+   Liquid Glass (Apple, 2025): clear glass that lets the page through, a bright rim,
+   a soft sheen, and a highlight that follows the pointer.
+   ===================================================================== */
+.topbar, .mp {
+    --glass-rim: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(0, 0, 0, 0.04), inset 1px 0 0 rgba(255, 255, 255, 0.5), inset -1px 0 0 rgba(255, 255, 255, 0.5);
+}
+.topbar {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.42));
+    backdrop-filter: blur(14px) saturate(190%) brightness(1.04); -webkit-backdrop-filter: blur(14px) saturate(190%) brightness(1.04);
+    box-shadow: var(--glass-rim), 0 6px 24px rgba(0, 0, 0, 0.06);
+    border-bottom: 0;
+    transition: background 0.5s var(--ease), box-shadow 0.5s var(--ease), color 0.5s var(--ease);
+}
+.topbar.scrolled { background: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.5)); border-bottom: 0; }
+.topbar::before, .mp::before {                     /* the glossy sheen across the top */
+    content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 46%);
+    mix-blend-mode: soft-light;
+}
+.topbar::after, .mp::after {                       /* the highlight that follows the pointer */
+    content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0;
+    background: radial-gradient(180px circle at var(--lx, 50%) var(--ly, 0%), rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 70%);
+    transition: opacity 0.4s var(--ease);
+}
+.topbar.lit::after, .mp.lit::after { opacity: 1; }
+.topbar::before, .topbar::after, .mp::before, .mp::after { z-index: -1; }   /* under the content, over the glass */
+.topbar, .mp { isolation: isolate; }
+
+/* desktop: the bar floats as a glass capsule, like the iOS 26 tab bar */
+@media (min-width: 1001px) {
+    .topbar {
+        top: 10px; left: 50%; right: auto; transform: translateX(-50%);
+        width: min(1100px, calc(100vw - 32px)); height: 50px; border-radius: 25px; padding: 0 8px 0 24px;
+    }
+    html { scroll-padding-top: 70px; }
+}
+
+.mp {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.66), rgba(250, 250, 252, 0.5));
+    backdrop-filter: blur(16px) saturate(190%) brightness(1.04); -webkit-backdrop-filter: blur(16px) saturate(190%) brightness(1.04);
+    box-shadow: var(--glass-rim), 0 0 0 0.5px rgba(0, 0, 0, 0.08), 0 12px 40px rgba(0, 0, 0, 0.16);
+}
+.mp.beat { box-shadow: var(--glass-rim), 0 0 0 0.5px rgba(0, 0, 0, 0.08), 0 10px calc(40px + var(--beat, 0) * 26px) rgba(0, 0, 0, calc(0.16 + var(--beat, 0) * 0.1)); }
+.mp-queue-head { background: rgba(255, 255, 255, 0.55); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+
+/* blue buttons get a glassy gloss */
+.btn, .topbar-cta, .g-name button {
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 55%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), inset 0 -1px 0 rgba(0, 0, 0, 0.12), 0 4px 14px rgba(0, 113, 227, 0.25);
+}
+
+/* dark glass: tooltips, pop-ups and toasts */
+#term-tip, .media-pop, .beam-toast {
+    background: linear-gradient(180deg, rgba(48, 48, 52, 0.72), rgba(24, 24, 27, 0.66));
+    -webkit-backdrop-filter: blur(18px) saturate(180%); backdrop-filter: blur(18px) saturate(180%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), inset 0 0 0 0.5px rgba(255, 255, 255, 0.1), 0 14px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* the top bar goes dark over the dark Lab section */
+.topbar.on-dark { background: linear-gradient(180deg, rgba(40, 40, 44, 0.62), rgba(22, 22, 24, 0.5)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 0 0 0.5px rgba(255, 255, 255, 0.08), 0 6px 24px rgba(0, 0, 0, 0.3); }
+.topbar.on-dark .ln-title, .topbar.on-dark .topnav a, .topbar.on-dark #lang-pick, .topbar.on-dark #sfx-toggle, .topbar.on-dark .ln-toggle { color: #f5f5f7; }
+.topbar.on-dark .topnav a.active::after { background: #f5f5f7; }
+.topbar.on-dark::before { opacity: 0.4; }
+@media (max-width: 1000px) { .topbar.on-dark .topnav a { color: var(--text); } }   /* the open menu stays light */
+
+/* =====================================================================
+   One cinematic dark section: the Lab gallery on black
+   ===================================================================== */
+.lab.dark { --bg: #000000; --card: #1d1d1f; --text: #f5f5f7; --body: #d2d2d7; --muted: #a1a1a6; --faint: #86868b; --warm: #ff9f0a; color: var(--text); }
+.lab.dark .tile { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 30px 80px rgba(0, 0, 0, 0.6); }
+.lab.dark .tile.active { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12), 0 0 70px rgba(255, 255, 255, 0.08), 0 30px 80px rgba(0, 0, 0, 0.6); }
+.lab.dark .lab-progress { background: rgba(255, 255, 255, 0.16); }
+.lab.dark .lab-progress span { background: #f5f5f7; }
+
+/* =====================================================================
+   About text that lights up word by word as you scroll
+   ===================================================================== */
+.about-body.words { color: var(--text); }
+.about-body.words .w { color: #d2d2d7; transition: color 0.35s var(--ease); }
+.about-body.words .w.on { color: var(--text); }
+.about-body.words .term { text-decoration-color: rgba(29, 29, 31, 0.3); }
+
+/* =====================================================================
+   Apple-style footer
+   ===================================================================== */
+.footer.foot-apple { padding: 34px 0 130px; font-size: 0.75rem; line-height: 1.4; color: var(--muted); }
+.foot-fine { margin: 0 0 18px; padding-bottom: 16px; border-bottom: 1px solid var(--line); color: var(--faint); }
+.foot-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
+.foot-col h4 { margin: 0 0 10px; font-size: 0.75rem; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
+.foot-col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+.foot-col a { color: var(--body); text-decoration: none; }
+.foot-col a:hover { color: var(--text); text-decoration: underline; }
+.foot-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; padding-top: 16px; }
+.foot-langs { display: flex; gap: 8px; align-items: center; }
+.foot-langs i { font-style: normal; color: var(--line); }
+.foot-langs a { color: var(--body); text-decoration: none; }
+.foot-langs a:hover { text-decoration: underline; }
+.foot-langs [aria-current] { color: var(--text); }
+@media (max-width: 700px) { .foot-cols { grid-template-columns: 1fr 1fr; row-gap: 26px; } }
+@media (max-width: 1000px) { .topbar .topnav { background: #fbfbfd; -webkit-backdrop-filter: none; backdrop-filter: none; } }   /* nested glass doesn't render reliably: keep the open menu solid */
