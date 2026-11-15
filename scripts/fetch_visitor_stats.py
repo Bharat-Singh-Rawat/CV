@@ -5,7 +5,7 @@ Run by .github/workflows/visitor-stats.yml. Needs env GOATCOUNTER_TOKEN
 (an API token with "read statistics" permission). Standard library only.
 The file is only rewritten when the numbers change, so no empty commits.
 """
-import json, os, sys, time, urllib.parse, urllib.request
+import json, os, sys, time, urllib.error, urllib.parse, urllib.request
 from datetime import datetime, timedelta, timezone
 
 SITE = os.environ.get("GOATCOUNTER_SITE", "bharatrawat")
@@ -20,8 +20,14 @@ def api(path, **params):
     url = f"https://{SITE}.goatcounter.com/api/v0/{path}?{urllib.parse.urlencode(params)}"
     req = urllib.request.Request(url, headers={"Authorization": f"Bearer {TOKEN}",
                                                "Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        data = json.load(r)
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            data = json.load(r)
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", "replace")[:300]
+        hint = {401: "token not recognised: re-create it and update the GOATCOUNTER_TOKEN secret",
+                403: "token lacks permission: tick 'Read statistics' on the token"}.get(e.code, "")
+        sys.exit(f"GoatCounter {path} -> HTTP {e.code} {hint}\n{body}")
     time.sleep(0.5)                                     # stay well under 4 req/s
     return data
 
