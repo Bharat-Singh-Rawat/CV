@@ -492,30 +492,6 @@
         #guest-line { margin: 0 0 6px; font-size: 0.85rem; color: var(--phosphor-green); }
         #guest-line img { width: 20px; height: 15px; vertical-align: -2px; margin-right: 6px; border: 1px solid #333; }
         #guest-line b { color: #fff; }
-        /* --- VISITOR LOG --- */
-        .vz-stats { display: flex; flex-wrap: wrap; gap: 28px; margin-bottom: 22px; }
-        .vz-stat .n { display: block; font-size: 2rem; font-weight: bold; color: #fff; line-height: 1.1; }
-        .vz-stat .l { font-size: 0.7rem; color: #888; letter-spacing: 1px; text-transform: uppercase; }
-        .vz-sub { font-size: 0.75rem; color: #888; letter-spacing: 1px; text-transform: uppercase; margin: 18px 0 8px; }
-        .vz-chart { position: relative; }
-        .vz-chart svg { display: block; width: 100%; height: 140px; overflow: visible; }
-        .vz-chart .bar { fill: var(--plasma-cyan); opacity: 0.85; }
-        .vz-chart .col:hover .bar { opacity: 1; }
-        .vz-chart .hit { fill: transparent; }
-        .vz-chart .base { stroke: #333; stroke-width: 1; }
-        .vz-chart .grid { stroke: #1d1d24; stroke-width: 1; }
-        .vz-axis { display: flex; justify-content: space-between; font-size: 0.65rem; color: #777; margin-top: 4px; }
-        .vz-tip { position: absolute; pointer-events: none; background: #000; border: 1px solid var(--plasma-cyan); color: #d1d1d1;
-            font-size: 0.7rem; padding: 4px 8px; white-space: nowrap; transform: translate(-50%, -100%); opacity: 0; transition: opacity 0.1s; }
-        .vz-tip b { color: #fff; }
-        .vz-countries { display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content; gap: 8px 12px; align-items: center; font-size: 0.85rem; }
-        .vz-countries img { width: 20px; height: 15px; vertical-align: -2px; margin-right: 8px; border: 1px solid #333; }
-        .vz-countries .track { height: 8px; background: #111; border-radius: 0 4px 4px 0; }
-        .vz-countries .fill { height: 100%; background: var(--plasma-cyan); opacity: 0.85; border-radius: 0 4px 4px 0; min-width: 2px; }
-        .vz-countries .num { color: #fff; text-align: right; font-variant-numeric: tabular-nums; }
-        .vz-empty, .vz-note { font-size: 0.75rem; color: #888; }
-        .vz-note { margin-top: 18px; }
-        .lab-card:hover .vz-countries .num, .lab-card:hover .vz-stat .n { text-shadow: 0 0 8px rgba(0,255,255,0.5); }
         .hobby-chamber { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; padding: 15px; background: rgba(0, 255, 255, 0.02); border: 1px dashed #333; border-radius: 8px; }
         .hobby-atom { padding: 6px 14px; border: 1px solid #444; border-radius: 20px; font-size: 0.75rem; cursor: crosshair; transition: 0.3s; background: #000; user-select: none; }
         .hobby-atom.ionized { border-color: var(--plasma-cyan); color: #fff; box-shadow: 0 0 15px var(--plasma-cyan); transform: scale(1.1); background: rgba(0, 255, 255, 0.1); }
@@ -647,9 +623,6 @@
         <h2 class="module-title">[ 06: SOFTWARE STACK & EXPERTISE ]</h2>
         <div class="lab-card" id="tech-expertise-section"></div>
 
-        <h2 class="module-title">[ 07: VISITOR LOG ]</h2>
-        <div class="lab-card" id="cv-visitors"><p class="vz-empty">// loading visitor log...</p></div>
-
         <script>
         (function () {
             const P = window.PROFILE, $ = id => document.getElementById(id);
@@ -674,67 +647,6 @@
                 + `<div id="hobby-readout">// WAITING_FOR_BEAM_PROBE...</div>`;
             $('tech-expertise-section').innerHTML = cvMap(P.skills, s => `<p style="margin-bottom:10px;"><b style="color:var(--plasma-cyan);">${s.label}:</b> ${s.text}</p>`)
                 + `<p style="margin-top:15px;"><b style="color:var(--warning-orange);">Core expertise:</b> ${P.expertise}</p>`;
-
-            // visitor log: drawn from assets/stats/visitors.json (refreshed every 3 h by a GitHub Action)
-            (async () => {
-                const box = $('cv-visitors'); if (!box) return;
-                const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-                const fmt = n => Number(n).toLocaleString('en');
-                let d;
-                try { d = await (await fetch('assets/stats/visitors.json', { cache: 'no-cache' })).json(); }
-                catch (e) { box.innerHTML = '<p class="vz-empty">// visitor log unavailable right now.</p>'; return; }
-                const daily = Array.isArray(d.daily) ? d.daily : [], countries = Array.isArray(d.countries) ? d.countries : [];
-                const last30 = daily.reduce((a, x) => a + (x.count || 0), 0);
-                const ago = d.updated ? Math.max(0, Math.round((Date.now() - Date.parse(d.updated)) / 3.6e6)) : null;
-                const dayLbl = s => new Date(s + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
-
-                // daily bars (single series, one hue; rounded data-end; hover tooltip)
-                const W = 600, H = 140, n = daily.length || 1, slot = W / n, bw = Math.max(2, slot - 2);
-                const max = Math.max(1, ...daily.map(x => x.count || 0));
-                const cols = daily.map((x, i) => {
-                    const h = (x.count || 0) / max * (H - 10), xx = i * slot + (slot - bw) / 2, r = Math.min(4, bw / 2, h);
-                    const bar = h > 0 ? `<path class="bar" d="M${xx},${H} V${H - h + r} Q${xx},${H - h} ${xx + r},${H - h} H${xx + bw - r} Q${xx + bw},${H - h} ${xx + bw},${H - h + r} V${H} Z"/>` : '';
-                    return `<g class="col" data-i="${i}"><rect class="hit" x="${i * slot}" y="0" width="${slot}" height="${H}"/>${bar}</g>`;
-                }).join('');
-                const chart = `
-                    <div class="vz-sub">Daily visitors · last ${n} days</div>
-                    <div class="vz-chart">
-                        <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Daily visitors over the last ${n} days, ${fmt(last30)} in total">
-                            <line class="grid" x1="0" x2="${W}" y1="10" y2="10"/>${cols}<line class="base" x1="0" x2="${W}" y1="${H}" y2="${H}"/>
-                        </svg>
-                        <div class="vz-tip"></div>
-                    </div>
-                    <div class="vz-axis"><span>${daily[0] ? dayLbl(daily[0].day) : ''}</span><span>peak ${fmt(max === 1 && !daily.some(x => x.count) ? 0 : max)} / day</span><span>${daily.length ? dayLbl(daily[daily.length - 1].day) : ''}</span></div>`;
-
-                const top = countries.slice(0, 10), cmax = Math.max(1, ...top.map(c => c.count));
-                const list = top.length ? `
-                    <div class="vz-sub">Top countries</div>
-                    <div class="vz-countries">${top.map(c => `
-                        <span>${/^[A-Z]{2}$/.test(c.code) ? `<img src="https://flagcdn.com/40x30/${c.code.toLowerCase()}.png" alt="">` : ''}${esc(c.name)}</span>
-                        <div class="track"><div class="fill" style="width:${(c.count / cmax * 100).toFixed(1)}%"></div></div>
-                        <span class="num">${fmt(c.count)}</span>`).join('')}
-                    </div>` : '';
-
-                box.innerHTML = `
-                    <div class="vz-stats">
-                        <div class="vz-stat"><span class="n">${fmt(d.total || 0)}</span><span class="l">visitors all-time</span></div>
-                        <div class="vz-stat"><span class="n">${fmt(last30)}</span><span class="l">last 30 days</span></div>
-                        <div class="vz-stat"><span class="n">${fmt(countries.length)}${countries.length >= 10 ? '+' : ''}</span><span class="l">countries</span></div>
-                    </div>
-                    ${chart}${list}
-                    <p class="vz-note">${(d.total || 0) ? '' : '// no visits logged yet. '}// stats refresh every 3 hours${ago !== null ? ` · last update ${ago < 1 ? 'under an hour' : ago + ' h'} ago` : ''}</p>`;
-
-                const wrap = box.querySelector('.vz-chart'), tip = box.querySelector('.vz-tip');
-                box.querySelectorAll('.vz-chart .col').forEach(g => {
-                    g.addEventListener('mouseenter', () => {
-                        const x = daily[+g.dataset.i], r = g.querySelector('.hit').getBoundingClientRect(), w = wrap.getBoundingClientRect();
-                        tip.innerHTML = `${dayLbl(x.day)} · <b>${fmt(x.count || 0)}</b> visitor${x.count === 1 ? '' : 's'}`;
-                        tip.style.left = Math.min(w.width - 60, Math.max(60, r.left - w.left + r.width / 2)) + 'px';
-                        tip.style.top = '-6px'; tip.style.opacity = 1;
-                    });
-                    g.addEventListener('mouseleave', () => { tip.style.opacity = 0; });
-                });
-            })();
 
             // visitor greeting: the visitor's own country (+ total visits from GoatCounter)
             (async () => {
