@@ -15,7 +15,7 @@
     const fmt = t => !isFinite(t) ? '0:00' : `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
     // artwork: a soft two-tone gradient derived from the title, like Apple Music's generated covers
     const hue = s => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
-    const art = t => { const h = hue(t.title); return `linear-gradient(135deg, hsl(${h} 85% 62%), hsl(${(h + 55) % 360} 80% 48%))`; };
+    const art = t => { const h = hue(t.title), l = 18 + (h % 5) * 6; return `linear-gradient(135deg, hsl(0 0% ${l + 22}%), hsl(0 0% ${l}%))`; };
 
     const ICON = {
         play: '<svg viewBox="0 0 24 24"><path d="M7 4.6v14.8a1 1 0 0 0 1.5.86l12.3-7.4a1 1 0 0 0 0-1.72L8.5 3.74A1 1 0 0 0 7 4.6z"/></svg>',
@@ -142,7 +142,7 @@
     const toggleQueue = open => {
         open = open ?? queue.hidden;
         if (open) { queue.hidden = false; requestAnimationFrame(() => mp.classList.add('expanded')); }
-        else { mp.classList.remove('expanded'); setTimeout(() => { if (!mp.classList.contains('expanded')) queue.hidden = true; }, 400); }
+        else { mp.classList.remove('expanded'); setTimeout(() => { if (!mp.classList.contains('expanded')) queue.hidden = true; }, 520); }
         $('mp-art').setAttribute('aria-expanded', open);
     };
     $('mp-art').addEventListener('click', () => toggleQueue());
@@ -167,7 +167,7 @@
     };
     $('mp-fab').addEventListener('click', () => setOpen(true));
     $('mp-min').addEventListener('click', e => { e.stopPropagation(); setOpen(false); });
-    if (store.get('open')) setOpen(true);
+    if (store.get('open') && !window.matchMedia('(max-width: 600px)').matches) setOpen(true);   // phones always start small
     const saved = store.get('pos');
     if (saved && TRACKS[saved.i]) {
         load(saved.i, false);

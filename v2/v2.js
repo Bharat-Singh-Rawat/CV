@@ -31,10 +31,6 @@
     $('ln-nav').addEventListener('click', e => { if (e.target.closest('a')) setMenu(false); });
     document.addEventListener('click', e => { if (!topbarEl.contains(e.target)) setMenu(false); });
 
-    // statement: one <span> per word so each can light up
-    const stmt = $('statement'), stmtText = P.statement || strip(P.summary);
-    stmt.innerHTML = stmtText.split(/\s+/).map(w => `<span>${esc(w)}</span> `).join('');
-    const stmtWords = [...stmt.children];
     $('hero-eyebrow').textContent = titleCase(P.title);
     $('hero-name').innerHTML = `${esc(words.slice(0, -1).join(' '))}<br><span class="light">${esc(words[words.length - 1])}</span>${degree ? `<sup>${esc(degree)}</sup>` : ''}`;
     $('hero-pitch').innerHTML = P.summary;
@@ -69,10 +65,17 @@
                 </div>
                 <h3>${r.role}</h3>
                 <p class="org">${r.org}</p>
-                <ul>${r.bullets.map(b => `<li>${b}</li>`).join('')}</ul>
+                <ul>${r.bullets.map((b, k) => `<li${k >= 2 ? ' class="extra"' : ''}>${b}</li>`).join('')}</ul>
+                ${r.bullets.length > 2 ? `<button type="button" class="more-btn" aria-expanded="false">More</button>` : ''}
             </div>
         </li>`;
     }).join('');
+
+    $('beamline').addEventListener('click', e => {
+        const b = e.target.closest('.more-btn'); if (!b) return;
+        const open = b.closest('.station').classList.toggle('open');
+        b.setAttribute('aria-expanded', open); b.textContent = open ? 'Less' : 'More';
+    });
 
     // ---------- research highlights ----------
     $('expertise').innerHTML = P.expertise;
@@ -99,62 +102,75 @@
             <figcaption><h3>${esc(g.title)}</h3><p>${esc(g.text)}</p></figcaption>
         </figure>`).join('');
     const tiles = [...track.children];
-    let labShift = 0, labX = 0, labTarget = 0, labRunning = false;
+    let labShift = 0, labX = 0, labTarget = 0, labRunning = false, labLast = 0, labInView = false;
+    let geo = { centers: [], widths: [], step: 1 }, bestIdx = -1;
     const touchSmall = window.matchMedia('(max-width: 760px), (hover: none) and (pointer: coarse)').matches;
     const labStatic = reduceMotion || touchSmall || !tiles.length;          // phones/tablets: natural swipe row
     if (!tiles.length) lab.remove();
     else if (labStatic) lab.classList.add('static');
-    function layoutLab() {
+    function layoutLab() {                                                  // all measuring happens here, never per frame
         if (labStatic) return;
-        const vw = window.innerWidth, tw = tiles[0].offsetWidth;          // layout width, unaffected by the scale
-        track.style.setProperty('--pad', ((vw - tw) / 2) + 'px');           // first and last photo can sit dead centre
-        labShift = Math.max(0, tiles[tiles.length - 1].offsetLeft - tiles[0].offsetLeft);   // first photo centred → last photo centred
-        lab.style.height = (labShift * 0.55 + window.innerHeight) + 'px';    // scroll distance while pinned (shorter = less 'stuck')
-        labTarget = labX = targetLab(); paintLab();
+        tiles.forEach(t => { t.style.transform = ''; });
+        const vw = window.innerWidth, tw = tiles[0].offsetWidth;
+        track.style.setProperty('--pad', ((vw - tw) / 2) + 'px');
+        geo = {
+            centers: tiles.map(t => t.offsetLeft + t.offsetWidth / 2),
+            widths: tiles.map(t => t.offsetWidth),
+            step: tiles.length > 1 ? tiles[1].offsetLeft - tiles[0].offsetLeft : 1
+        };
+        labShift = Math.max(0, tiles[tiles.length - 1].offsetLeft - tiles[0].offsetLeft);
+        lab.style.height = (labShift * 0.55 + window.innerHeight) + 'px';
+        labTop = lab.offsetTop;
+        bestIdx = -1; labTarget = labX = targetLab(window.scrollY); paintLab();
     }
-    function targetLab() {
-        const r = lab.getBoundingClientRect(), span = lab.offsetHeight - window.innerHeight;
-        const prog = span > 0 ? Math.min(1, Math.max(0, -r.top / span)) : 0;
-        bar.style.transform = `scaleX(${prog.toFixed(4)})`;
+    let labTop = 0;
+    function targetLab(y) {
+        const span = lab.offsetHeight - window.innerHeight;
+        const prog = span > 0 ? Math.min(1, Math.max(0, (y - labTop) / span)) : 0;
         return -prog * labShift;
     }
-    function paintLab() {
+    function paintLab() {                                                   // writes only
         track.style.transform = `translate3d(${labX.toFixed(2)}px, 0, 0)`;
+        bar.style.transform = `scaleX(${labShift ? (-labX / labShift).toFixed(4) : 0})`;   // follows the photos, not the scroll
         const mid = window.innerWidth / 2;
-        let best = null, bestD = Infinity;
-        const step = tiles.length > 1 ? tiles[1].offsetLeft - tiles[0].offsetLeft : 1;
-        for (const t of tiles) {
-            const off = t.offsetLeft + labX + t.offsetWidth / 2 - mid;      // distance from screen centre
-            const n = Math.min(2.2, Math.abs(off) / step);                   // in "tiles away"
-            const sc = 1 - 0.38 * Math.min(1, n) - 0.08 * Math.max(0, n - 1); // centre 1.0 → neighbours 0.62 → further ~0.52
-            const pull = -Math.sign(off) * (1 - sc) * t.offsetWidth * 0.42;  // close the gap a smaller tile leaves
-            t.style.transform = `translate3d(${pull.toFixed(1)}px, 0, 0) scale(${sc.toFixed(4)})`;
-            t.style.opacity = (1 - 0.35 * Math.min(1, n) - 0.25 * Math.max(0, n - 1)).toFixed(3);
-            t.style.zIndex = String(100 - Math.round(n * 10));
-            if (Math.abs(off) < bestD) { bestD = Math.abs(off); best = t; }
+        let best = 0, bestD = Infinity;
+        for (let k = 0; k < tiles.length; k++) {
+            const off = geo.centers[k] + labX - mid;
+            const n = Math.min(2.2, Math.abs(off) / geo.step);
+            const sc = 1 - 0.38 * Math.min(1, n) - 0.08 * Math.max(0, n - 1);
+            const pull = -Math.sign(off) * (1 - sc) * geo.widths[k] * 0.42;
+            tiles[k].style.transform = `translate3d(${pull.toFixed(1)}px, 0, 0) scale(${sc.toFixed(4)})`;
+            tiles[k].style.opacity = (1 - 0.35 * Math.min(1, n) - 0.25 * Math.max(0, n - 1)).toFixed(3);
+            if (Math.abs(off) < bestD) { bestD = Math.abs(off); best = k; }
         }
-        tiles.forEach(t => t.classList.toggle('active', t === best));
+        if (best !== bestIdx) {                                             // restack only when the centre photo changes
+            bestIdx = best;
+            tiles.forEach((t, k) => { t.classList.toggle('active', k === best); t.style.zIndex = String(50 - Math.abs(k - best)); });
+        }
     }
-    function labLoop() {                                                    // eased follow for a buttery glide
-        labX += (labTarget - labX) * 0.12;
+    function labLoop(now) {                                                 // frame-rate independent glide (same feel at 60 and 120 Hz)
+        const dt = Math.min(64, now - (labLast || now)); labLast = now;
+        labX += (labTarget - labX) * (1 - Math.exp(-dt / 110));
         paintLab();
-        if (Math.abs(labTarget - labX) > 0.3) requestAnimationFrame(labLoop); else { labX = labTarget; paintLab(); labRunning = false; }
+        if (Math.abs(labTarget - labX) > 0.3) requestAnimationFrame(labLoop);
+        else { labX = labTarget; paintLab(); labRunning = false; labLast = 0; }
     }
-    function onLabScroll() {
+    function onLabScroll(y) {
         if (labStatic) return;
-        labTarget = targetLab();
+        labInView = y + window.innerHeight > labTop && y < labTop + lab.offsetHeight;
+        lab.classList.toggle('inview', labInView);
+        if (!labInView) return;
+        labTarget = targetLab(y);
         if (!labRunning) { labRunning = true; requestAnimationFrame(labLoop); }
     }
     if (!labStatic) {
-        window.addEventListener('scroll', onLabScroll, { passive: true });
         window.addEventListener('resize', layoutLab);
         window.addEventListener('load', layoutLab);
-        // start loading every gallery photo as the section approaches, so none pop in mid-slide
         const preload = () => tiles.forEach(t => { const i = t.querySelector('img'); if (i) i.loading = 'eager'; });
         if ('IntersectionObserver' in window) {
             const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { preload(); io.disconnect(); } }, { rootMargin: '150% 0px' });
             io.observe(lab);
-        } else preload();
+        } else { preload(); labInView = true; }
         layoutLab();
     }
 
@@ -176,6 +192,7 @@
     if (yt) $('channel-link').href = yt.url; else $('channel-link').parentElement.remove();
     if (!vids.length) $('videos').remove();
     const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    if (!canHover && $('videos-sub')) $('videos-sub').textContent = 'Tap any video to watch.';
     document.querySelectorAll('.vcard').forEach(card => {
         let timer = null;
         const stop = () => { clearTimeout(timer); card.classList.remove('playing'); card.querySelector('.vthumb iframe')?.remove(); };
@@ -203,7 +220,7 @@
     }
     function closeVideo() {
         modal.classList.remove('open');
-        setTimeout(() => { modal.hidden = true; frame.innerHTML = ''; lastFocus?.focus(); }, 350);
+        setTimeout(() => { modal.hidden = true; frame.innerHTML = ''; lastFocus?.focus(); }, 520);
     }
     $('vmodal-close').addEventListener('click', closeVideo);
     modal.addEventListener('click', e => { if (e.target === modal) closeVideo(); });
@@ -300,14 +317,16 @@
     // ---------- reveal on scroll (staggered within rows) ----------
     const revealEls = [...document.querySelectorAll('.reveal')];
     revealEls.forEach(el => {
-        const sibs = [...el.parentElement.children].filter(c => c.classList.contains('reveal'));
-        el.style.setProperty('--d', (sibs.indexOf(el) % 3) * 110 + 'ms');
+        const parent = el.parentElement;
+        const cols = Math.max(1, (getComputedStyle(parent).gridTemplateColumns || '').split(' ').filter(Boolean).length);
+        const sibs = [...parent.children].filter(c => c.classList.contains('reveal'));
+        el.style.setProperty('--d', Math.min(3, sibs.indexOf(el) % cols) * 90 + 'ms');
     });
     const show = el => {
         if (el.classList.contains('in')) return;
         el.classList.add('in');
         // after the entrance, hand over to quick hover transitions
-        setTimeout(() => el.classList.add('done'), 1400 + (parseInt(el.style.getPropertyValue('--d')) || 0));
+        setTimeout(() => el.classList.add('done'), 1000 + (parseInt(el.style.getPropertyValue('--d')) || 0));
     };
     if (reduceMotion || !('IntersectionObserver' in window)) revealEls.forEach(show);
     else {
@@ -317,15 +336,38 @@
         revealEls.forEach(el => io.observe(el));
     }
 
-    // ---------- scroll: top bar, active link, hero exit, reveal backup (once per frame) ----------
+    // ---------- scroll: one rAF pipeline; measuring is cached, off-screen work skipped ----------
     const topbar = document.querySelector('.topbar');
-    const navLinks = [...document.querySelectorAll('.topnav a[href^="#"]')];   // in-page section links only
+    const navLinks = [...document.querySelectorAll('.topnav a[href^="#"]')];
     const secs = navLinks.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
     const heroInner = document.querySelector('.hero-inner');
-    const zoomSec = $('zoomsec'), zoomMedia = $('zoom-media'), zoomCopy = $('zoom-copy');
-    window.addEventListener('resize', () => requestAnimationFrame(update));
+    // active section from an observer instead of measuring every section each frame
+    if ('IntersectionObserver' in window) {
+        const seen = new Map();
+        const navIO = new IntersectionObserver(entries => {
+            entries.forEach(e => seen.set(e.target, e.isIntersecting));
+            const cur = secs.filter(s => seen.get(s)).pop();
+            navLinks.forEach(a => a.classList.toggle('active', !!cur && a.getAttribute('href') === '#' + cur.id));
+        }, { rootMargin: '-35% 0px -60% 0px' });
+        secs.forEach(s => navIO.observe(s));
+    }
+    // career beam: geometry cached; nodes light as the beam reaches them
+    const beamline = $('beamline'), nodes = [...beamline.querySelectorAll('.station')];
+    let beamGeo = { top: 0, h: 1, nodeY: [] }, litCount = -1;
+    const layoutBeam = () => {
+        const r = beamline.getBoundingClientRect();
+        beamGeo = { top: r.top + window.scrollY, h: Math.max(1, r.height), nodeY: nodes.map(n => n.offsetTop + 40) };
+    };
+    const paintBeam = y => {
+        const vh = window.innerHeight;
+        const p = reduceMotion ? 1 : Math.min(1, Math.max(0, (y + vh * 0.6 - beamGeo.top) / beamGeo.h));
+        beamline.style.setProperty('--beam', p.toFixed(4));
+        const front = p * beamGeo.h;
+        const lit = beamGeo.nodeY.filter(ny => ny <= front + 2).length;
+        if (lit !== litCount) { litCount = lit; nodes.forEach((n, k) => n.classList.toggle('lit', k < lit)); }
+    };
     let ticking = false;
-    const update = () => {
+    function update() {
         ticking = false;
         const y = window.scrollY, vh = window.innerHeight;
         topbar.classList.toggle('scrolled', y > 10);
@@ -334,35 +376,15 @@
             heroInner.style.transform = `translate3d(0, ${(-y * 0.2).toFixed(1)}px, 0) scale(${(1 - t * 0.05).toFixed(4)})`;
             heroInner.style.opacity = (1 - t * 0.9).toFixed(3);
         }
-        // photo grows from a rounded card to full screen, then the headline fades in
-        if (!reduceMotion && zoomSec && zoomMedia) {
-            const r = zoomSec.getBoundingClientRect(), span = zoomSec.offsetHeight - vh;
-            const p = Math.min(1, Math.max(0, -r.top / span));
-            const e = 1 - Math.pow(1 - Math.min(1, p / 0.62), 3);                 // ease-out over the first ~60%
-            const vw = window.innerWidth;
-            const cardW = Math.min(vw * (vw < 700 ? 0.86 : 0.62), 980), cardH = Math.min(vh * 0.62, cardW * 0.62);
-            zoomMedia.style.setProperty('--ix', ((vw - cardW) / 2 * (1 - e)).toFixed(1) + 'px');
-            zoomMedia.style.setProperty('--iy', ((vh - cardH) / 2 * (1 - e)).toFixed(1) + 'px');
-            zoomMedia.style.setProperty('--r', (28 * (1 - e)).toFixed(1) + 'px');
-            zoomMedia.style.setProperty('--s', (1.05 - 0.05 * e).toFixed(4));
-            const t = Math.min(1, Math.max(0, (p - 0.55) / 0.25));
-            zoomCopy.style.setProperty('--t', t.toFixed(3));
-            zoomMedia.style.setProperty('--dim', (0.48 * t).toFixed(3));
-        }
-        // statement words light up across the section
-        if (stmtWords.length) {
-            const r = stmt.getBoundingClientRect();
-            const p = reduceMotion ? 1 : Math.min(1, Math.max(0, (vh * 0.85 - r.top) / (r.height + vh * 0.35)));
-            const lit = Math.round(p * stmtWords.length);
-            stmtWords.forEach((w, k) => w.classList.toggle('lit', k < lit));
-        }
-        let cur = null;
-        secs.forEach(s => { if (s.getBoundingClientRect().top < vh * 0.4) cur = s; });
-        navLinks.forEach(a => a.classList.toggle('active', !!cur && a.getAttribute('href') === '#' + cur.id));
-        for (const el of revealEls) if (!el.classList.contains('in') && el.getBoundingClientRect().top < vh * 0.92) show(el);
-    };
+        if (y + vh > beamGeo.top && y < beamGeo.top + beamGeo.h) paintBeam(y);   // only while the timeline is on screen (cached geometry)
+        onLabScroll(y);
+    }
     window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
-    update();
+    const relayout = () => { layoutBeam(); update(); };
+    window.addEventListener('resize', () => requestAnimationFrame(relayout));
+    window.addEventListener('load', relayout);
+    beamline.addEventListener('click', () => setTimeout(relayout, 600));   // "More" changes heights
+    relayout();
 
     // ---------- visitor greeting ----------
     (async () => {
@@ -401,23 +423,26 @@
         ctx.clearRect(0, 0, W, H);
         for (let i = 0; i < LINES; i++) {
             const y0 = laneY(i), edge = Math.min(i, LINES - 1 - i);
-            ctx.strokeStyle = `rgba(0, 113, 227, ${0.05 + edge * 0.01})`;
+            ctx.strokeStyle = `rgba(29, 29, 31, ${0.035 + edge * 0.007})`;
             ctx.lineWidth = 1;
             ctx.beginPath();
             for (let x = 0; x <= W + 16; x += 16) { const y = bend(x, y0); x ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
             ctx.stroke();
         }
+        ctx.fillStyle = 'rgba(29, 29, 31, 0.28)';
+        ctx.beginPath();                                                   // one path, one fill for all ions
         for (const p of ions) {
             if (!reduceMotion) p.x += p.v;
             if (p.x > W + 10) Object.assign(p, newIon(false));
-            ctx.fillStyle = `rgba(0, 113, 227, ${p.a * 0.6})`;
-            ctx.beginPath(); ctx.arc(p.x, bend(p.x, laneY(p.lane)), 1.4, 0, Math.PI * 2); ctx.fill();
+            const py = bend(p.x, laneY(p.lane));
+            ctx.moveTo(p.x + 1.3, py); ctx.arc(p.x, py, 1.3, 0, Math.PI * 2);
         }
+        ctx.fill();
         if (!reduceMotion && visible) requestAnimationFrame(draw);
     }
     window.addEventListener('pointermove', e => {
-        const r = cvs.getBoundingClientRect();
-        tx = e.clientX - r.left; ty = e.clientY - r.top;
+        if (!visible) return;
+        tx = e.clientX; ty = e.clientY + window.scrollY;                    // hero starts at the top of the page
         if (reduceMotion) draw();
     }, { passive: true });
     window.addEventListener('resize', () => { size(); if (reduceMotion) draw(); });
