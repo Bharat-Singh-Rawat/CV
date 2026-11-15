@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bharat Singh Rawat, Ph.D. — CV</title>
+    <meta name="description" content="Bharat Singh Rawat, Ph.D. — accelerator physicist. Plain, printable CV.">
+    <!-- ALL CV CONTENT COMES FROM /Dossier/profile.js — edit that file, not this page -->
+    <script src="/Dossier/profile.js"></script>
+    <style>
+        :root {
+            --bg: #ffffff; --fg: #1d2327; --dim: #5b666e; --line: #d9dee2;
+            --accent: #0b5c7a; --chip: #f1f5f7;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root { --bg: #111518; --fg: #e3e8eb; --dim: #97a3ab; --line: #2b3439; --accent: #5fc4e8; --chip: #1a2125; }
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; background: var(--bg); color: var(--fg); }
+        body { font: 15px/1.5 "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif; }
+        main { max-width: 820px; margin: 0 auto; padding: 40px 16px 64px; }
+        a { color: var(--accent); }
+        header { border-bottom: 2px solid var(--accent); padding-bottom: 16px; margin-bottom: 8px; }
+        h1 { margin: 0; font-size: 1.9rem; letter-spacing: 0.5px; }
+        .title { margin: 2px 0 10px; color: var(--accent); font-weight: 600; letter-spacing: 1px; font-size: 0.9rem; }
+        .contact { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.9rem; }
+        .contact a { text-decoration: none; }
+        .contact a:hover { text-decoration: underline; }
+        .summary { margin: 12px 0 0; }
+        h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent);
+             border-bottom: 1px solid var(--line); padding-bottom: 4px; margin: 28px 0 12px; }
+        .entry { margin-bottom: 14px; break-inside: avoid; }
+        .entry-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .role { font-weight: 700; }
+        .dates { color: var(--dim); white-space: nowrap; font-size: 0.9rem; }
+        .org { color: var(--dim); font-style: italic; font-size: 0.92rem; }
+        ul { margin: 4px 0 0; padding-left: 20px; }
+        li { margin: 2px 0; }
+        ol.pubs { padding-left: 24px; margin: 0; }
+        ol.pubs li { margin-bottom: 6px; }
+        .venue { font-weight: 600; }
+        dl.skills { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
+        dl.skills dt { font-weight: 600; }
+        dl.skills dd { margin: 0; }
+        .toolbar { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 16px; }
+        .toolbar button, .toolbar a { font: inherit; font-size: 0.85rem; padding: 6px 12px; border: 1px solid var(--line);
+            background: var(--chip); color: var(--fg); border-radius: 4px; cursor: pointer; text-decoration: none; }
+        .toolbar button:hover, .toolbar a:hover { border-color: var(--accent); }
+        @media (max-width: 560px) {
+            dl.skills { grid-template-columns: 1fr; }
+            dl.skills dd { margin-bottom: 6px; }
+        }
+        @media print {
+            :root { --bg: #fff; --fg: #000; --dim: #444; --line: #bbb; --accent: #0b5c7a; }
+            @page { size: A4; margin: 14mm 14mm; }
+            body { font-size: 10.5pt; }
+            main { padding: 0; max-width: none; }
+            .toolbar { display: none; }
+            h2 { break-after: avoid; }
+            .contact a::after { content: none; }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="toolbar">
+            <a href="./">← Terminal CV</a>
+            <button type="button" onclick="window.print()">Print / Save as PDF</button>
+        </div>
+        <div id="cv"></div>
+    </main>
+    <script>
+    (function () {
+        const P = window.PROFILE;
+        const root = document.getElementById('cv');
+        if (!P) { root.textContent = 'Could not load profile data (/Dossier/profile.js).'; return; }
+        const map = (list, fn) => (list || []).map(fn).join('');
+        const titleCase = s => s.toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase());
+        const linkText = l => l.url.startsWith('mailto:') ? l.url.slice(7) : l.label;
+
+        const entry = e => `
+            <div class="entry">
+                <div class="entry-head"><span class="role">${e.role}</span><span class="dates">${e.dates}</span></div>
+                <div class="org">${e.org}</div>
+                <ul>${map(e.bullets, b => `<li>${b}</li>`)}</ul>
+            </div>`;
+
+        root.innerHTML = `
+            <header>
+                <h1>${P.name}</h1>
+                <div class="title">${titleCase(P.title)}</div>
+                <div class="contact">${map(P.links, l => `<a href="${l.url}"${l.url.startsWith('mailto:') ? '' : ' target="_blank" rel="noopener"'}>${linkText(l)}</a>`)}</div>
+                <p class="summary">${P.summary}</p>
+            </header>
+
+            <h2>Experience</h2>
+            ${map(P.experience, entry)}
+
+            <h2>Education</h2>
+            ${map(P.education, entry)}
+
+            <h2>Publications (${P.publications.length})</h2>
+            <ol class="pubs">${map(P.publications, p => `<li><span class="venue">${p.venue}</span> — ${p.title}</li>`)}</ol>
+
+            <h2>Presentations &amp; Talks</h2>
+            <ul>${map(P.talks, t => `<li><b>${t.type}:</b> ${t.text}</li>`)}</ul>
+
+            <h2>Skills &amp; Expertise</h2>
+            <dl class="skills">
+                ${map(P.skills, s => `<dt>${s.label}</dt><dd>${s.text}</dd>`)}
+                <dt>Core expertise</dt><dd>${P.expertise}</dd>
+            </dl>
+
+            <h2>Interests</h2>
+            <ul>${map(P.hobbies, h => `<li><b>${titleCase(h.name)}:</b> ${h.detail}</li>`)}</ul>
+        `;
+    })();
+    </script>
+</body>
+</html>
