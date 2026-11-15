@@ -27,7 +27,8 @@
     };
 
     document.body.insertAdjacentHTML('beforeend', `
-    <div class="mp" id="mp" aria-label="Music player">
+    <div class="mp collapsed" id="mp" aria-label="Music player">
+        <button type="button" class="mp-fab" id="mp-fab" aria-label="Open music player">${ICON.note}<span class="mp-fab-eq" aria-hidden="true"><i></i><i></i><i></i></span></button>
         <div class="mp-queue" id="mp-queue" hidden>
             <div class="mp-queue-head"><span>Up Next</span><span class="mp-count">${TRACKS.length} songs</span></div>
             <ol id="mp-list">${TRACKS.map((t, i) => `
@@ -44,6 +45,7 @@
                 <button type="button" class="mp-btn small" id="mp-prev" aria-label="Previous">${ICON.prev}</button>
                 <button type="button" class="mp-btn" id="mp-play" aria-label="Play">${ICON.play}</button>
                 <button type="button" class="mp-btn small" id="mp-next" aria-label="Next">${ICON.next}</button>
+                <button type="button" class="mp-btn small mp-min" id="mp-min" aria-label="Minimise player"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></button>
                 <button type="button" class="mp-btn small mp-shuffle on" id="mp-shuffle" aria-label="Shuffle play: random song" title="Shuffle play">${ICON.shuffle}</button>
             </div>
             <div class="mp-progress" id="mp-progress" role="slider" aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
@@ -53,6 +55,10 @@
         </div>
     </div>`);
 
+    const store = {
+        get: k => { try { return JSON.parse(localStorage.getItem('cv-music-' + k)); } catch (e) { return null; } },
+        set: (k, v) => { try { localStorage.setItem('cv-music-' + k, JSON.stringify(v)); } catch (e) { /* private mode */ } }
+    };
     const audio = new Audio();
     audio.preload = 'none';
     let idx = -1, shuffle = true, order = [], seeking = false;
@@ -152,6 +158,31 @@
         navigator.mediaSession.setActionHandler('nexttrack', () => load(nextIndex(1), true));
         navigator.mediaSession.setActionHandler('previoustrack', () => load(nextIndex(-1), true));
     }
+
+    // ---- small round button until used; remembers open/closed, song and position ----
+    const setOpen = open => {
+        mp.classList.toggle('collapsed', !open);
+        if (!open && !queue.hidden) toggleQueue(false);
+        store.set('open', open);
+    };
+    $('mp-fab').addEventListener('click', () => setOpen(true));
+    $('mp-min').addEventListener('click', e => { e.stopPropagation(); setOpen(false); });
+    if (store.get('open')) setOpen(true);
+    const saved = store.get('pos');
+    if (saved && TRACKS[saved.i]) {
+        load(saved.i, false);
+        if (saved.t > 1) pendingSeek = null, audio.addEventListener('loadedmetadata', function once() {
+            audio.removeEventListener('loadedmetadata', once);
+            if (saved.t < audio.duration - 2) audio.currentTime = saved.t;
+        });
+        $('mp-cur').textContent = fmt(saved.t || 0);
+    }
+    let lastSave = 0;
+    audio.addEventListener('timeupdate', () => {
+        const now = Date.now();
+        if (now - lastSave > 3000) { lastSave = now; store.set('pos', { i: idx, t: audio.currentTime }); }
+    });
+    window.addEventListener('pagehide', () => { if (idx >= 0) store.set('pos', { i: idx, t: audio.currentTime }); });
 
     // let the rest of the page pause the music (e.g. when a video with sound opens)
     window.cvMusic = { pause, isPlaying: () => !audio.paused };

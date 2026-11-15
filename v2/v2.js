@@ -47,7 +47,7 @@
     const about = P.about || {};
     $('about-first').textContent = words[0];
     $('about-body').innerHTML = esc(about.text || strip(P.summary));
-    if (about.photo) $('about-photo').innerHTML = `<div class="zoom" style="height:100%"><img src="${esc(about.photo)}" alt="${esc(about.photoAlt || '')}" fetchpriority="high"></div>`;
+    if (about.photo) $('about-photo').innerHTML = `<div class="zoom" style="height:100%"><img src="${esc(about.photo)}" srcset="${esc(about.photo.replace(/\.webp$/, '-sm.webp'))} 540w, ${esc(about.photo)} 900w" sizes="(max-width: 1000px) 90vw, 440px" width="900" height="1200" alt="${esc(about.photoAlt || '')}" decoding="async"></div>`;
     else $('about-photo').remove();
     $('about-links').innerHTML = extLinks();
 
@@ -100,7 +100,8 @@
         </figure>`).join('');
     const tiles = [...track.children];
     let labShift = 0, labX = 0, labTarget = 0, labRunning = false;
-    const labStatic = reduceMotion || !tiles.length;
+    const touchSmall = window.matchMedia('(max-width: 760px), (hover: none) and (pointer: coarse)').matches;
+    const labStatic = reduceMotion || touchSmall || !tiles.length;          // phones/tablets: natural swipe row
     if (!tiles.length) lab.remove();
     else if (labStatic) lab.classList.add('static');
     function layoutLab() {
@@ -108,7 +109,7 @@
         const vw = window.innerWidth, tw = tiles[0].offsetWidth;          // layout width, unaffected by the scale
         track.style.setProperty('--pad', ((vw - tw) / 2) + 'px');           // first and last photo can sit dead centre
         labShift = Math.max(0, tiles[tiles.length - 1].offsetLeft - tiles[0].offsetLeft);   // first photo centred → last photo centred
-        lab.style.height = (labShift * 1.15 + window.innerHeight) + 'px';    // scroll distance while pinned
+        lab.style.height = (labShift * 0.55 + window.innerHeight) + 'px';    // scroll distance while pinned (shorter = less 'stuck')
         labTarget = labX = targetLab(); paintLab();
     }
     function targetLab() {
@@ -135,7 +136,7 @@
         tiles.forEach(t => t.classList.toggle('active', t === best));
     }
     function labLoop() {                                                    // eased follow for a buttery glide
-        labX += (labTarget - labX) * 0.14;
+        labX += (labTarget - labX) * 0.12;
         paintLab();
         if (Math.abs(labTarget - labX) > 0.3) requestAnimationFrame(labLoop); else { labX = labTarget; paintLab(); labRunning = false; }
     }
@@ -373,7 +374,7 @@
             let name = cc;
             try { name = new Intl.DisplayNames(['en'], { type: 'region' }).of(cc) || cc; } catch (e) { /* old browser */ }
             g.innerHTML = `<img src="https://flagcdn.com/40x30/${cc.toLowerCase()}.png" alt="">Hello, visitor from <b>${esc(name)}</b>`;
-            g.hidden = false;
+            g.classList.add('show');
         } catch (e) { /* lookup blocked or offline */ }
     })();
 
@@ -388,7 +389,7 @@
         ions = Array.from({ length: Math.round(W / 24) }, () => newIon(true));
     }
     function newIon(anywhere) {
-        return { lane: Math.floor(Math.random() * LINES), x: anywhere ? Math.random() * W : -10, v: 0.5 + Math.random() * 1.2, a: 0.25 + Math.random() * 0.5 };
+        return { lane: Math.floor(Math.random() * LINES), x: anywhere ? Math.random() * W : -10, v: 0.15 + Math.random() * 0.35, a: 0.25 + Math.random() * 0.5 };
     }
     const laneY = i => H * (0.1 + 0.8 * i / (LINES - 1));
     function bend(x, y0) {
