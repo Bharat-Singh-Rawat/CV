@@ -55,67 +55,109 @@
         requestAnimationFrame(n => loop(S, n));
     }
 
-    // ---------------------------------------------------------------- ion thruster
-    scene('research', () => (small() ? 360 : 460), S => {
-        const sm = small();
-        const s = { x0: sm ? -30 : Math.max(-20, (S.W - 1280) / 2 - 40), y0: sm ? 120 : 190, ap: sm ? 34 : 52, ions: [], el: [] };
-        const n = sm ? 70 : 150;
-        for (let i = 0; i < n; i++) s.ions.push(spawnIon(s, S, true));
-        for (let i = 0; i < (sm ? 3 : 5); i++) s.el.push({ ph: Math.random() * 6.3, r: 6 + Math.random() * 10, w: 3 + Math.random() * 3 });
+    // ---------------------------------------------------------------- Faraday cup
+    // A beam enters from the left, passes the suppressor ring and is collected on a 30° cone;
+    // secondary electrons leave the cone and are turned back by the suppressor potential.
+    scene('research', () => (small() ? 300 : 400), S => {
+        const sm = small(), W = S.W, wrapW = Math.min(W, 1280) - 44, right = (W + wrapW) / 2;
+        const s = {
+            cx: sm ? W - 64 - 30 : Math.min(W - 120 - 60, right - 120 - 30),   // cup entrance (x): whole cup + shield stays on screen
+            cy: sm ? 96 : 170, ap: sm ? 12 : 26, depth: sm ? 56 : 120, wall: sm ? 16 : 34,
+            ions: [], sec: [], flashes: []
+        };
+        for (let i = 0; i < (sm ? 40 : 90); i++) s.ions.push(spawnBeamIon(s, true));
         return s;
     }, (S, t, dt) => {
-        const { ctx } = S, s = S.s, gx = s.x0 + 120;
-        // thruster body: discharge chamber outline + magnet rings
+        const { ctx } = S, s = S.s, x0 = s.cx, x1 = s.cx + s.depth, top = s.cy - s.ap - s.wall, bot = s.cy + s.ap + s.wall;
         ctx.lineWidth = 1;
-        ctx.strokeStyle = INK(0.16);
-        ctx.strokeRect(s.x0, s.y0 - s.ap - 18, 120, 2 * s.ap + 36);
+        // grounded shield (outer housing)
         ctx.strokeStyle = INK(0.1);
-        for (let k = 1; k < 4; k++) { ctx.beginPath(); ctx.moveTo(s.x0 + k * 30, s.y0 - s.ap - 18); ctx.lineTo(s.x0 + k * 30, s.y0 - s.ap - 24); ctx.moveTo(s.x0 + k * 30, s.y0 + s.ap + 18); ctx.lineTo(s.x0 + k * 30, s.y0 + s.ap + 24); ctx.stroke(); }
-        // screen + accel grids (dashed = apertures)
-        ctx.setLineDash([5, 4]);
-        ctx.strokeStyle = INK(0.3);
-        ctx.beginPath(); ctx.moveTo(gx, s.y0 - s.ap - 10); ctx.lineTo(gx, s.y0 + s.ap + 10); ctx.moveTo(gx + 7, s.y0 - s.ap - 10); ctx.lineTo(gx + 7, s.y0 + s.ap + 10); ctx.stroke();
-        ctx.setLineDash([]);
-        // plume envelope
-        ctx.strokeStyle = INK(0.05);
-        const spread = Math.tan(0.24), Lp = S.W * 0.95;
-        ctx.beginPath(); ctx.moveTo(gx + 8, s.y0 - s.ap); ctx.lineTo(gx + Lp, s.y0 - s.ap - Lp * spread); ctx.moveTo(gx + 8, s.y0 + s.ap); ctx.lineTo(gx + Lp, s.y0 + s.ap + Lp * spread); ctx.stroke();
-        // ions: short streaks, fading with distance
+        ctx.strokeRect(x0 - 26, top - 12, s.depth + 44, (bot - top) + 24);
+        // suppressor electrode: two short plates either side of the entrance
+        ctx.strokeStyle = INK(0.3); ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(x0 - 12, top + 4); ctx.lineTo(x0 - 12, s.cy - s.ap - 4); ctx.moveTo(x0 - 12, s.cy + s.ap + 4); ctx.lineTo(x0 - 12, bot - 4); ctx.stroke();
+        ctx.lineWidth = 1;
+        // collector cup (cross-section): front lips, side walls, back with a 30° cone
+        const coneH = s.ap * 1.15, coneL = coneH / Math.tan(Math.PI / 6) * 0.45;
+        ctx.strokeStyle = INK(0.32);
+        ctx.beginPath();
+        ctx.moveTo(x0, s.cy - s.ap); ctx.lineTo(x0, top); ctx.lineTo(x1, top); ctx.lineTo(x1, bot); ctx.lineTo(x0, bot); ctx.lineTo(x0, s.cy + s.ap);
+        ctx.stroke();
+        ctx.strokeStyle = INK(0.22);                                          // inner bore + cone
+        ctx.beginPath();
+        ctx.moveTo(x0, s.cy - s.ap); ctx.lineTo(x1 - 14 - coneL, s.cy - s.ap); ctx.lineTo(x1 - 14, s.cy); ctx.lineTo(x1 - 14 - coneL, s.cy + s.ap); ctx.lineTo(x0, s.cy + s.ap);
+        ctx.stroke();
+        // cooling channels in the back wall
+        ctx.strokeStyle = INK(0.12);
+        for (const dy of [-0.55, 0, 0.55]) { ctx.beginPath(); ctx.arc(x1 - 7, s.cy + dy * (s.ap + s.wall * 0.6), 2.5, 0, Math.PI * 2); ctx.stroke(); }
+        // beam envelope converging on the entrance
+        ctx.strokeStyle = INK(0.045);
+        ctx.beginPath(); ctx.moveTo(0, s.cy - s.ap * 2.2); ctx.lineTo(x0 - 12, s.cy - s.ap * 0.9); ctx.moveTo(0, s.cy + s.ap * 2.2); ctx.lineTo(x0 - 12, s.cy + s.ap * 0.9); ctx.stroke();
+        // ions
         ctx.lineCap = 'round';
+        const hitX = p => x1 - 14 - coneL * (Math.abs(p.y - s.cy) / s.ap);   // where an ion meets the cone face
         for (let i = 0; i < s.ions.length; i++) {
             const p = s.ions[i];
             p.x += p.vx * dt; p.y += p.vy * dt;
-            const d = (p.x - gx) / (S.W * 0.9);
-            if (d > 1 || p.y < -10 || p.y > S.H + 10) { s.ions[i] = spawnIon(s, S, false); continue; }
-            ctx.strokeStyle = INK(0.34 * (1 - d) * p.a);
-            ctx.beginPath(); ctx.moveTo(p.x - p.vx * 0.035, p.y - p.vy * 0.035); ctx.lineTo(p.x, p.y); ctx.stroke();
+            if (p.x > x0 - 12 && Math.abs(p.y - s.cy) > s.ap) { s.ions[i] = spawnBeamIon(s, false); continue; }    // clipped by the suppressor
+            if (p.x >= hitX(p)) {                                               // collected
+                if (Math.random() < 0.5) s.flashes.push({ x: p.x, y: p.y, life: 1 });
+                if (Math.random() < 0.25) s.sec.push({ x: p.x - 2, y: p.y, vx: -(70 + Math.random() * 90), vy: (Math.random() - 0.5) * 80, life: 1 });
+                s.ions[i] = spawnBeamIon(s, false); continue;
+            }
+            const fadeIn = Math.min(1, p.x / (S.W * 0.25));
+            ctx.strokeStyle = INK(0.34 * p.a * fadeIn);
+            ctx.beginPath(); ctx.moveTo(p.x - p.vx * 0.04, p.y - p.vy * 0.04); ctx.lineTo(p.x, p.y); ctx.stroke();
         }
-        // neutraliser electrons looping just past the grids
-        ctx.fillStyle = INK(0.35);
-        for (const e of s.el) {
-            const a = e.ph + t * e.w;
-            const ex = gx + 26 + Math.cos(a) * e.r, ey = s.y0 + s.ap + 24 + Math.sin(a * 1.3) * e.r * 0.6;
-            ctx.beginPath(); ctx.arc(ex, ey, 1.3, 0, Math.PI * 2); ctx.fill();
+        // collection flashes on the cone
+        for (let i = s.flashes.length - 1; i >= 0; i--) {
+            const f = s.flashes[i]; f.life -= dt * 4;
+            if (f.life <= 0) { s.flashes.splice(i, 1); continue; }
+            ctx.fillStyle = INK(0.3 * f.life); ctx.beginPath(); ctx.arc(f.x, f.y, 1.5 + (1 - f.life) * 3, 0, Math.PI * 2); ctx.fill();
+        }
+        // secondary electrons: pushed back toward the cone by the suppressor field
+        ctx.fillStyle = INK(0.4);
+        for (let i = s.sec.length - 1; i >= 0; i--) {
+            const e = s.sec[i];
+            e.vx += 900 * dt;                                                   // retarding field near the entrance turns them round
+            e.x += e.vx * dt; e.y += e.vy * dt; e.life -= dt * 0.9;
+            if (e.life <= 0 || e.x > x1 || Math.abs(e.y - s.cy) > s.ap) { s.sec.splice(i, 1); continue; }
+            ctx.beginPath(); ctx.arc(e.x, e.y, 1.1, 0, Math.PI * 2); ctx.fill();
         }
     });
-    function spawnIon(s, S, anywhere) {
-        const gx = s.x0 + 128, off = (Math.random() * 2 - 1) * s.ap;
-        const ang = (off / s.ap) * 0.14 + (Math.random() - 0.5) * 0.12;   // beamlets diverge with aperture position
-        const v = 150 + Math.random() * 110;
-        const p = { x: gx, y: s.y0 + off, vx: Math.cos(ang) * v, vy: Math.sin(ang) * v, a: 0.5 + Math.random() * 0.5 };
-        if (anywhere) { const k = Math.random() * S.W * 0.85 / v; p.x += p.vx * k; p.y += p.vy * k; }
+    function spawnBeamIon(s, anywhere) {
+        const y0 = s.cy + (Math.random() * 2 - 1) * s.ap * 2.1, yT = s.cy + (Math.random() * 2 - 1) * s.ap * 0.85;
+        const v = 170 + Math.random() * 90, len = s.cx;
+        const p = { x: -10, y: y0, vx: v, vy: (yT - y0) / len * v, a: 0.5 + Math.random() * 0.5 };
+        if (anywhere) { const k = Math.random() * (s.cx + s.depth * 0.6) / v; p.x += p.vx * k; p.y += p.vy * k; }
         return p;
     }
 
     // ---------------------------------------------------------------- collider event display
     scene('publications', () => (small() ? 560 : 820), S => {
-        const W = S.W, wrapW = Math.min(W, 1280) - 44, left = (W - wrapW) / 2;
-        const wide = W >= 1200;
+        const W = S.W, wide = W >= 1200;
+        const head = S.sec.querySelector('.sec-head'), list = S.sec.querySelector('.pubs');
+        const secR = S.sec.getBoundingClientRect();
+        const padTop0 = parseFloat(getComputedStyle(S.sec).paddingTop) || 0, hh = head ? head.getBoundingClientRect().height : 200;
+        // medium screens and phones: a smaller detector beside the centred heading, in the free space to the right
+        let sc = small() ? 0.34 : 0.55;
+        let cx = W - 18 - 222 * sc - (small() ? 0 : Math.max(0, (W - 1100) / 2));
+        let cy = padTop0 + hh / 2;
+        if (wide && head && list) {
+            const hr = head.getBoundingClientRect(), lr = list.getBoundingClientRect();
+            const colL = hr.left - secR.left, colR = lr.left - secR.left - 28;   // the empty left column, with a margin
+            const outer = 222;                                                // outermost drawn radius at scale 1 (rings + deposits)
+            sc = Math.min(0.95, (colR - colL) / 2 / outer);
+            cx = (colL + colR) / 2;
+            // vertical place from the section's padding + heading height: both are unaffected by the sticky offset
+            const padTop = parseFloat(getComputedStyle(S.sec).paddingTop) || 0;
+            cy = padTop + hr.height + outer * sc + 40;
+        }
+        const lim = S.H - 12;                                                // keep the outer ring inside the canvas
+        if (cy + 222 * sc > lim) { sc = Math.max(0.4, (lim - cy) / 222); if (cy + 222 * sc > lim) cy = lim - 222 * sc; }
         return {
-            cx: wide ? left + wrapW * 0.2 : W / 2,
-            cy: wide ? 560 : (small() ? 330 : 420),
-            sc: small() ? 0.62 : (wide ? 0.95 : 0.8),
-            a: wide ? 1 : 0.6,                                                // fainter where it sits behind text
+            cx, cy, sc,
+            a: wide ? 1 : (small() ? 0.75 : 0.9),
             period: 3.2
         };
     }, (S, t) => {
@@ -179,7 +221,8 @@
         if (reduce) { s.hits = 4; for (let i = 0; i < 4; i++) crack(s); }
         return s;
     }, (S, t, dt) => {
-        const { ctx } = S, s = S.s, by = s.ry, x0 = 0, hitX = s.rx - s.r * 0.95;
+        const { ctx } = S, s = S.s, by = s.ry, x0 = 0;
+        const hitX = s.verts.length ? (s.lastFace = faceX(s)) : (s.lastFace || s.rx - s.r);   // beam meets the rock's current surface
         const pIdx = Math.floor(t / s.pulse);
         // new pulse: launch a bunch
         if (!reduce && pIdx !== s.lastPulse && s.broken < 0) { s.lastPulse = pIdx; s.bunches.push({ x: x0 }); }
@@ -222,15 +265,28 @@
         if (s.pendingBreak) { s.broken = t; s.pendingBreak = false; }
     });
     function newRock(s) {
-        const n = 15, out = [];
+        const n = 32, out = [];                                              // enough vertices for a crater to form
         for (let k = 0; k < n; k++) {
-            const a = k / n * Math.PI * 2, rr = s.r * (0.78 + Math.random() * 0.32);
-            out.push([s.rx + Math.cos(a) * rr * 1.15, s.ry - Math.abs(Math.sin(a)) * rr * 0.1 + Math.sin(a) * rr * 0.75]);
+            const a = k / n * Math.PI * 2, rr = s.r * (0.82 + Math.random() * 0.26) * (k === n / 2 ? 1 : 1);
+            out.push([s.rx + Math.cos(a) * rr * 1.15, s.ry + Math.sin(a) * rr * 0.75]);
         }
-        s.verts = out; s.cracks = []; s.hits = 0; s.broken = -1; s.bunches = [];
+        s.verts = out; s.cracks = []; s.hits = 0; s.broken = -1; s.bunches = []; s.lastFace = faceX(s);
+    }
+    // leftmost point where the beam line (y = ry) crosses the rock outline = where the beam actually hits
+    function faceX(s) {
+        let best = Infinity;
+        const v = s.verts;
+        for (let k = 0; k < v.length; k++) {
+            const [x1, y1] = v[k], [x2, y2] = v[(k + 1) % v.length];
+            if ((y1 - s.ry) * (y2 - s.ry) <= 0 && y1 !== y2) {
+                const x = x1 + (s.ry - y1) * (x2 - x1) / (y2 - y1);
+                if (x < best) best = x;
+            }
+        }
+        return isFinite(best) ? best : s.rx - s.r;
     }
     function crack(s) {
-        const pts = [[s.rx - s.r * 0.95, s.ry]];
+        const pts = [[faceX(s), s.ry]];                                      // cracks start at the current impact point
         let [x, y] = pts[0], a = (Math.random() - 0.5) * 0.9;
         const steps = 5 + Math.floor(Math.random() * 6);
         for (let i = 0; i < steps; i++) { a += (Math.random() - 0.5) * 0.9; x += Math.cos(a) * s.r * 0.18; y += Math.sin(a) * s.r * 0.18; pts.push([x, y]); }
@@ -238,13 +294,17 @@
     }
     function impact(s) {
         s.hits++;
+        const hx = faceX(s), reach = s.r * 0.42, depth = s.r * 0.1;
+        // bore a crater: material nearest the impact point is removed most, so the face recedes where the beam hits
+        s.verts = s.verts.map(([x, y]) => {
+            const d = Math.hypot(x - hx, (y - s.ry) * 1.3);
+            return d < reach ? [x + depth * (1 - d / reach) ** 1.5, y] : [x, y];
+        });
+        // cracks spread from the new crater floor and older cracks move with it
         crack(s);
-        const hx = s.rx - s.r * 0.95;
-        // chip the face the beam hits
-        s.verts = s.verts.map(([x, y]) => (x < s.rx - s.r * 0.4 && Math.abs(y - s.ry) < s.r * 0.6) ? [x + s.r * 0.06, y] : [x, y]);
-        for (let i = 0; i < 6; i++) s.frags.push({ x: hx, y: s.ry, vx: -40 - Math.random() * 120, vy: -120 - Math.random() * 160, rot: 0, vr: (Math.random() - 0.5) * 8, sz: 2 + Math.random() * 4, life: 1 });
+        for (let i = 0; i < 6; i++) s.frags.push({ x: hx, y: s.ry + (Math.random() - 0.5) * 6, vx: -40 - Math.random() * 120, vy: -120 - Math.random() * 160, rot: 0, vr: (Math.random() - 0.5) * 8, sz: 2 + Math.random() * 4, life: 1 });
         if (s.hits >= 9) {                                                    // fracture: the whole rock bursts into fragments
-            for (const [vx, vy] of s.verts) s.frags.push({ x: vx, y: vy, vx: (vx - s.rx) * 2.2 + (Math.random() - 0.5) * 60, vy: -80 - Math.random() * 180, rot: 0, vr: (Math.random() - 0.5) * 10, sz: 4 + Math.random() * 7, life: 1.2 });
+            for (const [vx, vy] of s.verts.filter((_, k) => k % 2 === 0)) s.frags.push({ x: vx, y: vy, vx: (vx - s.rx) * 2.2 + (Math.random() - 0.5) * 60, vy: -80 - Math.random() * 180, rot: 0, vr: (Math.random() - 0.5) * 10, sz: 4 + Math.random() * 7, life: 1.2 });
             s.cracks = []; s.verts = []; s.pendingBreak = true;
         }
     }
