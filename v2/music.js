@@ -1,14 +1,48 @@
 /* =====================================================================
    Apple Music–style mini player for the v2 CV.
-   Plays the same 22 tracks as the classic site (../assets/audio/).
+   Every song has its artist and, where Deezer has one, a small artist photo (../assets/audio/trackN.mp3).
    ===================================================================== */
 (function () {
+    // artist photos come from Deezer's public artist images (loaded from Deezer, not stored here)
+    const DZ = h => `https://cdn-images.dzcdn.net/images/artist/${h}/250x250-000000-80-0-0.jpg`;
+    const CHARANJIT = '11991f605b4396dc9e094f42866e1a27', TIM = 'fa32f3688e3b5901b7588020b0377623',
+        NATALIA = 'f5fbaaae3d6a033115868dc7058c5538', CA7 = 'c69cb7418c2564e8fa85046f609317b3';
     const TRACKS = [
-        "Bhairav", "Kalawati", "Malkauns", "Yaman", "Bad Bitch", "Перепутала", "Acenda o farol",
-        "O Descobridor Dos Sete Mares", "Amores Lejanos", "Mi Manera de querer", "Aja mahi", "خونه ی ما",
-        "Vienna Calling", "Ciudad de la furia", "ВИРТУАЛЬНАЯ ЛЮБОВЬ", "Oye mi amor", "Come", "Mas que nada",
-        "Ring my bell", "Soledad y el mar", "Take 5", "Babaji ki Booti"
-    ].map((title, i) => ({ title, file: `/CV/assets/audio/track${i + 1}.mp3` }));
+        ['Bhairav', 'Charanjit Singh', CHARANJIT],
+        ['Kalawati', 'Charanjit Singh', CHARANJIT],
+        ['Malkauns', 'Charanjit Singh', CHARANJIT],
+        ['Madhuvanti', 'Charanjit Singh', CHARANJIT],
+        ['Bad Bitch', 'CA7RIEL & Paco Amoroso', CA7],
+        ['Перепутала', 'SEREBRO', 'd2938486410961d6ee3740f5a182f712'],
+        ['Acenda o farol', 'Tim Maia', TIM],
+        ['O Descobridor Dos Sete Mares', 'Tim Maia', TIM],
+        ['Amores Lejanos', 'Enanitos Verdes', '60e759fb216cce02b2cbcefbec682a9c'],
+        ['Mi Manera de querer', 'Natalia Lafourcade', NATALIA],
+        ['Aja mahi', 'RDB', 'b9b8c82b2cac67929f65a50bd4c9d75e'],
+        ['خونه ی ما', 'Marjan Farsad', 'eb8d7329eed5fb6da9b8833078b4ac28'],
+        ['Vienna Calling', 'Falco', 'a335e3e8a0f8f47e74f1eb8524259c95'],
+        ['Ciudad de la furia', 'Soda Stereo', '7c8fb9b4135ea113a18d7380686bc764'],
+        ['ВИРТУАЛЬНАЯ ЛЮБОВЬ', 'Tanin Jazz', '70d4889b1d753f680b5d74727f1a9204'],
+        ['Oye mi amor', 'Maná', '0070bd97f335b25c673537e9b81fa081'],
+        ['Come', 'Jain', '4081ad8f96b9b8215a1a42e45ae7d17b'],
+        ['Mas que nada', "Sérgio Mendes & Brasil '66", 'f09e7276d2d22b0b23cbe8d26ff61f62'],
+        ['Ring my bell', 'Anita Ward', '89b56883bc4c68e5c38f63be5bf01722'],
+        ['Soledad y el mar', 'Natalia Lafourcade ft. Los Macorinos', NATALIA],
+        ['Take 5', 'The Dave Brubeck Quartet', '1c143ef3d80d8a82421f7a75fd689930'],
+        ['Babaji ki Booti', 'Go Goa Gone soundtrack', ''],
+        ['Jiya Jale', 'Berklee Indian Ensemble · A. R. Rahman cover', 'a4ab4e262b5c9dbea22ff16d3f0c6ef0'],
+        ['Hasta Jesús Tuvo Un Mal Día', 'CA7RIEL & Paco Amoroso, Sting', 'c69cb7418c2564e8fa85046f609317b3'],
+        ['Edge Of Desire', 'Jonas Blue, Malive', '49f84318807cd6e2ba0acf4986f66ea6'],
+        ['Bzrp Music Sessions #53', 'Bizarrap & Shakira', '69c569506a8ff6ab0edfecbd1adf94b0'],
+        ['Sixteen Tons', 'Tennessee Ernie Ford · cover', 'b9f10f498b6819917e0d630290971fa0'],
+        ['Altyn', 'Tatarka', 'd77ae307c50559d7939cb61e1b7ef265'],
+        ['Ökpeletpe', 'Yenlik', '4801f1e34988692cfa2088f74052264a'],
+        ['DOP', 'Yenlik', '4801f1e34988692cfa2088f74052264a'],
+        ['Bipl · A COLORS SHOW', 'Yenlik', '4801f1e34988692cfa2088f74052264a'],
+        ['Zoobie Doobie · piano cover', 'Chetan Ghodeshwar', ''],
+        ['八方来财 · 因果', '揽佬 SKAI ISYOURGOD', 'fdc08b353e72e3724a292eed1840775d'],
+        ['大展鸿图', '揽佬 SKAI ISYOURGOD ft. AR刘夫阳', 'fdc08b353e72e3724a292eed1840775d']
+    ].map(([title, artist, img], i) => ({ title, artist, img: img && DZ(img), file: `/CV/assets/audio/track${i + 1}.mp3` }));
 
     const $ = id => document.getElementById(id);
     const T = window.T || (s => s), LANG = window.LANG || 'en';
@@ -17,7 +51,9 @@
     const fmt = t => !isFinite(t) ? '0:00' : `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
     // artwork: a soft two-tone gradient derived from the title, like Apple Music's generated covers
     const hue = s => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
-    const art = t => { const h = hue(t.title), l = 18 + (h % 5) * 6; return `linear-gradient(135deg, hsl(0 0% ${l + 22}%), hsl(0 0% ${l}%))`; };
+    const grad = t => { const h = hue(t.title), l = 18 + (h % 5) * 6; return `linear-gradient(135deg, hsl(0 0% ${l + 22}%), hsl(0 0% ${l}%))`; };
+    // with a photo, the gradient stays underneath, so a photo that fails to load still leaves a cover
+    const art = t => t.img ? `url('${t.img}') center / cover no-repeat, ${grad(t)}` : grad(t);
 
     const ICON = {
         play: '<svg viewBox="0 0 24 24"><path d="M7 4.6v14.8a1 1 0 0 0 1.5.86l12.3-7.4a1 1 0 0 0 0-1.72L8.5 3.74A1 1 0 0 0 7 4.6z"/></svg>',
@@ -34,7 +70,7 @@
         <div class="mp-queue" id="mp-queue" hidden>
             <div class="mp-queue-head"><span>${ML[3]}</span><span class="mp-count">${TRACKS.length} ${ML[1]}</span></div>
             <ol id="mp-list">${TRACKS.map((t, i) => `
-                <li><button type="button" data-i="${i}"><span class="mp-q-art" style="background:${art(t)}"></span><span class="mp-q-title">${esc(t.title)}</span><span class="mp-q-eq" aria-hidden="true"><i></i><i></i><i></i></span></button></li>`).join('')}
+                <li><button type="button" data-i="${i}"><span class="mp-q-art" style="background:${art(t)}"></span><span class="mp-q-title">${esc(t.title)}${t.artist ? `<small>${esc(t.artist)}</small>` : ''}</span><span class="mp-q-eq" aria-hidden="true"><i></i><i></i><i></i></span></button></li>`).join('')}
             </ol>
         </div>
         <div class="mp-bar">
@@ -79,12 +115,14 @@
         const t = TRACKS[i];
         audio.src = t.file;
         $('mp-title').textContent = t.title;
-        $('mp-sub').textContent = `${ML[4]} ${i + 1} ${ML[5]} ${TRACKS.length}`;
+        $('mp-sub').textContent = t.artist || `${ML[4]} ${i + 1} ${ML[5]} ${TRACKS.length}`;
         $('mp-art').style.background = art(t);
         $('mp-art').classList.add('has-art');
+        $('mp-art').classList.toggle('has-photo', !!t.img);
         document.querySelectorAll('#mp-list button').forEach(b => b.classList.toggle('current', +b.dataset.i === i));
         if ('mediaSession' in navigator) {
-            navigator.mediaSession.metadata = new MediaMetadata({ title: t.title, artist: 'My playlist', album: 'Bharat Singh Rawat' });
+            navigator.mediaSession.metadata = new MediaMetadata({ title: t.title, artist: t.artist || 'My playlist', album: 'Bharat Singh Rawat',
+                artwork: t.img ? [{ src: t.img, sizes: '250x250', type: 'image/jpeg' }] : [] });
         }
         if (autoplay) play();
     }

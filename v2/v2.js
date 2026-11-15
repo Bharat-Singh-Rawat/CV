@@ -300,12 +300,58 @@
         </div>`).join('');
 
     // ---------- off-beam ----------
+    // words in a hobby that open one of my music videos (matched in every language)
+    const MEDIA_WORDS = { guitar: /guitar(ra)?|гитар[а-яё]*/i, keyboard: /keyboards?|teclados?|клавишн[а-яё]*/i };
+    const withMedia = h => {
+        let html = esc(h.detail);
+        for (const [k, m] of Object.entries(h.media || {})) {
+            const re = MEDIA_WORDS[k];
+            if (re) html = html.replace(re, w => `<button type="button" class="media-word" data-id="${esc(m.id)}" data-title="${esc(m.title || '')}">${w}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg></button>`);
+        }
+        if (h.link) html = html.replace(/chess\.com/i, w => `<a class="hobby-link" href="${esc(h.link)}" target="_blank" rel="noopener">${w}</a>`);
+        return html;
+    };
     $('hobbies').innerHTML = P.hobbies.map(h => `
         <div class="hobby reveal">
             <span class="icon" aria-hidden="true">${h.icon}</span>
             <h3>${esc(titleCase(h.name))}</h3>
-            <p>${esc(h.detail)}</p>
+            <p>${withMedia(h)}</p>
         </div>`).join('');
+
+    // hover a media word: a small muted preview pops up above it; click / tap: full player with sound
+    (function () {
+        const words = [...document.querySelectorAll('.media-word')];
+        if (!words.length) return;
+        let pop = null, hideT = 0, showT = 0, cur = null, y0 = 0;
+        const hide = () => { clearTimeout(showT); hideT = setTimeout(() => { if (!pop) return; pop.classList.remove('show'); const p = pop; pop = null; cur = null; setTimeout(() => p.remove(), 300); }, 180); };
+        function show(w) {
+            clearTimeout(hideT);
+            if (cur === w) return;
+            pop?.remove(); cur = w; y0 = scrollY;
+            pop = document.createElement('div');
+            pop.className = 'media-pop'; pop.setAttribute('role', 'presentation');
+            pop.innerHTML = `<div class="mpop-frame"><iframe src="${ytEmbed(w.dataset.id, true)}" title="Preview" allow="autoplay; encrypted-media" tabindex="-1"></iframe></div>
+                <div class="mpop-cap"><strong>${esc(w.dataset.title)}</strong><span>${esc(T('My cover · click for sound'))}</span></div>`;
+            document.body.appendChild(pop);
+            const r = w.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight;
+            const left = Math.max(12, Math.min(innerWidth - pw - 12, r.left + r.width / 2 - pw / 2));
+            const above = r.top - ph - 12 > 60;
+            pop.style.left = left + 'px';
+            pop.style.top = (above ? r.top - ph - 12 : r.bottom + 12) + 'px';
+            pop.addEventListener('mouseenter', () => clearTimeout(hideT));
+            pop.addEventListener('mouseleave', hide);
+            pop.addEventListener('click', () => { const id = w.dataset.id; hide(); openVideo(id); });
+            requestAnimationFrame(() => pop && pop.classList.add('show'));
+        }
+        words.forEach(w => {
+            if (canHover && !reduceMotion) {
+                w.addEventListener('mouseenter', () => { clearTimeout(hideT); clearTimeout(showT); showT = setTimeout(() => show(w), 200); });
+                w.addEventListener('mouseleave', hide);
+            }
+            w.addEventListener('click', () => { clearTimeout(showT); if (pop) { pop.remove(); pop = null; cur = null; } openVideo(w.dataset.id); });
+        });
+        window.addEventListener('scroll', () => { if (pop && Math.abs(scrollY - y0) > 40) { clearTimeout(hideT); hideT = 0; pop.remove(); pop = null; cur = null; } }, { passive: true });
+    })();
 
     // ---------- contact + footer ----------
     $('contact-links').innerHTML =
