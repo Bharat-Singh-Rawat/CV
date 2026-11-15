@@ -21,7 +21,7 @@
             'Faraday cups catch the beam and measure it. I designed a high-power one.',
             'At CERN I modelled Penning–Malmberg traps that hold antiprotons.',
             'A digital twin uses physics and machine learning to predict how the trap behaves.',
-            'Now I work on a linear induction accelerator and its electron injector.',
+            'Now I design electron injectors and beam diagnostics at Basilisk.',
             'Thanks for playing! Let’s talk beams.'
         ],
         es: [
@@ -29,7 +29,7 @@
             'Las copas de Faraday atrapan el haz y lo miden. Diseñé una de alta potencia.',
             'En el CERN modelé trampas de Penning–Malmberg que retienen antiprotones.',
             'Un gemelo digital combina física y aprendizaje automático para predecir la trampa.',
-            'Ahora trabajo en un acelerador de inducción lineal y su inyector de electrones.',
+            'Ahora diseño inyectores de electrones y diagnósticos de haz en Basilisk.',
             '¡Gracias por jugar! Hablemos de física de aceleradores.'
         ],
         ru: [
@@ -37,7 +37,7 @@
             'Цилиндр Фарадея ловит пучок и измеряет его. Я спроектировал мощный цилиндр.',
             'В ЦЕРН я моделировал ловушки Пеннинга–Мальмберга для антипротонов.',
             'Цифровой двойник объединяет физику и машинное обучение, чтобы предсказывать работу ловушки.',
-            'Сейчас я работаю над линейным индукционным ускорителем и электронным инжектором.',
+            'Сейчас я проектирую электронные инжекторы и диагностику пучков в Basilisk.',
             'Спасибо за игру! Обсудим пучки частиц.'
         ]
     };

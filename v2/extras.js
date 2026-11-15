@@ -128,12 +128,6 @@
           def: { en: 'Electrons knocked out per incoming particle; a suppressor turns them back so the cup reads the true current.',
                  es: 'Electrones arrancados por cada partícula incidente; un supresor los devuelve para que la copa mida la corriente real.',
                  ru: 'Число выбитых электронов на налетающую частицу; подавляющий электрод возвращает их, чтобы цилиндр измерял истинный ток.' } },
-        { k: 'lia', re: { en: /Linear Induction Accelerator/i, es: /acelerador de inducción lineal/i, ru: /линейного индукционного ускорителя/i },
-          name: { en: 'Linear induction accelerator', es: 'Acelerador de inducción lineal', ru: 'Линейный индукционный ускоритель' },
-          eq: 'V = −dΦ / dt',
-          def: { en: 'In each cell, the changing magnetic flux Φ in a ferromagnetic core induces the accelerating voltage V.',
-                 es: 'En cada celda, el flujo magnético variable Φ de un núcleo ferromagnético induce la tensión aceleradora V.',
-                 ru: 'В каждой ячейке изменяющийся магнитный поток Φ в ферромагнитном сердечнике наводит ускоряющее напряжение V.' } }
     ];
     const L = o => o[LANG] || o.en;
     const done = new Set();

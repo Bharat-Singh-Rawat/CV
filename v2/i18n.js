@@ -45,7 +45,7 @@
             'Add to contacts': 'Añadir a contactos', 'localtime': (t, city) => `Son las ${t} en ${city} · Suelo responder en un día.`,
             'How it connects.': 'Cómo se conecta.', 'Hover or tap a skill to see where I’ve used it.': 'Pasa el cursor o toca una habilidad para ver dónde la he usado.',
             'Beam on target.': 'Haz en el blanco.', 'Language': 'Idioma',
-            'Basilisk · LIA & e-injector': 'Basilisk · LIA e inyector', 'AEgIS digital twin': 'Gemelo digital de AEgIS', 'Ring-cusp ion source': 'Fuente de cúspide anular',
+            'Basilisk · electron injector': 'Basilisk · inyector de electrones', 'AEgIS digital twin': 'Gemelo digital de AEgIS', 'Ring-cusp ion source': 'Fuente de cúspide anular',
             '10 kW Faraday cup': 'Copa de Faraday de 10 kW', 'HV & vacuum': 'Alta tensión y vacío', 'Machine learning': 'Aprendizaje automático', 'Monte Carlo / PIC': 'Monte Carlo / PIC'
         },
         ru: {
@@ -69,7 +69,7 @@
             'Add to contacts': 'Добавить в контакты', 'localtime': (t, city) => `В городе ${city} сейчас ${t} · Обычно отвечаю в течение дня.`,
             'How it connects.': 'Как всё связано.', 'Hover or tap a skill to see where I’ve used it.': 'Наведите курсор или нажмите на навык, чтобы увидеть, где я его применял.',
             'Beam on target.': 'Пучок на мишени.', 'Language': 'Язык',
-            'Basilisk · LIA & e-injector': 'Basilisk · ЛИУ и инжектор', 'AEgIS digital twin': 'Цифровой двойник AEgIS', 'Ring-cusp ion source': 'Источник с кольцевым каспом',
+            'Basilisk · electron injector': 'Basilisk · электронный инжектор', 'AEgIS digital twin': 'Цифровой двойник AEgIS', 'Ring-cusp ion source': 'Источник с кольцевым каспом',
             '10 kW Faraday cup': 'Цилиндр Фарадея 10 кВт', 'HV & vacuum': 'Высокое напряжение и вакуум', 'Machine learning': 'Машинное обучение', 'Monte Carlo / PIC': 'Монте-Карло / PIC'
         }
     };
@@ -92,7 +92,6 @@
             about: 'Trabajo con fuentes de electrones e iones y con los diagnósticos que miden sus haces. Desde copas de Faraday y sondas de Langmuir hasta gemelos digitales de trampas de antimateria, construyo las herramientas que crean, dirigen y miden haces de partículas cargadas.',
             experience: [
                 { role: 'Físico de aceleradores', bullets: [
-                    'Diseño de un <b>acelerador de inducción lineal</b> para aplicaciones de corte de roca.',
                     'Responsable del <b>diseño del inyector de electrones</b> y del análisis y la optimización de la óptica electrónica.',
                     'Desarrollo de diagnósticos de plasma y de haces, como <b>sondas B-dot</b>, <b>copas de Faraday</b>, <b>sondas de Langmuir</b> y monitores de corriente.'] },
                 { role: 'I+D independiente y consultoría científica', org: 'PY-BEMCS · consultoría para start-ups y laboratorios', bullets: [
@@ -171,7 +170,6 @@
             about: 'Я работаю с электронными и ионными источниками и с диагностикой их пучков. От цилиндров Фарадея и зондов Ленгмюра до цифровых двойников ловушек антиматерии — я создаю инструменты, которые формируют, направляют и измеряют пучки заряженных частиц.',
             experience: [
                 { role: 'Физик-ускорительщик', bullets: [
-                    'Проектирование <b>линейного индукционного ускорителя</b> для разрушения горных пород.',
                     'Отвечаю за <b>проектирование электронного инжектора</b>, анализ и оптимизацию электронной оптики.',
                     'Разработка диагностики плазмы и пучков: <b>B-dot зонды</b>, <b>цилиндры Фарадея</b>, <b>зонды Ленгмюра</b> и мониторы тока.'] },
                 { role: 'Независимые исследования и научный консалтинг', org: 'PY-BEMCS · консалтинг для стартапов и лабораторий', bullets: [
