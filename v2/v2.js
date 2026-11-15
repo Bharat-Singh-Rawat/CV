@@ -400,49 +400,97 @@
         } catch (e) { /* lookup blocked or offline */ }
     })();
 
-    // ---------- hero: soft field lines bending around the cursor, with drifting ions ----------
+    // ---------- hero: a 3D magnetic-mirror "bottle" — field lines pinch at both ends,
+    //            ions gyrate around them and bounce between the mirrors. Projected by hand onto a 2D canvas. ----------
     const cvs = $('field'), ctx = cvs.getContext('2d'), hero = document.querySelector('.hero');
-    let W = 0, H = 0, mx = -9999, my = -9999, tx = -9999, ty = -9999, visible = true, ions = [];
-    const LINES = 15;
+    let W = 0, H = 0, visible = true, mxN = 0, myN = 0, txN = 0, tyN = 0, t0 = performance.now(), lines = [], ions = [];
+    const small = () => window.innerWidth < 760;
+    const L = 1, R = 0.42;                                                  // bottle half-length and waist radius (scene units)
+    const radius = x => R * (0.42 + 0.58 * Math.cos(Math.PI * x / (2 * L)) ** 2);   // pinched ends = strong field (the mirrors)
+    function build() {
+        const nAng = small() ? 12 : 18, shells = small() ? [1] : [0.62, 1];
+        lines = [];
+        shells.forEach((sh, si) => { for (let k = 0; k < nAng; k++) lines.push({ th: (k + si * 0.5) / nAng * Math.PI * 2, sh }); });
+        const nIons = small() ? 9 : 16;
+        ions = Array.from({ length: nIons }, (_, k) => ({
+            th: Math.random() * Math.PI * 2, sh: 0.35 + Math.random() * 0.6,   // guiding-centre field line
+            amp: 0.55 + Math.random() * 0.35,                                // bounce amplitude (mirror points)
+            wb: 0.25 + Math.random() * 0.2, pb: Math.random() * 6.3,         // bounce frequency / phase
+            wc: 7 + Math.random() * 5, pc: Math.random() * 6.3,              // cyclotron frequency / phase
+            rho: 0.018 + Math.random() * 0.018,                              // Larmor radius
+            drift: (Math.random() < 0.5 ? -1 : 1) * (0.04 + Math.random() * 0.05)   // slow azimuthal (magnetron-like) drift
+        }));
+    }
     function size() {
-        const dpr = Math.min(1.5, window.devicePixelRatio || 1);
+        const dpr = Math.min(small() ? 1.25 : 1.5, window.devicePixelRatio || 1);
         W = hero.clientWidth; H = hero.clientHeight;
         cvs.width = W * dpr; cvs.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        ions = Array.from({ length: Math.round(W / 24) }, () => newIon(true));
+        build();
     }
-    function newIon(anywhere) {
-        return { lane: Math.floor(Math.random() * LINES), x: anywhere ? Math.random() * W : -10, v: 0.15 + Math.random() * 0.35, a: 0.25 + Math.random() * 0.5 };
+    // camera: slow roll about the beam axis + gentle tilt that follows the mouse
+    let cam;
+    function setCam(t) {
+        const roll = reduceMotion ? 0.6 : t * 0.07;
+        const yaw = -0.62 + mxN * 0.25, pitch = 0.42 + myN * 0.18;
+        cam = { cr: Math.cos(roll), sr: Math.sin(roll), cy: Math.cos(yaw), sy: Math.sin(yaw), cp: Math.cos(pitch), sp: Math.sin(pitch),
+                scale: small() ? W * 0.58 : Math.min(W * 0.34, H * 0.7), cx: W / 2, cyy: H * 0.5, D: 2.8 };
     }
-    const laneY = i => H * (0.1 + 0.8 * i / (LINES - 1));
-    function bend(x, y0) {
-        const dx = x - mx, dy = y0 - my, f = 70 * Math.exp(-(dx * dx + dy * dy) / 25600);
-        return y0 + (dy >= 0 ? f : -f) * Math.min(1, Math.abs(dy) / 40 + 0.2);
+    function project(x, y, z) {
+        let y1 = y * cam.cr - z * cam.sr, z1 = y * cam.sr + z * cam.cr;      // roll about x (beam axis)
+        let x2 = x * cam.cy + z1 * cam.sy, z2 = -x * cam.sy + z1 * cam.cy;   // yaw
+        let y3 = y1 * cam.cp - z2 * cam.sp, z3 = y1 * cam.sp + z2 * cam.cp;  // pitch
+        const f = cam.D / (cam.D + z3);
+        return [cam.cx + x2 * f * cam.scale, cam.cyy + y3 * f * cam.scale, z3];
     }
-    function draw() {
-        mx += (tx - mx) * 0.06; my += (ty - my) * 0.06;
+    const depthAlpha = z => 0.35 + 0.65 * Math.min(1, Math.max(0, (0.9 - z) / 1.8));   // nearer = darker
+    function draw(now) {
+        const t = ((now || performance.now()) - t0) / 1000;
+        mxN += (txN - mxN) * 0.05; myN += (tyN - myN) * 0.05;
+        setCam(t);
         ctx.clearRect(0, 0, W, H);
-        for (let i = 0; i < LINES; i++) {
-            const y0 = laneY(i), edge = Math.min(i, LINES - 1 - i);
-            ctx.strokeStyle = `rgba(29, 29, 31, ${0.035 + edge * 0.007})`;
-            ctx.lineWidth = 1;
+        ctx.lineWidth = 1;
+        // field lines
+        const seg = small() ? 36 : 56;
+        for (const ln of lines) {
+            const c = Math.cos(ln.th), sn = Math.sin(ln.th);
+            let zSum = 0;
             ctx.beginPath();
-            for (let x = 0; x <= W + 16; x += 16) { const y = bend(x, y0); x ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+            for (let k = 0; k <= seg; k++) {
+                const x = -L * 1.12 + 2.24 * L * k / seg, r = radius(x) * ln.sh;
+                const [px, py, pz] = project(x, r * c, r * sn); zSum += pz;
+                k ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+            }
+            ctx.strokeStyle = `rgba(29, 29, 31, ${(0.11 * depthAlpha(zSum / (seg + 1)) * (ln.sh < 1 ? 0.7 : 1)).toFixed(3)})`;
             ctx.stroke();
         }
-        ctx.fillStyle = 'rgba(29, 29, 31, 0.28)';
-        ctx.beginPath();                                                   // one path, one fill for all ions
+        // ions: helix around a field line, bouncing between the mirrors, with a short fading trail
+        const trail = small() ? 10 : 16, dt = 0.045;
         for (const p of ions) {
-            if (!reduceMotion) p.x += p.v;
-            if (p.x > W + 10) Object.assign(p, newIon(false));
-            const py = bend(p.x, laneY(p.lane));
-            ctx.moveTo(p.x + 1.3, py); ctx.arc(p.x, py, 1.3, 0, Math.PI * 2);
+            const pos = tt => {
+                const x = p.amp * L * Math.sin(p.wb * tt * Math.PI * 2 / 6 + p.pb);
+                const th = p.th + p.drift * tt;
+                const r = radius(x) * p.sh, rho = p.rho * (radius(x) / R);   // gyro-radius shrinks where the field is strong
+                const ph = p.wc * tt + p.pc;
+                const ry = r * Math.cos(th), rz = r * Math.sin(th);
+                // gyration in the plane perpendicular to the beam axis
+                return project(x, ry + rho * Math.cos(ph), rz + rho * Math.sin(ph));
+            };
+            let prev = pos(t), head = prev;
+            for (let k = 1; k <= trail; k++) {
+                const cur = pos(t - k * dt);
+                const a = (1 - k / trail) * 0.38 * depthAlpha(prev[2]);
+                ctx.strokeStyle = `rgba(29, 29, 31, ${a.toFixed(3)})`;
+                ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(cur[0], cur[1]); ctx.stroke();
+                prev = cur;
+            }
+            ctx.fillStyle = `rgba(29, 29, 31, ${(0.55 * depthAlpha(head[2])).toFixed(3)})`;
+            ctx.beginPath(); ctx.arc(head[0], head[1], 1.7, 0, Math.PI * 2); ctx.fill();
         }
-        ctx.fill();
         if (!reduceMotion && visible) requestAnimationFrame(draw);
     }
     window.addEventListener('pointermove', e => {
         if (!visible) return;
-        tx = e.clientX; ty = e.clientY + window.scrollY;                    // hero starts at the top of the page
+        txN = e.clientX / window.innerWidth - 0.5; tyN = e.clientY / window.innerHeight - 0.5;
         if (reduceMotion) draw();
     }, { passive: true });
     window.addEventListener('resize', () => { size(); if (reduceMotion) draw(); });
