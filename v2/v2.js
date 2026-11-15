@@ -7,6 +7,7 @@
     if (!P) { document.body.insertAdjacentHTML('afterbegin', '<p style="padding:100px 24px">Profile data failed to load. Please refresh.</p>'); return; }
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const T = window.T || ((s, ...a) => s), LANG = window.LANG || 'en';
     const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const strip = html => { const d = document.createElement('div'); d.innerHTML = html; return d.textContent; };
     const titleCase = s => s.toLowerCase().replace(/(^|[\s(\/&-])\S/g, c => c.toUpperCase());
@@ -31,13 +32,13 @@
     $('ln-nav').addEventListener('click', e => { if (e.target.closest('a')) setMenu(false); });
     document.addEventListener('click', e => { if (!topbarEl.contains(e.target)) setMenu(false); });
 
-    $('hero-eyebrow').textContent = titleCase(P.title);
+    $('hero-eyebrow').textContent = P.title === P.title.toUpperCase() ? titleCase(P.title) : P.title;
     $('hero-name').innerHTML = `${esc(words.slice(0, -1).join(' '))}<br><span class="light">${esc(words[words.length - 1])}</span>${degree ? `<sup>${esc(degree)}</sup>` : ''}`;
     $('hero-pitch').innerHTML = P.summary;
     $('hero-ctas').innerHTML =
-        (mail ? `<a class="btn" href="${esc(mail.url)}">Get in touch</a>` : '')
-        + `<a class="link" href="${CV_PDF}" target="_blank" rel="noopener">Download CV</a>`
-        + `<a class="link" href="#research">See my work</a>`;
+        (mail ? `<a class="btn" href="${esc(mail.url)}">${T('Get in touch')}</a>` : '')
+        + `<a class="link" href="${CV_PDF}" target="_blank" rel="noopener">${T('Download CV')}</a>`
+        + `<a class="link" href="#research">${T('See my work')}</a>`;
 
     // ---------- about ----------
     const about = P.about || {};
@@ -59,14 +60,14 @@
             <div class="node" aria-hidden="true"><i></i></div>
             <div class="station-body">
                 <div class="station-meta">
-                    <span class="kind">${r.kind === 'education' ? 'Education' : 'Experience'}</span>
+                    <span class="kind">${T(r.kind === 'education' ? 'Education' : 'Experience')}</span>
                     <span>${esc(r.dates)}</span>
-                    ${now ? '<span class="now-tag">Now</span>' : ''}
+                    ${now ? `<span class="now-tag">${T('Now')}</span>` : ''}
                 </div>
                 <h3>${r.role}</h3>
                 <p class="org">${r.org}</p>
                 <ul>${r.bullets.map((b, k) => `<li${k >= 2 ? ' class="extra"' : ''}>${b}</li>`).join('')}</ul>
-                ${r.bullets.length > 2 ? `<button type="button" class="more-btn" aria-expanded="false">More</button>` : ''}
+                ${r.bullets.length > 2 ? `<button type="button" class="more-btn" aria-expanded="false">${T('More')}</button>` : ''}
             </div>
         </li>`;
     }).join('');
@@ -74,7 +75,7 @@
     $('beamline').addEventListener('click', e => {
         const b = e.target.closest('.more-btn'); if (!b) return;
         const open = b.closest('.station').classList.toggle('open');
-        b.setAttribute('aria-expanded', open); b.textContent = open ? 'Less' : 'More';
+        b.setAttribute('aria-expanded', open); b.textContent = T(open ? 'Less' : 'More');
     });
 
     // ---------- research highlights ----------
@@ -89,7 +90,7 @@
                 <span class="tag">${esc(p.tag)}</span>
                 <h3>${esc(p.name)}</h3>
                 <p>${esc(p.text)}</p>
-                ${p.url ? `<span class="go"><span class="link">${/github\.com/.test(p.url) ? 'View code' : 'Open project'}</span></span>` : ''}
+                ${p.url ? `<span class="go"><span class="link">${T(/github\.com/.test(p.url) ? 'View code' : 'Open project')}</span></span>` : ''}
             </div>
         </${tag}>`;
     }).join('');
@@ -184,7 +185,7 @@
     const vcard = v => `
         <button type="button" class="vcard reveal" data-id="${esc(v.id)}" aria-label="Play: ${esc(v.title)}">
             <div class="vthumb">${img(ytThumb(v.id), '')}<span class="vplay">${PLAY}</span></div>
-            <div class="vmeta"><span class="kind">${esc(v.kind || 'Video')}</span><h3>${esc(v.title)}</h3></div>
+            <div class="vmeta"><span class="kind">${esc(T(v.kind || 'Video'))}</span><h3>${esc(v.title)}</h3></div>
         </button>`;
     $('lectures').innerHTML = vids.filter(v => /lecture|talk/i.test(v.kind)).map(vcard).join('');
     $('sims').innerHTML = vids.filter(v => !/lecture|talk/i.test(v.kind)).map(vcard).join('');
@@ -192,7 +193,7 @@
     if (yt) $('channel-link').href = yt.url; else $('channel-link').parentElement.remove();
     if (!vids.length) $('videos').remove();
     const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-    if (!canHover && $('videos-sub')) $('videos-sub').textContent = 'Tap any video to watch.';
+    if (!canHover && $('videos-sub')) $('videos-sub').textContent = T('Tap any video to watch.');
     document.querySelectorAll('.vcard').forEach(card => {
         let timer = null;
         const stop = () => { clearTimeout(timer); card.classList.remove('playing'); card.querySelector('.vthumb iframe')?.remove(); };
@@ -230,14 +231,14 @@
     const pubs = P.publications.map(p => ({ ...p, year: yearOf(p.venue), v: p.venue.replace(/\s*\(\d{4}\)\s*$/, '') }));
     const years = [...new Set(pubs.map(p => p.year))].sort((a, b) => b - a);
     const span = years.length ? `${years[years.length - 1]}–${years[0]}` : '';
-    $('pub-sub').textContent = `Journal papers, conference proceedings and my Ph.D. dissertation${span ? `, ${span}` : ''}.`;
+    $('pub-sub').textContent = T('pubsub', span);
     $('pubs').innerHTML = years.map(y => `
         <div class="pub-year reveal">
             <span>${y}</span>
             <div>${pubs.filter(p => p.year === y).map(p => {
                 const badges = [
-                    p.badge ? `<span class="badge${/cover/i.test(p.badge) ? ' cover' : ''}">${esc(p.badge)}</span>` : '',
-                    /Phys\.\s*Rev\.\s*Lett/i.test(p.v) ? '<span class="badge">Featured</span>' : ''
+                    p.badge ? `<span class="badge${/cover/i.test(p.badge) ? ' cover' : ''}">${esc(T(p.badge))}</span>` : '',
+                    /Phys\.\s*Rev\.\s*Lett/i.test(p.v) ? `<span class="badge">${T('Featured')}</span>` : ''
                 ].join('');
                 const doiUrl = p.doi ? `https://doi.org/${encodeURI(p.doi)}` : (p.url || '');
                 const authors = p.authors ? esc(p.authors).replace(/(Rawat,?\s*B\.\s*S\.?)/g, '<b>$1</b>') : '';
@@ -259,7 +260,7 @@
         const title = m ? m[1] : t.text, where = m ? m[2].replace(/\.\s*$/, '') : '';
         return `
         <li class="talk reveal ${/invited/i.test(t.type) ? 'invited' : ''}">
-            <span class="kind">${esc(t.type)}</span>
+            <span class="kind">${esc(t.typeLabel || t.type)}</span>
             <h3>${esc(title)}</h3>
             ${where ? `<span class="where">${esc(where)}</span>` : ''}
         </li>`;
@@ -271,10 +272,10 @@
         mentor: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 9 12 4 2 9l10 5 10-5z"/><path d="M6 11v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg>',
         talk: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/></svg>'
     };
-    const iconFor = t => /mentor/i.test(t) ? ICONS.mentor : /talk|outreach/i.test(t) ? ICONS.talk : ICONS.consult;
+    const iconFor = t => /mentor/i.test(t) ? ICONS.mentor : /talk|outreach/i.test(t) ? ICONS.talk : ICONS.consult;   // matched on the English title (o.key)
     $('offers').innerHTML = (P.offer || []).map(o => `
         <div class="offer reveal">
-            <div class="icon" aria-hidden="true">${iconFor(o.title)}</div>
+            <div class="icon" aria-hidden="true">${iconFor(o.key || o.title)}</div>
             <h3>${esc(o.title)}</h3>
             <p>${esc(o.text)}</p>
         </div>`).join('');
@@ -310,9 +311,9 @@
     $('contact-links').innerHTML =
         (mail ? `<a class="contact-mail" href="${esc(mail.url)}">${esc(mail.url.replace(/^mailto:/, ''))}</a>` : '')
         + `<div class="link-row">${extLinks()}
-            <a class="link" href="${CV_PDF}" target="_blank" rel="noopener">Download CV</a>
-            <a class="link" href="/CV/plain.html" target="_blank" rel="noopener">Plain CV</a></div>`;
-    $('footer-name').textContent = `Copyright © ${new Date().getFullYear()} ${titleCase(bare)}. All rights reserved.`;
+            <a class="link" href="${CV_PDF}" target="_blank" rel="noopener">${T('Download CV')}</a>
+            <a class="link" href="/CV/plain.html" target="_blank" rel="noopener">${T('Plain CV')}</a></div>`;
+    $('footer-name').textContent = `Copyright © ${new Date().getFullYear()} ${titleCase(bare)}. ${T('All rights reserved.')}`;
 
     // ---------- reveal on scroll (staggered within rows) ----------
     const revealEls = [...document.querySelectorAll('.reveal')];
@@ -394,8 +395,8 @@
             const cc = String((await (await fetch('https://api.country.is/', { signal: ctl.signal })).json()).country || '').toUpperCase();
             if (!/^[A-Z]{2}$/.test(cc)) return;
             let name = cc;
-            try { name = new Intl.DisplayNames(['en'], { type: 'region' }).of(cc) || cc; } catch (e) { /* old browser */ }
-            g.innerHTML = `<img src="https://flagcdn.com/40x30/${cc.toLowerCase()}.png" alt="">Hello, visitor from <b>${esc(name)}</b>`;
+            try { name = new Intl.DisplayNames([LANG], { type: 'region' }).of(cc) || cc; } catch (e) { /* old browser */ }
+            g.innerHTML = `<img src="https://flagcdn.com/40x30/${cc.toLowerCase()}.png" alt="">${esc(T('Hello, visitor from'))} <b>${esc(name)}</b>`;
             g.classList.add('show');
         } catch (e) { /* lookup blocked or offline */ }
     })();

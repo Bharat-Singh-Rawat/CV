@@ -507,3 +507,69 @@ a.title:hover { color: var(--link); text-decoration: underline; }
 #sfx-toggle[aria-pressed="false"] { color: var(--faint); }
 @media (max-width: 1000px) { #sfx-toggle { margin-left: auto; } }
 @media (max-width: 600px) { #sfx-toggle { width: 40px; height: 40px; } }
+
+/* ---------- language switch ---------- */
+#lang-pick {
+    appearance: none; -webkit-appearance: none; border: 0; background: transparent; cursor: pointer;
+    font: inherit; font-size: 0.78rem; font-weight: 500; color: rgba(29, 29, 31, 0.8); padding: 6px 8px; border-radius: 980px;
+}
+#lang-pick:hover { background: rgba(0, 0, 0, 0.05); color: var(--text); }
+@media (max-width: 1000px) { #lang-pick { margin-left: auto; } #sfx-toggle { margin-left: 0; } }
+
+/* ---------- contact extras ---------- */
+.link-btn { border: 0; background: none; padding: 0; font: inherit; font-size: 1.05rem; cursor: pointer; color: var(--link); }
+.localtime { margin: 22px 0 0; font-size: 0.95rem; color: var(--muted); }
+
+/* ---------- physics term tooltips ---------- */
+.term { text-decoration: underline dotted rgba(29, 29, 31, 0.45); text-underline-offset: 3px; cursor: help; border-radius: 3px; transition: background 0.2s; }
+.term:hover, .term:focus-visible { background: rgba(0, 0, 0, 0.05); outline: none; }
+#term-tip {
+    position: fixed; z-index: 400; max-width: 320px; padding: 14px 16px; border-radius: 14px; pointer-events: none;
+    background: rgba(29, 29, 31, 0.94); color: #f5f5f7; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; line-height: 1.4;
+    opacity: 0; transform: translateY(4px); transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
+}
+#term-tip.show { opacity: 1; transform: none; }
+#term-tip strong { font-size: 0.9rem; font-weight: 600; }
+#term-tip .eq { font-family: 'Times New Roman', 'STIX Two Math', serif; font-size: 1.05rem; font-style: italic; color: #fff; }
+#term-tip .def { color: rgba(245, 245, 247, 0.78); }
+
+/* ---------- skills network ---------- */
+.sg { margin: 0 0 34px; }
+.sg-title { margin: 0; font-size: 1.35rem; font-weight: 700; letter-spacing: -0.025em; }
+.sg-sub { margin: 4px 0 18px; color: var(--muted); font-size: 0.95rem; }
+.sg-body { position: relative; display: grid; grid-template-columns: 1fr 1fr; column-gap: clamp(60px, 16%, 180px); background: var(--card); border-radius: 22px; padding: 22px; }
+.sg-links { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.sg-links path { fill: none; stroke: #d2d2d7; stroke-width: 1; transition: stroke 0.3s, stroke-width 0.3s, opacity 0.3s; }
+.sg.focusing .sg-links path { opacity: 0.25; }
+.sg.focusing .sg-links path.on { opacity: 1; stroke: #1d1d1f; stroke-width: 1.6; }
+.sg-col { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; position: relative; z-index: 1; }
+.sg-skills { align-items: flex-end; }
+.sg-work { align-items: flex-start; justify-content: space-around; }
+.sg-node {
+    border: 0; font: inherit; font-size: 0.85rem; cursor: pointer; padding: 5px 12px; border-radius: 980px;
+    background: var(--bg); color: var(--body); transition: background 0.25s, color 0.25s, opacity 0.25s;
+}
+.sg-node.work { font-weight: 600; color: var(--text); }
+.sg.focusing .sg-node { opacity: 0.35; }
+.sg.focusing .sg-node.on { opacity: 1; background: #1d1d1f; color: #fff; }
+@media (max-width: 600px) { .sg-body { padding: 14px; column-gap: 34px; } .sg-node { font-size: 0.75rem; padding: 4px 9px; } }
+
+/* ---------- easter egg ---------- */
+.beam-fx { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 250; }
+.beam-toast {
+    position: fixed; left: 50%; bottom: 90px; z-index: 260; transform: translate(-50%, 10px); opacity: 0;
+    background: rgba(29, 29, 31, 0.92); color: #fff; padding: 10px 18px; border-radius: 980px; font-size: 0.9rem;
+    transition: opacity 0.4s var(--ease), transform 0.4s var(--ease); pointer-events: none;
+}
+.beam-toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* fixes: graph + rack share the right column on wide screens; nav labels never wrap; tooltip title readable */
+@media (min-width: 1200px) {
+    .split > .sec-head { grid-row: 1 / span 2; }
+    .split > .sg, .split > .rack { grid-column: 2; }
+}
+.topnav a { white-space: nowrap; }
+html[lang="es"] .topnav a, html[lang="ru"] .topnav a { padding: 6px 8px; font-size: 0.75rem; }
+@media (max-width: 1180px) { html[lang="es"] .topnav a.ln-ext, html[lang="ru"] .topnav a.ln-ext { display: none; } }
+#term-tip strong { color: #fff; }

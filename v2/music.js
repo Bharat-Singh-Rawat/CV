@@ -11,6 +11,8 @@
     ].map((title, i) => ({ title, file: `/CV/assets/audio/track${i + 1}.mp3` }));
 
     const $ = id => document.getElementById(id);
+    const T = window.T || (s => s), LANG = window.LANG || 'en';
+    const ML = { es: ['Mi playlist', 'canciones', 'pulsa play', 'A continuación', 'Pista', 'de'], ru: ['Мой плейлист', 'песен', 'нажмите ▶', 'Далее', 'Трек', 'из'] }[LANG] || ['My playlist', 'songs', 'tap play', 'Up Next', 'Track', 'of'];
     const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const fmt = t => !isFinite(t) ? '0:00' : `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
     // artwork: a soft two-tone gradient derived from the title, like Apple Music's generated covers
@@ -30,7 +32,7 @@
     <div class="mp collapsed" id="mp" aria-label="Music player">
         <button type="button" class="mp-fab" id="mp-fab" aria-label="Open music player">${ICON.note}<span class="mp-fab-eq" aria-hidden="true"><i></i><i></i><i></i></span></button>
         <div class="mp-queue" id="mp-queue" hidden>
-            <div class="mp-queue-head"><span>Up Next</span><span class="mp-count">${TRACKS.length} songs</span></div>
+            <div class="mp-queue-head"><span>${ML[3]}</span><span class="mp-count">${TRACKS.length} ${ML[1]}</span></div>
             <ol id="mp-list">${TRACKS.map((t, i) => `
                 <li><button type="button" data-i="${i}"><span class="mp-q-art" style="background:${art(t)}"></span><span class="mp-q-title">${esc(t.title)}</span><span class="mp-q-eq" aria-hidden="true"><i></i><i></i><i></i></span></button></li>`).join('')}
             </ol>
@@ -38,8 +40,8 @@
         <div class="mp-bar">
             <button type="button" class="mp-art" id="mp-art" aria-label="Show playlist" aria-expanded="false">${ICON.note}</button>
             <button type="button" class="mp-info" id="mp-info" aria-label="Show playlist">
-                <span class="mp-title" id="mp-title">My playlist</span>
-                <span class="mp-sub" id="mp-sub">${TRACKS.length} songs · tap play</span>
+                <span class="mp-title" id="mp-title">${ML[0]}</span>
+                <span class="mp-sub" id="mp-sub">${TRACKS.length} ${ML[1]} · ${ML[2]}</span>
             </button>
             <div class="mp-ctrls">
                 <button type="button" class="mp-btn small" id="mp-prev" aria-label="Previous">${ICON.prev}</button>
@@ -77,7 +79,7 @@
         const t = TRACKS[i];
         audio.src = t.file;
         $('mp-title').textContent = t.title;
-        $('mp-sub').textContent = `Track ${i + 1} of ${TRACKS.length}`;
+        $('mp-sub').textContent = `${ML[4]} ${i + 1} ${ML[5]} ${TRACKS.length}`;
         $('mp-art').style.background = art(t);
         $('mp-art').classList.add('has-art');
         document.querySelectorAll('#mp-list button').forEach(b => b.classList.toggle('current', +b.dataset.i === i));
