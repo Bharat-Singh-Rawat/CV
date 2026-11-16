@@ -30,6 +30,9 @@
     const media = {};                                  // src -> { v, loops, lastT, pauseTimer }
     const active = new Set();
     let raf = 0;
+    // phones: never paint video frames while the page is being scrolled (keeps scrolling smooth)
+    let scrolling = false, scrollTimer = 0;
+    if (!fine) addEventListener('scroll', () => { scrolling = true; clearTimeout(scrollTimer); scrollTimer = setTimeout(() => { scrolling = false; }, 160); }, { passive: true });
 
     const items = cards.map(card => {
         const zoom = card.querySelector('.zoom');
@@ -47,7 +50,7 @@
     }).filter(Boolean);
 
     function size(it) {
-        const r = it.cv.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
+        const r = it.cv.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, fine ? 2 : 1.25);   // phones: lighter canvas
         it.w = it.cv.width = Math.max(1, Math.round(r.width * dpr));
         it.h = it.cv.height = Math.max(1, Math.round(r.height * dpr));
     }
@@ -97,6 +100,9 @@
             const t = m.v.currentTime;
             if (t + 0.5 < m.lastT) m.loops++;            // the video wrapped round
             m.lastT = t;
+            if (scrolling) continue;
+            if (t === m.paintedT && us.every(it => it.card.classList.contains('clip-on'))) continue;   // no new video frame
+            m.paintedT = t;
             for (const it of us) { if (!it.w) size(it); paint(it, m.v, m.loops); it.card.classList.add('clip-on'); }
         }
         raf = requestAnimationFrame(frame);

@@ -109,7 +109,9 @@
     const tiles = [...track.children];
     let labShift = 0, labX = 0, labTarget = 0, labRunning = false, labLast = 0, labInView = false;
     let geo = { centers: [], widths: [], step: 1 }, bestIdx = -1;
-    const labStatic = reduceMotion || touchSmall || !tiles.length;          // phones/tablets: natural swipe row
+    const labStatic = reduceMotion || !tiles.length;                        // reduced motion: natural swipe row
+    const pin = lab.querySelector('.lab-pin');
+    const pinH = () => (pin && pin.offsetHeight) || window.innerHeight;     // 100svh: stable while phone toolbars slide
     if (!tiles.length) { lab.remove(); return; }
     if (labStatic) lab.classList.add('static');
     function layoutLab() {                                                  // all measuring happens here, never per frame
@@ -123,13 +125,13 @@
             step: tiles.length > 1 ? tiles[1].offsetLeft - tiles[0].offsetLeft : 1
         };
         labShift = Math.max(0, tiles[tiles.length - 1].offsetLeft - tiles[0].offsetLeft);
-        lab.style.height = (labShift * 0.55 + window.innerHeight) + 'px';
+        lab.style.height = (labShift * (touchSmall ? 0.75 : 0.55) + pinH()) + 'px';
         labTop = lab.offsetTop;
         bestIdx = -1; labTarget = labX = targetLab(window.scrollY); paintLab();
     }
     let labTop = 0;
     function targetLab(y) {
-        const span = lab.offsetHeight - window.innerHeight;
+        const span = lab.offsetHeight - pinH();
         const prog = span > 0 ? Math.min(1, Math.max(0, (y - labTop) / span)) : 0;
         return -prog * labShift;
     }
@@ -168,7 +170,8 @@
         if (!labRunning) { labRunning = true; requestAnimationFrame(labLoop); }
     }
     if (!labStatic) {
-        window.addEventListener('resize', layoutLab);
+        let lastW = window.innerWidth;                                      // phones fire resize when the toolbar hides: ignore height-only changes
+        window.addEventListener('resize', () => { if (touchSmall && window.innerWidth === lastW) return; lastW = window.innerWidth; layoutLab(); });
         window.addEventListener('load', layoutLab);
         const preload = () => tiles.forEach(t => { const i = t.querySelector('img'); if (i) i.loading = 'eager'; });
         if ('IntersectionObserver' in window) {

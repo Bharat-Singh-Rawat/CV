@@ -71,13 +71,14 @@
         vx[i] = Math.cos(la) * Math.sin(lo); vy[i] = Math.sin(la); vz[i] = Math.cos(la) * Math.cos(lo);
     }
 
-    let dpr = 1, dirty = true;
+    let dpr = 1, dirty = true, landKey = '';
+    const landCv = document.createElement('canvas'), landCtx = landCv.getContext('2d');
     function resize() { dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = cv.height = Math.round(cv.clientWidth * dpr); dirty = true; }
 
     // view state
     let lon0 = 0, lat0 = 20, zoom = 1, active = -1, arcT = 1, arcFrom = null, arcTo = null, pulse = 0, talkT = 1;
     let tLon = 0, tLat = 20, tZoom = 1;
-    let mode = 'work', hover = -1, travelPts = [], drag = null, spinPause = 0;
+    let mode = 'work', hover = -1, travelPts = [], drag = null, spinPause = 0, mini = false;
     let shots = [], shotIdx = 0, shotKey = '', shotTimer = 0, unhover = 0, workHover = null, workPts = [];
     function currentShots() {
         if (mode === 'travel') { const t = TRAVEL[hover]; return t ? (t.photos || []).map(src => ({ src, place: t, title: t.name, text: t.note || '' })) : []; }
@@ -102,7 +103,7 @@
         if (shots.length > 1 && !reduce) shotTimer = setInterval(() => { if (visible && !bub.matches(':hover')) showShot(shotIdx + 1); }, 3200);
     }
     function placeBubble(at, settled) {                  // park the bubble next to its pin, inside the globe
-        const sh = shots[shotIdx], q = sh && settled ? at(sh.place) : null;
+        const sh = shots[shotIdx], q = sh && settled && !mini ? at(sh.place) : null;
         if (!q) { bub.classList.remove('show'); return; }
         const w = bub.offsetWidth || 128, h = bub.offsetHeight || 96, size = cv.clientWidth;
         const x = q[0] / dpr, y = q[1] / dpr;
@@ -198,21 +199,30 @@
         prep();
         ctx.save();
         ctx.beginPath(); ctx.arc(c, c, lens, 0, 7); ctx.clip();      // the globe is seen through a round lens
-        const g = ctx.createRadialGradient(c - rad * 0.35, c - rad * 0.4, rad * 0.1, c, c, rad);
-        g.addColorStop(0, `rgba(${ink},${dark ? 0.07 : 0.035})`); g.addColorStop(1, `rgba(${ink},${dark ? 0.02 : 0.01})`);
-        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c, c, rad, 0, 7); ctx.fill();
-        if (zoom < 1.05) { ctx.strokeStyle = `rgba(${ink},0.1)`; ctx.lineWidth = dpr; ctx.stroke(); }
-        // land dots
-        const dr = Math.max(0.8, W / 420) * (0.75 + 0.35 * zoom);
-        ctx.fillStyle = `rgb(${ink})`;
-        for (let i = 0; i < n; i++) {
-            const p = proj(vx[i], vy[i], vz[i]); if (p[2] <= 0.02) continue;
-            const x = c + p[0] * rad, y = c - p[1] * rad;
-            if ((x - c) * (x - c) + (y - c) * (y - c) > lens * lens) continue;
-            ctx.globalAlpha = (dark ? 0.12 : 0.14) + p[2] * (dark ? 0.55 : 0.56);
-            ctx.fillRect(x - dr / 2, y - dr / 2, dr, dr);
+        // sphere + land dots are cached: redrawn only when the view moves, not for every pulse frame
+        const key = `${lon0.toFixed(2)},${lat0.toFixed(2)},${zoom.toFixed(3)},${W},${dark}`;
+        if (key !== landKey) {
+            landKey = key;
+            if (landCv.width !== W) landCv.width = landCv.height = W;
+            const L = landCtx;
+            L.clearRect(0, 0, W, W);
+            const g = L.createRadialGradient(c - rad * 0.35, c - rad * 0.4, rad * 0.1, c, c, rad);
+            g.addColorStop(0, `rgba(${ink},${dark ? 0.07 : 0.035})`); g.addColorStop(1, `rgba(${ink},${dark ? 0.02 : 0.01})`);
+            L.fillStyle = g; L.beginPath(); L.arc(c, c, rad, 0, 7); L.fill();
+            if (zoom < 1.05) { L.strokeStyle = `rgba(${ink},0.1)`; L.lineWidth = dpr; L.stroke(); }
+            const step = mini ? 3 : 1;                    // the small docked globe needs far fewer dots
+            const dr = Math.max(0.8, W / 420) * (0.75 + 0.35 * zoom) * (mini ? 1.5 : 1);
+            L.fillStyle = `rgb(${ink})`;
+            for (let i = 0; i < n; i += step) {
+                const p = proj(vx[i], vy[i], vz[i]); if (p[2] <= 0.02) continue;
+                const x = c + p[0] * rad, y = c - p[1] * rad;
+                if ((x - c) * (x - c) + (y - c) * (y - c) > lens * lens) continue;
+                L.globalAlpha = (dark ? 0.12 : 0.14) + p[2] * (dark ? 0.55 : 0.56);
+                L.fillRect(x - dr / 2, y - dr / 2, dr, dr);
+            }
+            L.globalAlpha = 1;
         }
-        ctx.globalAlpha = 1;
+        ctx.drawImage(landCv, 0, 0);
         const at = pl => { const p = proj(...vec(pl)); if (p[2] <= 0) return null; const x = c + p[0] * rad, y = c - p[1] * rad; return Math.hypot(x - c, y - c) < lens ? [x, y] : null; };
         if (mode === 'travel') {                          // every place visited: work + talks faint, travels bright
             const green = dark ? '48,209,88' : '36,138,61', seenT = new Set();
@@ -318,8 +328,24 @@
     } else { visible = true; kick(); }
     draw();
     let tk = 0;
-    addEventListener('scroll', () => { if (!tk) tk = requestAnimationFrame(() => { tk = 0; pick(); }); }, { passive: true });
-    addEventListener('resize', () => { resize(); draw(); });
+    // phones / narrow screens: once the globe scrolls away it docks as a mini globe top-right and keeps following the timeline
+    const narrow = matchMedia('(max-width: 1199px)'), career = document.getElementById('career');
+    const ph = document.createElement('div'); ph.className = 'globe-ph'; head.insertBefore(ph, box);
+    let boxH = 0;
+    addEventListener('resize', () => { boxH = 0; });
+    function checkMini() {
+        let want = false;
+        if (narrow.matches && career) {
+            const top = ph.getBoundingClientRect().top, h = mini ? ph.offsetHeight : (boxH || (boxH = box.offsetHeight)), c = career.getBoundingClientRect();
+            want = top + h * 0.6 < 60 && c.bottom > window.innerHeight * 0.55;
+        }
+        if (want === mini) return;
+        ph.style.height = want ? box.offsetHeight + 'px' : '0px';
+        mini = want; box.classList.toggle('mini', mini);
+        resize(); landKey = ''; draw(); kick();
+    }
+    addEventListener('scroll', () => { if (!tk) tk = requestAnimationFrame(() => { tk = 0; checkMini(); pick(); }); }, { passive: true });
+    addEventListener('resize', () => { checkMini(); resize(); draw(); });
 
     // Work / Travel switch, hover or tap a travel pin, drag to spin
     box.querySelectorAll('.globe-mode button').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
