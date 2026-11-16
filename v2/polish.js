@@ -108,7 +108,7 @@
         const cols = [
             [T('Explore'), nav.join('')],
             [T('Connect'), a(mail && mail.url, mail ? mail.url.replace(/^mailto:/, '') : '') + a(li && li.url, 'LinkedIn', 1) + a(gs && gs.url, 'Google Scholar', 1) + a(gh && gh.url, 'GitHub', 1) + a(yt && yt.url, 'YouTube', 1)],
-            [T('Projects'), a(bemcs && bemcs.url, 'PY-BEMCS', 1) + a(aegis && aegis.url, aegis ? aegis.label : '', 1) + `<li><a href="#offbeam" data-play>Bio Menace</a></li>`],
+            [T('Projects'), a(bemcs && bemcs.url, 'PY-BEMCS', 1) + a(aegis && aegis.url, aegis ? aegis.label : '', 1)],
             [T('Resume'), a('/CV/plain.html', T('Plain CV'), 1) + a('/CV/assets/cv/Bharat_Rawat_CV.pdf', T('Download CV') + ' (PDF)', 1) + a('/CV/classic.html', T('Classic site')) + a('/Dossier/', T('All themes'))]
         ];
         const langs = [['en', 'English'], ['es', 'Español'], ['ru', 'Русский'], ['fr', 'Français'], ['gu', 'ગુજરાતી']]
@@ -131,7 +131,6 @@
             </div>`;
         footer.classList.add('foot-apple');
         footer.querySelectorAll('.foot-theme button').forEach(b => b.addEventListener('click', () => applyTheme(b.dataset.theme, true)));
-        footer.querySelector('[data-play]')?.addEventListener('click', e => { if (window.cvRetro) { e.preventDefault(); window.cvRetro.open(); } });
         footer.querySelectorAll('[data-lang]').forEach(l => l.addEventListener('click', () => { try { localStorage.setItem('cv-lang', l.dataset.lang); } catch (e) { /* private mode */ } }));
     }
 })();
