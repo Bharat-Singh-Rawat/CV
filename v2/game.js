@@ -39,6 +39,22 @@
             'Цифровой двойник объединяет физику и машинное обучение, чтобы предсказывать работу ловушки.',
             'Сейчас я проектирую электронные инжекторы и диагностику пучков в Basilisk.',
             'Спасибо за игру! Обсудим пучки частиц.'
+        ],
+        fr: [
+            'C’est ici que j’ai construit une source d’ions ring-cusp pour la propulsion spatiale et la fusion.',
+            'Les cages de Faraday capturent le faisceau et le mesurent. J’en ai conçu une de forte puissance.',
+            'Au CERN, j’ai modélisé des pièges de Penning–Malmberg qui retiennent les antiprotons.',
+            'Un jumeau numérique associe physique et apprentissage automatique pour prédire le comportement du piège.',
+            'Aujourd’hui, je conçois des injecteurs d’électrons et des diagnostics de faisceau chez Basilisk.',
+            'Merci d’avoir joué ! Parlons faisceaux.'
+        ],
+        gu: [
+            'અહીં મેં અવકાશ પ્રોપલ્શન અને ફ્યુઝન સંશોધન માટે રિંગ-કસ્પ આયન સ્રોત બનાવ્યો હતો.',
+            'ફેરાડે કપ બીમને પકડીને માપે છે. મેં એક હાઇ-પાવર ફેરાડે કપ ડિઝાઇન કર્યો.',
+            'CERNમાં મેં એન્ટિપ્રોટોનને બાંધી રાખતા પેનિંગ–માલ્મબર્ગ ટ્રેપનું મોડેલિંગ કર્યું.',
+            'ડિજિટલ ટ્વિન ભૌતિકશાસ્ત્ર અને મશીન લર્નિંગ વડે ટ્રેપના વર્તનની આગાહી કરે છે.',
+            'હવે હું Basiliskમાં ઇલેક્ટ્રોન ઇન્જેક્ટર અને બીમ ડાયગ્નોસ્ટિક્સ ડિઝાઇન કરું છું.',
+            'રમવા બદલ આભાર! ચાલો, બીમની વાત કરીએ.'
         ]
     };
     const facts = FACTS[LANG] || FACTS.en;

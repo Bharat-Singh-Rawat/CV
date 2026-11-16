@@ -313,7 +313,7 @@
 
     // ---------- off-beam ----------
     // words in a hobby that open one of my music videos (matched in every language)
-    const MEDIA_WORDS = { guitar: /guitar(ra)?|гитар[а-яё]*/i, keyboard: /keyboards?|teclados?|клавишн[а-яё]*/i };
+    const MEDIA_WORDS = { guitar: /guitar(ra|e)?|гитар[а-яё]*|ગિટાર/i, keyboard: /keyboards?|teclados?|claviers?|клавишн[а-яё]*|કીબોર્ડ/i };
     const withMedia = h => {
         let html = esc(h.detail);
         for (const [k, m] of Object.entries(h.media || {})) {

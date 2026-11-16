@@ -111,7 +111,7 @@
             [T('Projects'), a(bemcs && bemcs.url, 'PY-BEMCS', 1) + a(aegis && aegis.url, aegis ? aegis.label : '', 1) + `<li><a href="#offbeam" data-play>Beamline Run</a></li>`],
             [T('Resume'), a('/CV/plain.html', T('Plain CV'), 1) + a('/CV/assets/cv/Bharat_Rawat_CV.pdf', T('Download CV') + ' (PDF)', 1) + a('/CV/classic.html', T('Classic site')) + a('/Dossier/', T('All themes'))]
         ];
-        const langs = [['en', 'English'], ['es', 'Español'], ['ru', 'Русский']]
+        const langs = [['en', 'English'], ['es', 'Español'], ['ru', 'Русский'], ['fr', 'Français'], ['gu', 'ગુજરાતી']]
             .map(([c, n]) => c === LANG ? `<span aria-current="true">${n}</span>` : `<a href="?lang=${c}" data-lang="${c}">${n}</a>`).join('<i>|</i>');
         const name = document.getElementById('footer-name')?.textContent || '';
         footer.innerHTML = `

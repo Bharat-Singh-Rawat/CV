@@ -46,7 +46,7 @@
 
     const $ = id => document.getElementById(id);
     const T = window.T || (s => s), LANG = window.LANG || 'en';
-    const ML = { es: ['Mi playlist', 'canciones', 'pulsa play', 'A continuación', 'Pista', 'de'], ru: ['Мой плейлист', 'песен', 'нажмите ▶', 'Далее', 'Трек', 'из'] }[LANG] || ['My playlist', 'songs', 'tap play', 'Up Next', 'Track', 'of'];
+    const ML = { es: ['Mi playlist', 'canciones', 'pulsa play', 'A continuación', 'Pista', 'de'], ru: ['Мой плейлист', 'песен', 'нажмите ▶', 'Далее', 'Трек', 'из'], fr: ['Ma playlist', 'titres', 'appuyez sur lecture', 'À suivre', 'Piste', 'sur'], gu: ['મારી પ્લેલિસ્ટ', 'ગીતો', 'પ્લે દબાવો', 'આગળ', 'ટ્રૅક', '/'] }[LANG] || ['My playlist', 'songs', 'tap play', 'Up Next', 'Track', 'of'];
     const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const fmt = t => !isFinite(t) ? '0:00' : `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
     // artwork: a soft two-tone gradient derived from the title, like Apple Music's generated covers
