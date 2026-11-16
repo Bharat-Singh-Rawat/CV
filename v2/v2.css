@@ -1061,3 +1061,4 @@ html[data-theme="dark"] .foot-theme button[aria-pressed="true"] { background: #3
 .gp-dots i.on { background: #fff; }
 .pview.single .pv-prev, .pview.single .pv-next { display: none; }
 @media (max-width: 1199px) { .globe-photo { width: 104px; border-radius: 13px; } }
+.globe.travel .globe-label .gl-talks { color: var(--muted); }

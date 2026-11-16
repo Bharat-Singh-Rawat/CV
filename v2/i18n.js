@@ -32,7 +32,7 @@
             'Ion sources, grids and the diagnostics that measure their beams.': 'Fuentes de iones, rejillas y los diagnósticos que miden sus haces.',
             'Watch': 'Ver', 'Lectures & simulations.': 'Clases y simulaciones.',
             'Hover to preview. Click to watch with sound.': 'Pasa el cursor para previsualizar. Haz clic para verlo con sonido.',
-            'More on YouTube': 'Más en YouTube', 'In print.': 'Publicado.', 'Talks': 'Charlas', 'Work': 'Trabajo', 'poster': 'póster', 'talk & poster': 'charla y póster', 'Travel': 'Viajes', 'Travels': 'Mis viajes', 'Drag to spin · hover a pin': 'Arrastra para girar · toca un punto', 'On stage.': 'En el escenario.',
+            'More on YouTube': 'Más en YouTube', 'In print.': 'Publicado.', 'Talks': 'Charlas', 'Work': 'Trabajo', 'poster': 'póster', 'ICPP 2020 poster': 'póster en ICPP 2020', 'talk & poster': 'charla y póster', 'Travel': 'Viajes', 'Travels': 'Mis viajes', 'Drag to spin · hover a pin': 'Arrastra para girar · toca un punto', 'On stage.': 'En el escenario.',
             'What I offer': 'Qué ofrezco', 'How I can help.': 'Cómo puedo ayudar.', 'Skills': 'Habilidades', 'Instrument rack.': 'Mi caja de herramientas.',
             'Codes, tools and hardware I work with.': 'Códigos, herramientas y equipos con los que trabajo.', 'Off-beam': 'Mis intereses',
             'Beyond the lab.': 'Más allá del laboratorio.', "Let's talk beams.": 'Hablemos de física de aceleradores.', 'Classic site': 'Sitio clásico', 'All themes': 'Todos los temas',
@@ -57,7 +57,7 @@
             'Ion sources, grids and the diagnostics that measure their beams.': 'Ионные источники, сетки и диагностика их пучков.',
             'Watch': 'Смотреть', 'Lectures & simulations.': 'Лекции и симуляции.',
             'Hover to preview. Click to watch with sound.': 'Наведите курсор для предпросмотра. Нажмите, чтобы смотреть со звуком.',
-            'More on YouTube': 'Больше на YouTube', 'In print.': 'Опубликованные материалы.', 'Talks': 'Доклады', 'Work': 'Работа', 'poster': 'постер', 'talk & poster': 'доклад и постер', 'Travel': 'Путешествия', 'Travels': 'Мои путешествия', 'Drag to spin · hover a pin': 'Потяните, чтобы вращать · наведите на точку', 'On stage.': 'Выступления.',
+            'More on YouTube': 'Больше на YouTube', 'In print.': 'Опубликованные материалы.', 'Talks': 'Доклады', 'Work': 'Работа', 'poster': 'постер', 'ICPP 2020 poster': 'постер на ICPP 2020', 'talk & poster': 'доклад и постер', 'Travel': 'Путешествия', 'Travels': 'Мои путешествия', 'Drag to spin · hover a pin': 'Потяните, чтобы вращать · наведите на точку', 'On stage.': 'Выступления.',
             'What I offer': 'Чем могу помочь', 'How I can help.': 'Как я могу помочь.', 'Skills': 'Навыки', 'Instrument rack.': 'Мой инструментарий.',
             'Codes, tools and hardware I work with.': 'Программы, инструменты и оборудование, с которыми я работаю.', 'Off-beam': 'Мои интересы',
             'Beyond the lab.': 'Увлечения вне работы.', "Let's talk beams.": 'Обсудим пучки частиц.', 'Classic site': 'Классический сайт', 'All themes': 'Все темы',
@@ -106,7 +106,8 @@
                 { role: 'Ingeniero de protección radiológica', bullets: [
                     'Gestioné la exposición ocupacional a la radiación del personal de la central nuclear de Kakrapar, garantizando el estricto cumplimiento de los límites reglamentarios de dosis semanales, mensuales y anuales.',
                     'Desarrollé una hoja de cálculo automatizada de seguimiento de dosis para vigilar tendencias e identificar al personal cercano a los umbrales, lo que permitió intervenciones de seguridad preventivas.'] },
-                { role: 'Investigador en prácticas', org: 'Laboratorio de Sistemas de Haces y Plasma, Instituto de Física y Tecnología de Moscú (MIPT), Rusia', bullets: [] }
+                { role: 'Investigador en prácticas', org: 'Laboratorio de Sistemas de Haces y Plasma, Instituto de Física y Tecnología de Moscú (MIPT), Rusia', bullets: [
+                    'Realicé estudios de <b>diagnóstico por espectroscopía visible</b> de la <b>fuente de haz de electrones</b> en el Laboratorio de Sistemas de Haces y Plasma.'] }
             ],
             education: [
                 { role: 'Doctorado (Ph.D.)', bullets: [
@@ -186,7 +187,8 @@
                 { role: 'Инженер по радиационной защите', bullets: [
                     'Контролировал профессиональное облучение персонала АЭС Какрапар, обеспечивая строгое соблюдение недельных, месячных и годовых нормативных пределов доз.',
                     'Создал автоматизированную таблицу учёта доз для отслеживания тенденций и выявления сотрудников, приближающихся к пороговым значениям, что позволило заранее принимать меры безопасности.'] },
-                { role: 'Стажёр-исследователь', org: 'Лаборатория пучково-плазменных систем, Московский физико-технический институт (МФТИ), Россия', bullets: [] }
+                { role: 'Стажёр-исследователь', org: 'Лаборатория пучково-плазменных систем, Московский физико-технический институт (МФТИ), Россия', bullets: [
+                    'Проводил исследования <b>диагностики методом спектроскопии в видимом диапазоне</b> для <b>источника электронного пучка</b> в лаборатории пучково-плазменных систем.'] }
             ],
             education: [
                 { role: 'Ph.D. (кандидат наук)', bullets: [

@@ -116,7 +116,7 @@
         const t = TRAVEL[hover];
         lblName.textContent = t ? t.name : TT('Travels');
         lblDates.textContent = t ? (t.note || '') : TT('Drag to spin · hover a pin');
-        lblTalks.textContent = '';
+        lblTalks.textContent = t && t.cities ? t.cities.filter(ok).map(c => c.name).join(' · ') : '';
     }
     function setMode(m) {
         if (m === mode) return;
@@ -222,6 +222,10 @@
                 ctx.fillStyle = `rgba(${ink},0.32)`; ctx.beginPath(); ctx.arc(q[0], q[1], 2.4 * dpr, 0, 7); ctx.fill();
             }));
             travelPts = []; const tl = [];
+            TRAVEL.forEach(t => (t.cities || []).filter(ok).forEach(cy => {   // cities visited inside one country pin
+                const q = at(cy); if (!q) return;
+                ctx.fillStyle = `rgba(${green},0.75)`; ctx.beginPath(); ctx.arc(q[0], q[1], 1.9 * dpr, 0, 7); ctx.fill();
+            }));
             TRAVEL.forEach((t, i) => {
                 const q = at(t); if (!q) return;
                 travelPts.push([q[0], q[1], i]);
