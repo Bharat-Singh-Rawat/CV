@@ -144,7 +144,8 @@
             offer: [
                 { title: 'Consultoría', text: 'Diseño de fuentes de iones y trampas de partículas, diagnóstico de haces y estudios basados en simulación con CST Studio, MAD-X y más.' },
                 { title: 'Mentoría', text: 'Orientación para candidatos a máster y doctorado: estrategia de solicitud, cartas de presentación y CV.' },
-                { title: 'Charlas y divulgación', text: 'Seminarios, conferencias especializadas y charlas en colegios sobre fuentes de iones, propulsión eléctrica y aceleradores de partículas.' }
+                { title: 'Charlas y divulgación', text: 'Seminarios, conferencias especializadas y charlas en colegios sobre fuentes de iones, propulsión eléctrica y aceleradores de partículas.' },
+                { title: 'Apoyo en reclutamiento', text: 'Ayudo a empresas y grupos de investigación a encontrar talento cualificado en física de plasmas, fuentes de iones y física aplicada a través de mi red profesional.' }
             ],
             skills: [
                 { label: 'Idiomas', text: 'Inglés (fluido), hindi y guyaratí (nativo), español (B2), ruso (A1).' },
@@ -222,7 +223,8 @@
             offer: [
                 { title: 'Консалтинг', text: 'Проектирование ионных источников и ловушек частиц, диагностика пучков и расчётные исследования в CST Studio, MAD-X и других программах.' },
                 { title: 'Наставничество', text: 'Помощь абитуриентам магистратуры и аспирантуры: стратегия поступления, мотивационные письма и резюме.' },
-                { title: 'Лекции и популяризация', text: 'Семинары, экспертные лекции и выступления в школах об ионных источниках, электрических двигателях и ускорителях частиц.' }
+                { title: 'Лекции и популяризация', text: 'Семинары, экспертные лекции и выступления в школах об ионных источниках, электрических двигателях и ускорителях частиц.' },
+                { title: 'Помощь в подборе кадров', text: 'Помогаю компаниям и исследовательским группам находить квалифицированных специалистов в физике плазмы, ионных источниках и прикладной физике через свою профессиональную сеть.' }
             ],
             skills: [
                 { label: 'Языки', text: 'Английский (свободно), хинди и гуджарати (родные), испанский (B2), русский (A1).' },
