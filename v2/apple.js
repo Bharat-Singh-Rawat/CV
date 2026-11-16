@@ -96,23 +96,28 @@
     document.body.appendChild(pv);
     const pImg = pv.querySelector('.pv-img'), pFig = pv.querySelector('.pv-fig');
     let pIdx = 0, zoom = 1, panX = 0, panY = 0, pvOpen = false, lastFocusPV = null;
+    // the viewer shows a list of { src, title, text, el }: the lab gallery by default, or photos handed in by other parts (globe)
+    const galleryItems = tiles.map(t => ({ el: t, img: t.querySelector('img'), title: t.querySelector('h3')?.textContent || '', text: t.querySelector('p')?.textContent || '' }));
+    let items = galleryItems;
     function fill(i) {
-        pIdx = (i + tiles.length) % tiles.length;
-        const t = tiles[pIdx], im = t.querySelector('img');
-        pImg.src = im.currentSrc || im.src; pImg.alt = im.alt || '';
-        pv.querySelector('.pv-cap h3').textContent = t.querySelector('h3')?.textContent || '';
-        pv.querySelector('.pv-cap p').textContent = t.querySelector('p')?.textContent || '';
-        pv.querySelector('.pv-count').textContent = `${pIdx + 1} / ${tiles.length}`;
+        pIdx = (i + items.length) % items.length;
+        const it = items[pIdx];
+        pImg.src = it.img ? (it.img.currentSrc || it.img.src) : it.src; pImg.alt = it.img?.alt || it.title || '';
+        pv.querySelector('.pv-cap h3').textContent = it.title || '';
+        pv.querySelector('.pv-cap p').textContent = it.text || '';
+        pv.querySelector('.pv-count').textContent = items.length > 1 ? `${pIdx + 1} / ${items.length}` : '';
+        pv.classList.toggle('single', items.length < 2);
         setZoom(1);
     }
     function setZoom(z, cx = 0, cy = 0) { zoom = z; panX = cx; panY = cy; pImg.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`; pv.classList.toggle('zoomed', zoom > 1); }
-    function openPhoto(i) {
-        if (!tiles.length) return;
+    function openPhoto(i, list) {
+        items = list && list.length ? list : galleryItems;
+        if (!items.length) return;
         lastFocusPV = document.activeElement;
         fill(i); pv.hidden = false; pvOpen = true;
         document.documentElement.classList.add('pv-open');
         // zoom out of the tile: start the picture where the tile is, then let it grow to full screen
-        const from = tiles[pIdx].getBoundingClientRect();
+        const from = (items[pIdx].el || pFig).getBoundingClientRect();
         pv.classList.remove('in');
         requestAnimationFrame(() => {
             const to = pFig.getBoundingClientRect();
@@ -139,6 +144,7 @@
         t.addEventListener('click', () => openPhoto(i));
         t.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPhoto(i); } });
     });
+    window.cvPhotos = { open: (list, i = 0) => openPhoto(i, list) };   // used by the career globe
     pv.querySelector('.pv-close').addEventListener('click', closePhoto);
     pv.querySelector('.pv-bg').addEventListener('click', closePhoto);
     pv.querySelector('.pv-prev').addEventListener('click', () => fill(pIdx - 1));
@@ -301,5 +307,4 @@
         (lang || cta).parentNode.insertBefore(b, lang || cta);
     }
     window.cvSpot = { open: openSpot };
-    window.cvPhotos = { open: openPhoto };
 })();

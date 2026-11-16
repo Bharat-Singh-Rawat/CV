@@ -12,6 +12,7 @@
     const strip = html => { const d = document.createElement('div'); d.innerHTML = html; return d.textContent; };
     const titleCase = s => s.toLowerCase().replace(/(^|[\s(\/&-])\S/g, c => c.toUpperCase());
     const yearOf = s => { const m = String(s).match(/\d{4}/); return m ? +m[0] : 0; };
+    const endOf = s => /present/i.test(s) ? 9999 : +((String(s).match(/\d{4}/g) || [0]).pop());
     const links = P.links || [];
     const mail = links.find(l => /^mailto:/.test(l.url));
     const ext = links.filter(l => !/^mailto:/.test(l.url));
@@ -52,11 +53,11 @@
     const roles = [
         ...P.experience.map((e, i) => ({ ...e, kind: 'experience', order: i })),
         ...P.education.map((e, i) => ({ ...e, kind: 'education', order: 100 + i }))
-    ].sort((a, b) => yearOf(b.dates) - yearOf(a.dates) || a.order - b.order);
+    ].sort((a, b) => yearOf(b.dates) - yearOf(a.dates) || endOf(b.dates) - endOf(a.dates) || a.order - b.order);   // same start year: the one that ran longer is newer
     $('beamline').innerHTML = roles.map(r => {
         const now = /present/i.test(r.dates);
         return `
-        <li class="station ${r.kind === 'education' ? 'edu' : ''} ${now ? 'now' : ''} reveal">
+        <li class="station ${r.kind === 'education' ? 'edu' : ''} ${now ? 'now' : ''} reveal" data-geo="${esc(JSON.stringify([].concat(r.place || [])))}" data-trips="${esc(JSON.stringify(r.trips || []))}" data-dates="${esc(r.dates)}">
             <div class="node" aria-hidden="true"><i></i></div>
             <div class="station-body">
                 <div class="station-meta">

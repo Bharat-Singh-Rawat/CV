@@ -1024,3 +1024,40 @@ html[data-theme="dark"] .g-name input { background: #2c2c2e; border-color: #4848
 html[data-theme="dark"] .foot-theme { background: rgba(255, 255, 255, 0.08); }
 html[data-theme="dark"] .foot-theme button[aria-pressed="true"] { background: #3a3a3c; }
 .foot-right { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+
+/* ---------- career globe (globe.js): sits under the Career heading, turns to each stop ---------- */
+.globe { width: 100%; max-width: 230px; margin: 28px auto 0; }
+.globe canvas { display: block; width: 100%; aspect-ratio: 1; }
+.globe-label { margin: 8px 0 0; text-align: center; font-size: 0.9rem; line-height: 1.35; color: var(--muted); min-height: 2.7em; }
+.globe-label b { display: block; color: var(--text); font-weight: 600; transition: opacity 0.4s var(--ease); }
+@media (min-width: 1200px) {
+    .split > .sec-head .globe { max-width: 330px; margin: 40px 0 0; }
+    .split > .sec-head .globe-label { text-align: left; padding-left: 4px; }
+}
+.globe-label .gl-dates, .globe-label .gl-talks { display: block; }
+.globe-label .gl-talks { margin-top: 2px; color: var(--warm); font-size: 0.82rem; }
+/* Work / Travel switch under the globe (Apple segmented control) */
+.globe-mode { display: flex; width: max-content; margin: 12px auto 0; padding: 3px; border-radius: 999px; background: rgba(120, 120, 128, 0.12); }
+.globe-mode button { border: 0; background: transparent; color: var(--body); font: inherit; font-size: 0.82rem; font-weight: 500; padding: 5px 16px; border-radius: 999px; cursor: pointer; transition: background 0.3s var(--ease), color 0.3s var(--ease), box-shadow 0.3s var(--ease); }
+.globe-mode button[aria-pressed="true"] { background: var(--bg); color: var(--text); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
+:root[data-theme="dark"] .globe-mode button[aria-pressed="true"] { background: #3a3a3c; }
+.globe.travel canvas { cursor: grab; touch-action: pan-y; }
+@media (min-width: 1200px) { .split > .sec-head .globe-mode { margin-left: 0; } }
+/* photo bubble on the globe (Apple Maps style) */
+.globe { position: relative; }
+.globe-photo {
+    position: absolute; left: 0; top: 0; z-index: 2; width: 128px; aspect-ratio: 4 / 3; padding: 0; border: 3px solid var(--bg);
+    border-radius: 16px; overflow: hidden; background: var(--card); cursor: zoom-in;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+    opacity: 0; scale: 0.85; pointer-events: none;
+    transition: opacity 0.35s var(--ease), scale 0.45s var(--ease), transform 0.25s linear;
+}
+.globe-photo.show { opacity: 1; scale: 1; pointer-events: auto; }
+.globe-photo img { display: block; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.4s var(--ease); }
+.globe-photo.loaded img { opacity: 1; }
+.globe-photo:hover { scale: 1.05; }
+.gp-dots { position: absolute; left: 0; right: 0; bottom: 5px; display: flex; justify-content: center; gap: 4px; }
+.gp-dots i { width: 5px; height: 5px; border-radius: 50%; background: rgba(255, 255, 255, 0.55); box-shadow: 0 0 2px rgba(0, 0, 0, 0.4); }
+.gp-dots i.on { background: #fff; }
+.pview.single .pv-prev, .pview.single .pv-next { display: none; }
+@media (max-width: 1199px) { .globe-photo { width: 104px; border-radius: 13px; } }
