@@ -209,7 +209,7 @@
         add('action', T('Download CV'), 'PDF', () => window.open('/CV/assets/cv/Bharat_Rawat_CV.pdf', '_blank', 'noopener'));
         add('action', T('Plain CV'), '', () => window.open('/CV/plain.html', '_blank', 'noopener'));
         const vc = document.querySelector('.link-btn'); if (vc) add('action', T('Add to contacts'), 'vCard', () => vc.click());
-        if (window.cvGame) add('action', 'Beamline Run', T('Take a break.'), () => window.cvGame.open(), 'game play pixel');
+        if (window.cvRetro) add('action', 'Bio Menace', T('Retro corner.'), () => window.cvRetro.open(), 'game play dos retro apogee');
         if (window.cvTheme) {
             add('action', T('Dark mode'), T('Appearance'), () => window.cvTheme.set('dark'), 'theme night black');
             add('action', T('Light mode'), T('Appearance'), () => window.cvTheme.set('light'), 'theme day white');

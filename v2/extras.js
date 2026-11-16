@@ -256,7 +256,7 @@
     // ------------------------------------------------------------- 7. easter egg: "beam"
     let buf = '', taps = [], firing = false;
     document.addEventListener('keydown', e => {
-        if (e.ctrlKey || e.metaKey || e.altKey || /input|select|textarea/i.test(e.target.tagName)) return;
+        if (e.ctrlKey || e.metaKey || e.altKey || /input|select|textarea/i.test(e.target.tagName) || document.documentElement.classList.contains('game-open')) return;
         if (e.key.length !== 1) return;
         buf = (buf + e.key.toLowerCase()).slice(-4);
         if (buf === 'beam') { buf = ''; fire(); }

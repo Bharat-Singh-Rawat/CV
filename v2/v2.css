@@ -1087,3 +1087,23 @@ html[data-theme="dark"] .foot-theme button[aria-pressed="true"] { background: #3
 /* Gujarati: Indic conjuncts need normal tracking and a little more line height */
 html[lang="gu"] h1, html[lang="gu"] h2, html[lang="gu"] h3, html[lang="gu"] .sec-head h2, html[lang="gu"] .contact-title { letter-spacing: 0; line-height: 1.3; }
 html[lang="gu"] body { line-height: 1.7; }
+
+/* ---------- retro corner: Bio Menace in js-dos (retro.js) ---------- */
+.retro-card { margin-top: 22px; }
+.retro-screen {
+    width: 96px; height: 60px; flex: none; border-radius: 10px; background: #0b0b0d; display: flex; align-items: center; justify-content: center;
+    box-shadow: inset 0 0 0 2px #2c2c2e, 0 4px 14px rgba(0, 0, 0, 0.18); font: 600 9.5px/1 ui-monospace, 'SF Mono', Menlo, Consolas, monospace; color: #7cfc8a;
+    text-shadow: 0 0 6px rgba(124, 252, 138, 0.55); letter-spacing: 0.02em;
+}
+.retro-screen i { font-style: normal; animation: retro-blink 1s steps(1) infinite; }
+@keyframes retro-blink { 50% { opacity: 0; } }
+.retro-note { display: block; margin-top: 4px; font-size: 0.85rem; color: var(--faint); }
+.retro-box { width: min(1040px, 100%); }
+.retro-hint { flex: 1; font-size: 0.82rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.retro-stage { position: relative; aspect-ratio: 4 / 3; max-height: calc(100vh - 160px); margin: 0 auto; background: #000; border-radius: 12px; overflow: hidden; }
+.retro-dos { position: absolute; inset: 0; }
+.retro-load { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; text-align: center; color: #7cfc8a; font: 500 0.95rem ui-monospace, 'SF Mono', Menlo, Consolas, monospace; }
+.retro-credit { font-size: 0.75rem; color: var(--faint); }
+.retro-credit a { color: inherit; }
+@media (prefers-reduced-motion: reduce) { .retro-screen i { animation: none; } }
+@media (max-width: 600px) { .retro-hint { display: none; } }

@@ -83,6 +83,7 @@
     }, { passive: true });
     document.addEventListener('keydown', e => {
         if (e.key !== 'Enter' && e.key !== ' ') return;
+        if (document.documentElement.classList.contains('game-open')) return;   // keys belong to the game
         if (!ensure()) return;
         const el = document.activeElement && document.activeElement.closest(CLICK);
         if (el) (el.matches(TOGGLE) ? sfx.toggle : sfx.click)();
