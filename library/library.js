@@ -11,6 +11,9 @@
     const root = document.documentElement;
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const touch = matchMedia('(hover: none) and (pointer: coarse)').matches;
+    // phones / tablets get a lighter room: flat (2D) shelves, no dust, no blur, no floor repaint (desktop unchanged)
+    const lite = touch || matchMedia('(max-width: 700px)').matches;
+    if (lite) root.classList.add('lite');
     const $ = id => document.getElementById(id);
     const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
@@ -47,12 +50,12 @@
         const author = b.author.split(/,|&/)[0].trim().split(' ').pop();
         return `<div class="book real" tabindex="0" role="button" data-i="${i}" ${ink ? `data-ink="${ink}"` : ''}
             aria-label="${esc(b.title)} by ${esc(b.author)}" style="--h:${h}px;--w:${w}px;--d:${d}px;--c:${sc};${img}">
-            <div class="top"></div><div class="side"></div>
+            ${lite ? '' : '<div class="top"></div><div class="side"></div>'}
             <div class="spine"><span class="t">${esc(b.title)}</span><span class="a">${esc(author)}</span></div></div>`;
     };
     const filler = (w, extra = '') => {
         const h = 118 + Math.round(rnd() * 50), c = pick(LEATHER);
-        return `<div class="book filler ${extra}" aria-hidden="true" style="--h:${h}px;--w:${w}px;--d:${Math.round(h * .72)}px;--c:${c}"><div class="top"></div><div class="side"></div><div class="spine"></div></div>`;
+        return `<div class="book filler ${extra}" aria-hidden="true" style="--h:${h}px;--w:${w}px;--d:${Math.round(h * .72)}px;--c:${c}">${lite ? '' : '<div class="top"></div><div class="side"></div>'}<div class="spine"></div></div>`;
     };
     const OBJ = {
         plant: `<div class="obj" aria-hidden="true"><svg width="70" height="110" viewBox="0 0 70 110"><path d="M35 70 C20 40 4 44 2 30 C18 30 30 46 35 70Z" fill="#4a6b47"/><path d="M35 70 C40 36 56 30 66 18 C66 40 46 50 35 70Z" fill="#5a7d56"/><path d="M35 72 C30 30 36 12 34 0 C46 18 42 44 35 72Z" fill="#6b8f66"/><path d="M35 72 C24 56 10 62 4 56 C14 50 28 54 35 72Z" fill="#3f5c3d"/><path d="M15 72 H55 L51 110 H19Z" fill="#f5f5f7" stroke="#d2d2d7"/></svg></div>`,
@@ -190,12 +193,14 @@
     let cartX = 12, cartRot = 0, moving = false, cartMax = 600;
     function frame() {
         raf = 0;
-        cur += (target - cur) * (reduce ? 1 : .14);
+        cur += (target - cur) * (reduce || lite ? 1 : .14);
         if (Math.abs(target - cur) < .3) cur = target;
         lmx += (mx - lmx) * .06; lmy += (my - lmy) * .06;
         aisle.style.transform = `translate3d(${-cur}px,0,0) scale(${k})`;
-        room.style.perspectiveOrigin = `${50 + (lmx - .5) * 30}% ${45 + (lmy - .5) * 16}%`;
-        floor.style.setProperty('--walk', (-cur) + 'px');
+        if (!lite) {
+            room.style.perspectiveOrigin = `${50 + (lmx - .5) * 30}% ${45 + (lmy - .5) * 16}%`;
+            floor.style.setProperty('--walk', (-cur) + 'px');
+        }
         fore.style.transform = `translate3d(${-cur * 1.35 + (lmx - .5) * -30}px,0,0)`;
         // the cart rolls over to the bookcase you are at and parks at its left side
         const here = (cur + vw / 2) / k;
@@ -383,15 +388,16 @@
 
     // ---------------------------------------------------------------- dust in the light
     const cv = $('dust'), ctx = cv.getContext('2d');
+    const winXs = [...aisle.querySelectorAll('.window')].map(w => w.offsetLeft);
     const motes = Array.from({ length: touch ? 40 : 90 }, () => ({ x: Math.random(), y: Math.random(), r: .6 + Math.random() * 1.6, vx: (Math.random() - .5) * .00012, vy: (Math.random() - .3) * .00008, p: Math.random() * 6.28 }));
-    let dustOn = !reduce;
+    let dustOn = !reduce && !lite;
     function dust(t) {
         if (!dustOn) return;
         if (cv.width !== vw || cv.height !== vh) { cv.width = vw; cv.height = vh; }
         ctx.clearRect(0, 0, vw, vh);
         const dark = root.dataset.theme === 'dark';
         // light shafts on screen: under each window
-        const shafts = [...aisle.querySelectorAll('.window .frame')].map(f => { const r = f.getBoundingClientRect(); return [r.left - 40, r.right + 260 * k]; });
+        const shafts = winXs.map(x => [(x + 40) * k - cur - 40, (x + 290) * k - cur + 260 * k]);
         for (const m of motes) {
             m.x += m.vx + Math.sin(t / 3000 + m.p) * .00005; m.y += m.vy;
             if (m.x < 0) m.x += 1; if (m.x > 1) m.x -= 1; if (m.y < 0) m.y += 1; if (m.y > 1) m.y -= 1;
@@ -403,7 +409,7 @@
         }
         requestAnimationFrame(dust);
     }
-    document.addEventListener('visibilitychange', () => { const was = dustOn; dustOn = !document.hidden && !reduce; if (dustOn && !was) requestAnimationFrame(dust); });
+    document.addEventListener('visibilitychange', () => { const was = dustOn; dustOn = !document.hidden && !reduce && !lite; if (dustOn && !was) requestAnimationFrame(dust); });
 
     // ---------------------------------------------------------------- the entrance
     const ent = $('entrance');
@@ -459,6 +465,7 @@
     }
     let lt = 0;
     function libTick(t) {
+        if (lite && (libTick.f = !libTick.f)) { requestAnimationFrame(libTick); return; }
         const dt = Math.min(60, t - (lt || t)); lt = t;
         if (!document.hidden) {
             if (lb.pose === 'walk') {
@@ -480,7 +487,8 @@
             const col = lb.pose === 'stand' ? 0 : Math.floor(lb.anim / (lb.pose === 'walk' ? 110 : 260)) % 6;
             const key = row * 10 + col;
             if (key !== libTick.k) { sprite(row, col); libTick.k = key; }
-            lib.style.transform = `translate3d(${lb.x - 160}px, 0, 40px)`;
+            const sx = lb.x * k - cur;
+            if (sx > -400 && sx < vw + 400) lib.style.transform = `translate3d(${lb.x - 160}px, 0, ${lite ? 0 : 40}px)`;
         }
         requestAnimationFrame(libTick);
     }
@@ -500,6 +508,8 @@
         return [...set].map(p => p.split(',').map(Number)).filter(([x, y]) => !(x >= 9 && x <= 10 && y >= 7 && y <= 8));
     })();
     function deskDraw(t) {
+        const dx = (NOOK + 160) * k - cur;
+        if (dx > vw + 50 || dx < -700 || (lite && (deskDraw.f = !deskDraw.f))) { requestAnimationFrame(deskDraw); return; }
         const R = (c, x, y, w = 1, h = 1) => { dctx.fillStyle = C[c]; dctx.fillRect(x, y, w, h); };
         dctx.clearRect(0, 0, 60, 46);
         R('wall', 0, 0, 60, 46);

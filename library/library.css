@@ -363,3 +363,18 @@ html.locked, html.locked body { overflow: hidden; }
 .book.filler.tidy { animation: tidy 1.1s var(--ease); }
 @keyframes tidy { 0% { transform: none; } 35% { transform: translate3d(0, -6px, 34px) rotateY(-14deg); } 70% { transform: translate3d(0, 0, -6px); } 100% { transform: none; } }
 @media (prefers-reduced-motion: reduce) { .librarian { display: none; } }
+
+/* ---------- lite mode (phones / tablets): same look, far less work for the GPU ---------- */
+.lite .room { perspective: none; }
+.lite .aisle, .lite .bay, .lite .case, .lite .shelf, .lite .book, .lite .librarian { transform-style: flat; }
+.lite .shelf::before { transform: none; }
+.lite .book { transition: none; }
+.lite .window .beam { filter: none; opacity: .6; }
+.lite .lamp::after { filter: none; }
+.lite .dust { display: none; }
+.lite .topbar, .lite .hint, .lite .minimap, .lite .tag, .lite .cart { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--bg); }
+.lite .desk-ov { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(245,245,247,.94); }
+:root.lite[data-theme="dark"] .desk-ov { background: rgba(0,0,0,.92); }
+.lite .nook .desk-scene { box-shadow: 0 0 0 1px rgba(79,216,255,.15); }
+.lite .door { backdrop-filter: none; -webkit-backdrop-filter: none; }
+.librarian { will-change: transform; }
