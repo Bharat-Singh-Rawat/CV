@@ -33,7 +33,7 @@
     }
     const quiet = () => !enabled || !ac || document.hidden ||
         (window.cvMusic && window.cvMusic.isPlaying()) ||
-        !document.getElementById('vmodal')?.hidden;
+        (document.getElementById('vmodal') && !document.getElementById('vmodal').hidden);
     const jitter = f => f * (0.96 + Math.random() * 0.08);   // never exactly the same twice
 
     function tone(freq, start, dur, peak, type = 'sine', glideTo) {

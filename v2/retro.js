@@ -27,6 +27,18 @@
         <button type="button" class="btn play-btn retro-btn">${T('Play')} ▸</button>`;
     host.insertAdjacentElement('afterend', card);
 
+    // ---------- the library (its own page: /CV/library/) ----------
+    const lib = document.createElement('div');
+    lib.className = 'play-card lib-card';
+    lib.innerHTML = `
+        <div class="lib-shelf" aria-hidden="true">${['#7c2128', '#1f3a7a', '#2f4a33', '#c9a24a', '#4f0d12', '#2b3a8c', '#795d46'].map((c, i) => `<i style="background:${c};height:${[44, 50, 40, 47, 52, 42, 48][i]}px"></i>`).join('')}</div>
+        <div class="play-text">
+            <h3>${T('The library.')}</h3>
+            <p>${T('Books that shaped how I think about physics. Walk the shelves and pull one out.')}</p>
+        </div>
+        <a class="btn play-btn" href="/CV/library/" target="_blank" rel="noopener">${T('Step inside')} ↗</a>`;
+    card.insertAdjacentElement('afterend', lib);
+
     // ---------- window ----------
     const ov = document.createElement('div');
     ov.className = 'game-ov retro-ov'; ov.hidden = true;
@@ -101,4 +113,10 @@
     ov.querySelector('.game-close').addEventListener('click', close);
     ov.addEventListener('click', e => { if (e.target === ov) close(); });
     window.cvRetro = { open: openGame, close };
+    // arriving through the library's secret passage (/CV/#retro)
+    if (location.hash === '#retro') addEventListener('load', () => {
+        card.scrollIntoView({ block: 'center' });
+        card.classList.add('retro-flash');
+        if (!touchOnly) openGame();
+    });
 })();

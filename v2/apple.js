@@ -210,6 +210,7 @@
         add('action', T('Plain CV'), '', () => window.open('/CV/plain.html', '_blank', 'noopener'));
         const vc = document.querySelector('.link-btn'); if (vc) add('action', T('Add to contacts'), 'vCard', () => vc.click());
         if (window.cvRetro) add('action', 'Bio Menace', T('Retro corner.'), () => window.cvRetro.open(), 'game play dos retro apogee');
+        add('action', T('The library.'), T('Step inside'), () => window.open('/CV/library/', '_blank', 'noopener'), 'library books shelf reading pdf');
         if (window.cvTheme) {
             add('action', T('Dark mode'), T('Appearance'), () => window.cvTheme.set('dark'), 'theme night black');
             add('action', T('Light mode'), T('Appearance'), () => window.cvTheme.set('light'), 'theme day white');

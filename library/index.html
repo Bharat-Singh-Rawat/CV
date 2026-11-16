@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="color-scheme" content="light dark">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/CV/v2/icons/favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="/CV/v2/icons/apple-touch-icon.png">
+    <title>The Library — Bharat Singh Rawat</title>
+    <meta name="description" content="Walk through the bookshelves of Bharat Singh Rawat, accelerator physicist: plasma physics, ion sources, beams and a few books for the weekend.">
+    <meta name="theme-color" content="#fbfbfd">
+    <meta property="og:title" content="The Library — Bharat Singh Rawat">
+    <meta property="og:description" content="Books on plasmas, ion sources and beams — pull one off the shelf.">
+    <meta property="og:image" content="https://bharat-singh-rawat.github.io/CV/v2/img/og-card.jpg">
+    <script>
+        (function () {
+            var pref = 'auto'; try { pref = localStorage.getItem('cv-theme') || 'auto'; } catch (e) {}
+            var dark = pref === 'dark' || (pref === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+            document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        })();
+    </script>
+    <link rel="stylesheet" href="/CV/library/library.css?v=20261116o">
+</head>
+<body>
+    <header class="topbar">
+        <a class="back" href="/CV/">‹ Bharat Singh Rawat</a>
+        <strong class="brand">The Library</strong>
+        <div class="tools">
+            <label class="ask"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>
+                <input id="ask" type="search" placeholder="Ask the librarian…" autocomplete="off" aria-label="Find a book"></label>
+            <button type="button" id="lights" class="lights" aria-label="Switch the lights" title="Day / night"></button>
+        </div>
+    </header>
+
+    <!-- the entrance -->
+    <div class="entrance" id="entrance" aria-hidden="false">
+        <div class="doorway">
+            <div class="door left"><span class="panel"></span><span class="panel"></span><i class="handle"></i></div>
+            <div class="door right"><span class="panel"></span><span class="panel"></span><i class="handle"></i></div>
+            <div class="plaque"><small>New</small>The Library.<em>Books on plasmas, ion sources and beams.</em></div>
+        </div>
+        <button type="button" class="enter" id="enter">Step inside</button>
+    </div>
+
+    <main class="hall" id="hall">
+        <div class="stage" id="stage">
+            <div class="room" id="room">
+                <div class="wall"></div>
+                <div class="aisle" id="aisle"></div>
+                <div class="floor" id="floor"></div>
+                <div class="fore" id="fore"></div>
+                <canvas class="dust" id="dust" aria-hidden="true"></canvas>
+                <div class="vignette" aria-hidden="true"></div>
+            </div>
+            <p class="hint" id="hint">Scroll to walk the aisle · hover a book · click to take it to the desk</p>
+            <div class="minimap" id="minimap" aria-label="Sections"></div>
+        </div>
+    </main>
+
+    <!-- reading desk -->
+    <div class="desk-ov" id="desk" hidden role="dialog" aria-modal="true" aria-label="Book">
+        <div class="desk-top"></div>
+        <div class="lamp-glow"></div>
+        <div class="open-book" id="openBook">
+            <div class="leaf left-page" id="leftPage"></div>
+            <div class="leaf right-page" id="rightPage"></div>
+            <div class="front" id="front"><div class="front-out"></div><div class="front-in"></div></div>
+        </div>
+        <button type="button" class="desk-close" id="deskClose" aria-label="Put the book back">✕</button>
+        <div class="desk-nav">
+            <button type="button" id="prevBook" aria-label="Previous book">‹</button>
+            <button type="button" id="nextBook" aria-label="Next book">›</button>
+        </div>
+    </div>
+
+    <script src="/CV/v2/sfx.js?v=20261116o"></script>
+    <script src="/CV/library/books.js?v=20261116o"></script>
+    <script src="/CV/library/library.js?v=20261116o"></script>
+</body>
+</html>
