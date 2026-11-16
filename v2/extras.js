@@ -21,6 +21,7 @@
         const v = s => String(s).replace(/([,;\\])/g, '\\$1');
         const now = (P.experience || [])[0] || {};
         const li = links.find(l => /linkedin/i.test(l.url));
+        const gh = links.find(l => /^github$/i.test(l.label || ''));
         const loc = (P.location || '').split(',').map(x => x.trim());
         const lines = [
             'BEGIN:VCARD', 'VERSION:3.0',
@@ -32,6 +33,7 @@
             `URL:${location.origin}/CV/`,
             li ? `URL;TYPE=LinkedIn:${li.url}` : '',
             li ? `X-SOCIALPROFILE;TYPE=linkedin:${li.url}` : '',
+            gh ? `X-SOCIALPROFILE;TYPE=github:${gh.url}` : '',
             loc.length ? `ADR;TYPE=WORK:;;;${v(loc[0])};;;${v(loc[loc.length - 1])}` : '',
             `NOTE:${v(P.title)}`,
             'END:VCARD'

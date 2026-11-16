@@ -103,10 +103,11 @@
         // section links reuse the top bar's (already translated) labels
         const nav = [...document.querySelectorAll('#ln-nav a[href^="#"]:not(.ln-mobile)')].map(x => a(x.getAttribute('href'), x.textContent.trim()));
         const mail = find(/^mailto:/), li = find(/linkedin/i), gs = find(/scholar\.google/i), yt = find(/youtube/i);
+        const gh = links.find(l => /^github$/i.test(l.label || ''));
         const bemcs = find(/PY-BEMCS/i), aegis = find(/AEgIS/i);
         const cols = [
             [T('Explore'), nav.join('')],
-            [T('Connect'), a(mail && mail.url, mail ? mail.url.replace(/^mailto:/, '') : '') + a(li && li.url, 'LinkedIn', 1) + a(gs && gs.url, 'Google Scholar', 1) + a(yt && yt.url, 'YouTube', 1)],
+            [T('Connect'), a(mail && mail.url, mail ? mail.url.replace(/^mailto:/, '') : '') + a(li && li.url, 'LinkedIn', 1) + a(gs && gs.url, 'Google Scholar', 1) + a(gh && gh.url, 'GitHub', 1) + a(yt && yt.url, 'YouTube', 1)],
             [T('Projects'), a(bemcs && bemcs.url, 'PY-BEMCS', 1) + a(aegis && aegis.url, aegis ? aegis.label : '', 1) + `<li><a href="#offbeam" data-play>Beamline Run</a></li>`],
             [T('Resume'), a('/CV/plain.html', T('Plain CV'), 1) + a('/CV/assets/cv/Bharat_Rawat_CV.pdf', T('Download CV') + ' (PDF)', 1) + a('/CV/classic.html', T('Classic site')) + a('/Dossier/', T('All themes'))]
         ];
