@@ -1184,3 +1184,13 @@ a.pm-t:hover { color: var(--link); }
 @keyframes pm-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
 @media (max-width: 760px) { .pm-list li { grid-template-columns: 1fr; } .pm-y { padding: 0 0 2px; } }
 @media (prefers-reduced-motion: reduce) { .pub-more[open] .pm-list { animation: none; } }
+
+/* wide research card (animated simulation): picture left, text right, full row */
+.projects > .project.wide { grid-column: 1 / -1; }
+.project.wide .zoom { aspect-ratio: 1254 / 574; background: #fff; padding: 10px 14px; box-sizing: content-box; }
+.project.wide .zoom img { object-fit: contain; }
+@media (min-width: 1000px) {
+    .project.wide { display: grid; grid-template-columns: 2.1fr 1fr; align-items: center; }
+    .projects > .project.wide .zoom { aspect-ratio: 1254 / 574; }
+}
+html[data-theme="dark"] .project.wide .zoom img { filter: brightness(0.92); }

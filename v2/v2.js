@@ -107,7 +107,7 @@
         const tag = p.url ? 'a' : 'div';
         const attrs = p.url ? ` href="${esc(p.url)}" target="_blank" rel="noopener"` : '';
         return `
-        <${tag} class="project reveal${p.image ? '' : ' text-only'}"${attrs}${p.clip ? ` data-clip="${esc(p.clip)}"` : ''}>
+        <${tag} class="project reveal${p.image ? '' : ' text-only'}${p.wide ? ' wide' : ''}"${attrs}${p.clip ? ` data-clip="${esc(p.clip)}"` : ''}>
             ${p.image ? `<div class="zoom">${img(p.image, p.name)}</div>` : ''}
             <div class="project-body">
                 <span class="tag">${esc(p.tag)}</span>
