@@ -281,11 +281,8 @@
         const dpr = Math.min(2, window.devicePixelRatio || 1);
         c.width = W * dpr; c.height = H * dpr; document.body.appendChild(c);
         const ctx = c.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        // aim at the Faraday cup if the Research section is on screen, otherwise across the middle of the view
-        const res = $('research'), rr = res && res.getBoundingClientRect();
-        const cupVisible = rr && rr.top < H * 0.8 && rr.top > -200;
-        const ty = cupVisible ? rr.top + (W < 760 ? 96 : 170) : H * 0.46;
-        const tx = cupVisible ? (W < 760 ? W - 94 : Math.min(W - 180, (W + Math.min(W, 1280) - 44) / 2 - 150)) + 10 : W + 40;
+        // straight across the middle of the view
+        const ty = H * 0.46, tx = W + 40;
         const t0 = performance.now(), dur = 900, sparks = [];
         let hit = false;
         (function frame(now) {

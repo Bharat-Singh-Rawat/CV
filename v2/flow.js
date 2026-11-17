@@ -1,7 +1,7 @@
 /* =====================================================================
    Two quiet touches:
-   1. Ion trail: moving the mouse sheds a few faint ions that curl away like
-      charged particles in a magnetic field, then fade (desktop only).
+   1. Ion trail: moving the mouse over the hero sheds a few faint ions that curl
+      away like charged particles in a magnetic field, then fade (desktop only).
    2. Section blend: the black lab section fades in from the white page as you
       scroll towards it, and back out again, instead of a hard edge.
    ===================================================================== */
@@ -10,7 +10,8 @@
     const root = document.documentElement;
 
     // ---------- 1. ion trail ----------
-    if (!reduce && matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    const hero = document.getElementById('top');
+    if (hero && !reduce && matchMedia('(hover: hover) and (pointer: fine)').matches) {
         const cv = document.createElement('canvas');
         cv.className = 'ion-trail'; cv.setAttribute('aria-hidden', 'true');
         document.body.appendChild(cv);
@@ -26,7 +27,8 @@
             if (px < 0) { px = x; py = y; return; }
             const d = Math.hypot(x - px, y - py);
             onDark = !!(e.target.closest && e.target.closest('.dark, .vmodal, .pv'));
-            const n = Math.min(2, Math.floor(d / 14));      // only when the mouse really moves; a few at a time
+            const inHero = y < hero.getBoundingClientRect().bottom && !(e.target.closest && e.target.closest('.topbar, .mp'));   // only over the hero
+            const n = inHero ? Math.min(2, Math.floor(d / 14)) : 0;      // only when the mouse really moves; a few at a time
             for (let k = 0; k < n && ions.length < 70; k++) {
                 const a = Math.random() * Math.PI * 2, v = 0.025 + Math.random() * 0.045;
                 ions.push({
