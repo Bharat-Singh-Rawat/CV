@@ -495,43 +495,6 @@
         + `<div class="link-row">${extLinks()}
             <a class="link" href="${CV_PDF}" target="_blank" rel="noopener">${T('Download CV')}</a>
             <a class="link" href="/CV/plain.html" target="_blank" rel="noopener">${T('Plain CV')}</a></div>`;
-    // ---------- message form: sent to my inbox through FormSubmit (no server needed on GitHub Pages) ----------
-    if (mail) {
-        const to = mail.url.replace(/^mailto:/, '');
-        $('contact-links').insertAdjacentHTML('afterend', `
-            <form class="qform" id="qform" novalidate>
-                <p class="qf-head">${T('Or send me a message')}</p>
-                <div class="qf-row">
-                    <label><span class="sr">${T('Your name')}</span><input name="name" autocomplete="name" maxlength="120" placeholder="${T('Your name')}" required></label>
-                    <label><span class="sr">${T('Your email')}</span><input name="email" type="email" autocomplete="email" maxlength="160" placeholder="${T('Your email')}" required></label>
-                </div>
-                <label><span class="sr">${T('Your message')}</span><textarea name="message" rows="4" maxlength="4000" placeholder="${T('Your message')}" required></textarea></label>
-                <input class="qf-hp" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
-                <div class="qf-foot"><button class="btn" type="submit">${T('Send message')}</button><p class="qf-status" aria-live="polite"></p></div>
-            </form>`);
-        const f = $('qform'), status = f.querySelector('.qf-status'), btn = f.querySelector('button');
-        const say = (msg, kind) => { status.innerHTML = msg; status.className = 'qf-status' + (kind ? ' ' + kind : ''); };
-        f.addEventListener('submit', async e => {
-            e.preventDefault();
-            const d = Object.fromEntries(new FormData(f));
-            if (d._honey) return;                                              // a bot filled the hidden field
-            if (!d.name.trim() || !d.message.trim() || !f.email.checkValidity() || !d.email.trim()) { say(T('Please fill in all three fields.'), 'err'); return; }
-            btn.disabled = true; say(T('Sending…'));
-            try {
-                const r = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(to)}`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-                    body: JSON.stringify({ name: d.name.trim(), email: d.email.trim(), message: d.message.trim(),
-                        _subject: `CV website: message from ${d.name.trim()}`, _template: 'table', _captcha: 'false' })
-                });
-                const j = await r.json().catch(() => ({}));
-                if (!r.ok || String(j.success) !== 'true') throw new Error(j.message || r.status);
-                f.reset(); f.classList.add('sent'); say(T('Thanks! Your message is on its way.'), 'ok');
-            } catch (err) {
-                const href = `mailto:${to}?subject=${encodeURIComponent('Hello from your website')}&body=${encodeURIComponent(d.message || '')}`;
-                say(`${T('Could not send right now. Please email me directly:')} <a href="${esc(href)}">${esc(to)}</a>`, 'err');
-            } finally { btn.disabled = false; }
-        });
-    }
     $('footer-name').textContent = `Copyright © ${new Date().getFullYear()} ${titleCase(bare)}. ${T('All rights reserved.')}`;
 
     // ---------- reveal on scroll (staggered within rows) ----------

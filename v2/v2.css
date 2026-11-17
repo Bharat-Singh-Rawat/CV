@@ -1195,29 +1195,6 @@ a.pm-t:hover { color: var(--link); }
 }
 html[data-theme="dark"] .project.wide .zoom img { filter: brightness(0.92); }
 
-/* contact: small message form */
-.qform { max-width: 560px; margin: 46px auto 0; text-align: left; position: relative; z-index: 1; }
-.qf-head { margin: 0 0 14px; text-align: center; color: var(--muted); font-size: 0.95rem; }
-.qf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-.qform label { display: block; }
-.qform .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.qform input, .qform textarea { width: 100%; box-sizing: border-box; font: inherit; font-size: 1rem; color: var(--text); background: var(--card);
-    border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; outline: none; transition: border-color 0.25s var(--ease), box-shadow 0.25s var(--ease), background 0.25s var(--ease); }
-.qform textarea { resize: vertical; min-height: 112px; line-height: 1.45; }
-.qform input::placeholder, .qform textarea::placeholder { color: var(--faint); }
-.qform input:focus, .qform textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.15); background: var(--bg); }
-.qf-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
-.qf-foot { display: flex; align-items: center; gap: 16px; margin-top: 14px; flex-wrap: wrap; }
-.qf-foot .btn { border: 0; cursor: pointer; font: inherit; }
-.qf-foot .btn:disabled { opacity: 0.55; cursor: progress; transform: none; }
-.qf-status { margin: 0; font-size: 0.9rem; color: var(--muted); }
-.qf-status.ok { color: #248a3d; }
-.qf-status.err { color: #d70015; }
-.qf-status a { color: var(--link); }
-html[data-theme="dark"] .qf-status.ok { color: #30d158; }
-html[data-theme="dark"] .qf-status.err { color: #ff453a; }
-@media (max-width: 600px) { .qf-row { grid-template-columns: 1fr; } .qf-foot .btn { width: 100%; text-align: center; } }
-
 /* "Outreach ›" link with a small menu (AEgIS digital twin + gravity game) */
 .ln-menu { position: relative; display: inline-block; }
 .ln-menu-btn::after { transition: transform 0.3s var(--ease); }
