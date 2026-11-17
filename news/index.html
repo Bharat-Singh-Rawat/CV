@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="color-scheme" content="light dark">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/CV/v2/icons/favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="/CV/v2/icons/apple-touch-icon.png">
+    <title>In the News — Bharat Singh Rawat</title>
+    <meta name="description" content="Articles, interviews and stories about the work of Bharat Singh Rawat, accelerator physicist: antimatter at CERN's AEgIS experiment, Faraday cups and ion sources.">
+    <meta property="og:title" content="In the News — Bharat Singh Rawat">
+    <meta property="og:description" content="Articles, interviews and stories about my work.">
+    <meta property="og:image" content="https://bharat-singh-rawat.github.io/CV/v2/img/og-card.jpg">
+    <script>
+        (function () {
+            var pref = 'auto'; try { pref = localStorage.getItem('cv-theme') || 'auto'; } catch (e) {}
+            var dark = pref === 'dark' || (pref === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+            document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        })();
+    </script>
+    <style>
+        :root {
+            --bg: #ffffff; --card: #f5f5f7; --text: #1d1d1f; --body: #424245; --muted: #6e6e73; --faint: #86868b;
+            --line: rgba(0, 0, 0, 0.08); --link: #0066cc; --accent: #0071e3; --warm: #bf4800;
+            --ease: cubic-bezier(.16, 1, .3, 1);
+            --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        :root[data-theme="dark"] {
+            --bg: #000000; --card: #1c1c1e; --text: #f5f5f7; --body: #d2d2d7; --muted: #a1a1a6; --faint: #86868b;
+            --line: rgba(255, 255, 255, 0.12); --link: #2997ff; --accent: #0a84ff; --warm: #ff9f0a;
+        }
+        * { box-sizing: border-box; }
+        html { -webkit-text-size-adjust: 100%; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+        a { color: inherit; }
+
+        .bar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; height: 52px; padding: 0 22px;
+            background: color-mix(in srgb, var(--bg) 80%, transparent); backdrop-filter: saturate(1.8) blur(20px); -webkit-backdrop-filter: saturate(1.8) blur(20px);
+            border-bottom: 1px solid var(--line); font-size: 0.92rem; }
+        .bar a { text-decoration: none; color: var(--text); }
+        .bar a:hover { color: var(--link); }
+        .bar strong { font-weight: 600; }
+
+        main { max-width: 860px; margin: 0 auto; padding: 0 22px 120px; }
+        header.hero { padding: 96px 0 44px; }
+        .eyebrow { margin: 0 0 10px; color: var(--warm); font-weight: 600; font-size: 1rem; }
+        h1 { margin: 0; font-size: clamp(2.6rem, 7vw, 4.4rem); line-height: 1.04; letter-spacing: -0.045em; font-weight: 700; }
+        .sub { margin: 18px 0 0; max-width: 34em; color: var(--muted); font-size: clamp(1.1rem, 2vw, 1.3rem); line-height: 1.4; letter-spacing: -0.01em; font-weight: 500; }
+
+        .year { display: grid; grid-template-columns: 72px 1fr; column-gap: 16px; padding: 26px 0; border-top: 1px solid var(--line); }
+        .year > h2 { margin: 6px 0 0; font-size: 1.05rem; font-weight: 600; color: var(--faint); }
+        .items { display: flex; flex-direction: column; gap: 6px; }
+
+        .item { display: grid; grid-template-columns: 52px 1fr; gap: 16px; align-items: start; padding: 14px 16px; margin: 0 -16px; border-radius: 16px; text-decoration: none;
+            transition: background 0.35s var(--ease), transform 0.35s var(--ease); opacity: 0; transform: translateY(14px); }
+        .item.in { opacity: 1; transform: none; transition: opacity 0.7s var(--ease), transform 0.7s var(--ease), background 0.35s var(--ease); }
+        .item:hover { background: var(--card); }
+        .item:hover .title { color: var(--link); }
+        .mark { width: 52px; height: 52px; border-radius: 12px; display: grid; place-items: center; background: var(--card); color: var(--muted);
+            font-size: 0.78rem; font-weight: 700; letter-spacing: 0.02em; box-shadow: inset 0 0 0 0.5px var(--line); }
+        .item:hover .mark { background: var(--bg); }
+        .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 0.82rem; color: var(--muted); }
+        .meta .src { font-weight: 600; color: var(--text); }
+        .pill { display: inline-block; padding: 0 8px; border-radius: 980px; font-size: 0.72rem; font-weight: 500; line-height: 1.6; border: 1px solid var(--line); color: var(--muted); }
+        .pill.named { color: var(--warm); border-color: color-mix(in srgb, var(--warm) 40%, transparent); }
+        .title { display: block; margin-top: 3px; font-size: 1.12rem; font-weight: 600; line-height: 1.3; letter-spacing: -0.015em; color: var(--text); transition: color 0.3s var(--ease); }
+        .title::after { content: ' ↗'; font-weight: 400; color: var(--faint); font-size: 0.9em; }
+        .about { margin: 4px 0 0; color: var(--body); font-size: 0.95rem; line-height: 1.45; }
+
+        .end { border-top: 1px solid var(--line); padding-top: 26px; color: var(--muted); font-size: 0.9rem; }
+        .end a { color: var(--link); text-decoration: none; }
+        .end a:hover { text-decoration: underline; }
+
+        @media (max-width: 640px) {
+            header.hero { padding: 64px 0 30px; }
+            .year { grid-template-columns: 1fr; }
+            .year > h2 { margin: 0 0 6px; }
+            .item { grid-template-columns: 40px 1fr; gap: 12px; padding: 12px; margin: 0 -12px; }
+            .mark { width: 40px; height: 40px; border-radius: 10px; font-size: 0.66rem; }
+        }
+        @media (prefers-reduced-motion: reduce) { .item { opacity: 1; transform: none; transition: none; } }
+    </style>
+</head>
+<body>
+    <nav class="bar" aria-label="Site">
+        <a href="/CV/">‹ Bharat Singh Rawat</a>
+        <strong>In the News</strong>
+        <a href="/CV/#contact">Contact</a>
+    </nav>
+    <main>
+        <header class="hero">
+            <p class="eyebrow">Newsroom</p>
+            <h1>In the news.</h1>
+            <p class="sub">Articles, interviews and stories about my work and the experiments I am part of, from antimatter at CERN to Faraday cups.</p>
+        </header>
+        <div id="news"></div>
+        <p class="end">Know of a story that is missing? <a href="/CV/#contact">Let me know</a>.</p>
+    </main>
+
+    <script src="/Dossier/profile.js?v=20261117z"></script>
+    <script src="/CV/v2/sfx.js?v=20261117z"></script>
+    <script>
+        (function () {
+            var P = window.PROFILE || {}, list = (P.news || []).slice().sort(function (a, b) { return b.date.localeCompare(a.date); });
+            var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+            var fmt = function (d) { var t = new Date(d + 'T12:00:00'); return isNaN(t) ? d : t.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }); };
+            var years = [];
+            list.forEach(function (n) { var y = n.date.slice(0, 4); if (years.indexOf(y) < 0) years.push(y); });
+            document.getElementById('news').innerHTML = years.map(function (y) {
+                return '<section class="year" aria-label="' + y + '"><h2>' + y + '</h2><div class="items">' + list.filter(function (n) { return n.date.slice(0, 4) === y; }).map(function (n) {
+                    return '<a class="item" href="' + esc(n.url) + '" target="_blank" rel="noopener">' +
+                        '<span class="mark" aria-hidden="true">' + esc(n.mark || n.source.slice(0, 2)) + '</span>' +
+                        '<span><span class="meta"><span class="src">' + esc(n.source) + '</span><span>' + fmt(n.date) + '</span>' +
+                        (n.kind ? '<span class="pill">' + esc(n.kind) + '</span>' : '') +
+                        (n.named ? '<span class="pill named">Features me</span>' : '') + '</span>' +
+                        '<span class="title">' + esc(n.title) + '</span>' +
+                        (n.about ? '<p class="about">' + esc(n.about) + '</p>' : '') + '</span></a>';
+                }).join('') + '</div></section>';
+            }).join('');
+            // fade the stories in as they scroll into view
+            var items = document.querySelectorAll('.item');
+            if ('IntersectionObserver' in window) {
+                var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }); }, { rootMargin: '0px 0px -8% 0px' });
+                items.forEach(function (el, i) { el.style.transitionDelay = Math.min(i % 4, 3) * 60 + 'ms'; el.addEventListener('transitionend', function () { el.style.transitionDelay = ''; }, { once: true }); io.observe(el); });
+            } else items.forEach(function (el) { el.classList.add('in'); });
+        })();
+    </script>
+</body>
+</html>

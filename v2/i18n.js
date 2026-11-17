@@ -26,7 +26,7 @@
         es: {
             'Skip to content': 'Saltar al contenido', 'About': 'Sobre mí', 'Career': 'Trayectoria', 'Research': 'Investigación',
             'Lab': 'Laboratorio', 'Videos': 'Vídeos', 'Publications': 'Publicaciones', 'Offer': 'Servicios', 'Plain CV': 'CV sencillo',
-            'Contact': 'Contacto', 'Download CV (PDF)': 'Descargar CV (PDF)', 'Get in touch': 'Contactar', "Hi, I'm": 'Hola, soy',
+            'Contact': 'Contacto', 'Or send me a message': 'O envíame un mensaje', 'Outreach': 'Divulgación', 'In the news.': 'En los medios.', 'Articles, interviews and stories about my work and the experiments I am part of.': 'Artículos, entrevistas y noticias sobre mi trabajo y los experimentos en los que participo.', 'Read the stories': 'Leer las noticias', 'See all stories': 'Ver todas las noticias', 'News': 'Noticias', 'Your name': 'Tu nombre', 'Your email': 'Tu correo', 'Your message': 'Tu mensaje', 'Send message': 'Enviar mensaje', 'Sending…': 'Enviando…', 'Thanks! Your message is on its way.': '¡Gracias! Tu mensaje está en camino.', 'Please fill in all three fields.': 'Rellena los tres campos, por favor.', 'Could not send right now. Please email me directly:': 'No se pudo enviar ahora. Escríbeme directamente:', 'Download CV (PDF)': 'Descargar CV (PDF)', 'Get in touch': 'Contactar', "Hi, I'm": 'Hola, soy',
             'The beamline so far.': 'Mi trayectoria.', 'Highlights.': 'Lo más destacado.', 'In the lab': 'En el laboratorio',
             "Instruments I've built.": 'Instrumentos que he construido.',
             'Ion sources, grids and the diagnostics that measure their beams.': 'Fuentes de iones, rejillas y los diagnósticos que miden sus haces.',
@@ -51,7 +51,7 @@
         ru: {
             'Skip to content': 'Перейти к содержанию', 'About': 'Обо мне', 'Career': 'Карьера', 'Research': 'Исследования',
             'Lab': 'Лаборатория', 'Videos': 'Видео', 'Publications': 'Публикации', 'Offer': 'Услуги', 'Plain CV': 'Резюме',
-            'Contact': 'Контакты', 'Download CV (PDF)': 'Скачать резюме (PDF)', 'Get in touch': 'Связаться', "Hi, I'm": 'Привет, я',
+            'Contact': 'Контакты', 'Or send me a message': 'Или напишите мне здесь', 'Outreach': 'Популяризация науки', 'In the news.': 'В прессе.', 'Articles, interviews and stories about my work and the experiments I am part of.': 'Статьи, интервью и новости о моей работе и экспериментах, в которых я участвую.', 'Read the stories': 'Читать', 'See all stories': 'Все материалы', 'News': 'Новости', 'Your name': 'Ваше имя', 'Your email': 'Ваш e-mail', 'Your message': 'Ваше сообщение', 'Send message': 'Отправить', 'Sending…': 'Отправка…', 'Thanks! Your message is on its way.': 'Спасибо! Сообщение отправлено.', 'Please fill in all three fields.': 'Пожалуйста, заполните все три поля.', 'Could not send right now. Please email me directly:': 'Сейчас не удалось отправить. Напишите мне напрямую:', 'Download CV (PDF)': 'Скачать резюме (PDF)', 'Get in touch': 'Связаться', "Hi, I'm": 'Привет, я',
             'The beamline so far.': 'Мой путь.', 'Highlights.': 'Главное.', 'In the lab': 'В лаборатории',
             "Instruments I've built.": 'Приборы, которые я создал.',
             'Ion sources, grids and the diagnostics that measure their beams.': 'Ионные источники, сетки и диагностика их пучков.',
@@ -75,7 +75,7 @@
         fr: {
             'Skip to content': 'Aller au contenu', 'About': 'À propos', 'Career': 'Parcours', 'Research': 'Recherche',
             'Lab': 'Laboratoire', 'Videos': 'Vidéos', 'Publications': 'Publications', 'Offer': 'Services', 'Plain CV': 'CV simple',
-            'Contact': 'Contact', 'Download CV (PDF)': 'Télécharger le CV (PDF)', 'Get in touch': 'Me contacter', "Hi, I'm": 'Bonjour, je suis',
+            'Contact': 'Contact', 'Or send me a message': 'Ou envoyez-moi un message', 'Outreach': 'Médiation scientifique', 'In the news.': 'Dans la presse.', 'Articles, interviews and stories about my work and the experiments I am part of.': 'Articles, entretiens et reportages sur mon travail et les expériences auxquelles je participe.', 'Read the stories': 'Lire les articles', 'See all stories': 'Voir tous les articles', 'News': 'Actualités', 'Your name': 'Votre nom', 'Your email': 'Votre e-mail', 'Your message': 'Votre message', 'Send message': 'Envoyer', 'Sending…': 'Envoi…', 'Thanks! Your message is on its way.': 'Merci ! Votre message est en route.', 'Please fill in all three fields.': 'Merci de remplir les trois champs.', 'Could not send right now. Please email me directly:': 'Envoi impossible pour le moment. Écrivez-moi directement :', 'Download CV (PDF)': 'Télécharger le CV (PDF)', 'Get in touch': 'Me contacter', "Hi, I'm": 'Bonjour, je suis',
             'The beamline so far.': 'Mon parcours.', 'Highlights.': 'Temps forts.', 'In the lab': 'Au laboratoire',
             "Instruments I've built.": "Les instruments que j'ai construits.",
             'Ion sources, grids and the diagnostics that measure their beams.': 'Sources d’ions, grilles et diagnostics qui mesurent leurs faisceaux.',
@@ -99,7 +99,7 @@
         gu: {
             'Skip to content': 'મુખ્ય સામગ્રી પર જાઓ', 'About': 'મારા વિશે', 'Career': 'કારકિર્દી', 'Research': 'સંશોધન',
             'Lab': 'પ્રયોગશાળા', 'Videos': 'વીડિયો', 'Publications': 'પ્રકાશનો', 'Offer': 'સેવાઓ', 'Plain CV': 'સાદો CV',
-            'Contact': 'સંપર્ક', 'Download CV (PDF)': 'CV ડાઉનલોડ કરો (PDF)', 'Get in touch': 'સંપર્ક કરો', "Hi, I'm": 'નમસ્તે, હું',
+            'Contact': 'સંપર્ક', 'Or send me a message': 'અથવા મને સંદેશ મોકલો', 'Outreach': 'આઉટરીચ', 'In the news.': 'સમાચારમાં.', 'Articles, interviews and stories about my work and the experiments I am part of.': 'મારા કાર્ય અને હું જે પ્રયોગોમાં સામેલ છું તેના વિશેના લેખો, મુલાકાતો અને સમાચાર.', 'Read the stories': 'વાંચો', 'See all stories': 'બધા સમાચાર જુઓ', 'News': 'સમાચાર', 'Your name': 'તમારું નામ', 'Your email': 'તમારો ઇમેઇલ', 'Your message': 'તમારો સંદેશ', 'Send message': 'સંદેશ મોકલો', 'Sending…': 'મોકલી રહ્યા છીએ…', 'Thanks! Your message is on its way.': 'આભાર! તમારો સંદેશ મોકલાઈ ગયો છે.', 'Please fill in all three fields.': 'કૃપા કરીને ત્રણેય ખાનાં ભરો.', 'Could not send right now. Please email me directly:': 'હમણાં મોકલી શકાયું નથી. મને સીધો ઇમેઇલ કરો:', 'Download CV (PDF)': 'CV ડાઉનલોડ કરો (PDF)', 'Get in touch': 'સંપર્ક કરો', "Hi, I'm": 'નમસ્તે, હું',
             'The beamline so far.': 'મારી સફર.', 'Highlights.': 'મુખ્ય કાર્યો.', 'In the lab': 'પ્રયોગશાળામાં',
             "Instruments I've built.": 'મેં બનાવેલાં ઉપકરણો.',
             'Ion sources, grids and the diagnostics that measure their beams.': 'આયન સ્રોતો, ગ્રિડ અને તેમના બીમ માપતાં ડાયગ્નોસ્ટિક્સ.',

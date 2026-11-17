@@ -39,6 +39,7 @@
         <a class="btn play-btn" href="/CV/library/" target="_blank" rel="noopener">${T('Step inside')} ↗</a>`;
     card.insertAdjacentElement('afterend', lib);
 
+
     // ---------- window ----------
     const ov = document.createElement('div');
     ov.className = 'game-ov retro-ov'; ov.hidden = true;

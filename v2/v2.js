@@ -18,7 +18,33 @@
     const ext = links.filter(l => !/^mailto:/.test(l.url));
     const CV_PDF = '/CV/assets/cv/Bharat_Rawat_CV.pdf';
     const img = (src, alt) => `<img src="${esc(src)}" alt="${esc(alt || '')}" loading="lazy" decoding="async">`;
-    const extLinks = () => ext.map(l => `<a class="link" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join('');
+    // AEgIS outreach links (digital twin, gravity game) share one "Outreach" link that opens a small menu
+    const isOutreach = l => /AEgIS/i.test(l.label || '');
+    const extLinks = () => {
+        const group = ext.filter(isOutreach);
+        let menuDone = false;
+        return ext.map(l => {
+            if (!isOutreach(l) || group.length < 2) return `<a class="link" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`;
+            if (menuDone) return '';
+            menuDone = true;
+            return `<span class="ln-menu"><button type="button" class="link link-btn ln-menu-btn" aria-haspopup="true" aria-expanded="false">${T('Outreach')}</button>
+                <span class="ln-pop" role="menu">${group.map(g => `<a role="menuitem" href="${esc(g.url)}" target="_blank" rel="noopener">${esc(g.label.replace(/\s*Outreach\s*$/i, ''))}<i aria-hidden="true">↗</i></a>`).join('')}</span></span>`;
+        }).join('');
+    };
+    document.addEventListener('click', e => {
+        const btn = e.target.closest('.ln-menu-btn');
+        document.querySelectorAll('.ln-menu.open').forEach(m => { if (!btn || !m.contains(btn)) { m.classList.remove('open'); m.firstElementChild.setAttribute('aria-expanded', 'false'); } });
+        if (btn) {
+            const m = btn.parentElement, on = m.classList.toggle('open'), pop = m.querySelector('.ln-pop');
+            btn.setAttribute('aria-expanded', String(on));
+            if (on) {                                                       // keep the menu on screen (phones)
+                pop.style.marginLeft = '0px';
+                const r = pop.getBoundingClientRect(), pad = 12, vw = document.documentElement.clientWidth;   // not innerWidth: the open menu itself can widen that
+                pop.style.marginLeft = (r.left < pad ? pad - r.left : r.right > vw - pad ? vw - pad - r.right : 0) + 'px';
+            }
+        }
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.ln-menu.open').forEach(m => { m.classList.remove('open'); m.firstElementChild.setAttribute('aria-expanded', 'false'); m.firstElementChild.focus(); }); });
 
     // ---------- hero ----------
     const bare = P.name.replace(/,.*$/, '').trim();
@@ -311,6 +337,20 @@
             }).join('')}
             </div>
         </div>`).join('');
+    // ---------- in the news: the three latest stories ----------
+    const newsList = (P.news || []).slice().sort((a, b) => b.date.localeCompare(a.date));
+    if (newsList.length && $('news-row')) {
+        const fmtD = d => { const t = new Date(d + 'T12:00:00'); return isNaN(t) ? d : t.toLocaleDateString(LANG === 'en' ? 'en-GB' : LANG, { month: 'short', year: 'numeric' }); };
+        $('news-h').textContent = T('In the news.');
+        $('news-all').textContent = T('See all stories');
+        $('news-row').innerHTML = newsList.slice(0, 3).map(n => `
+            <a class="news-item reveal" href="${esc(n.url)}" target="_blank" rel="noopener">
+                <span class="ni-meta"><b>${esc(n.source.split(' · ')[0])}</b> · ${fmtD(n.date)}</span>
+                <span class="ni-title">${esc(n.title)}</span>
+            </a>`).join('');
+        $('news').hidden = false;
+    } else if ($('news')) { $('news').remove(); document.querySelector('#ln-nav a[href="#news"]')?.remove(); }
+
     // everything else: a compact, collapsed list (one quiet line per paper + its DOI)
     const more = (P.morePublications || []).map(p => ({ ...p, year: yearOf(p.venue), v: p.venue.replace(/\s*\(\d{4}\)\s*$/, '') }));
     const moreEl = $('pub-more');
@@ -455,6 +495,43 @@
         + `<div class="link-row">${extLinks()}
             <a class="link" href="${CV_PDF}" target="_blank" rel="noopener">${T('Download CV')}</a>
             <a class="link" href="/CV/plain.html" target="_blank" rel="noopener">${T('Plain CV')}</a></div>`;
+    // ---------- message form: sent to my inbox through FormSubmit (no server needed on GitHub Pages) ----------
+    if (mail) {
+        const to = mail.url.replace(/^mailto:/, '');
+        $('contact-links').insertAdjacentHTML('afterend', `
+            <form class="qform" id="qform" novalidate>
+                <p class="qf-head">${T('Or send me a message')}</p>
+                <div class="qf-row">
+                    <label><span class="sr">${T('Your name')}</span><input name="name" autocomplete="name" maxlength="120" placeholder="${T('Your name')}" required></label>
+                    <label><span class="sr">${T('Your email')}</span><input name="email" type="email" autocomplete="email" maxlength="160" placeholder="${T('Your email')}" required></label>
+                </div>
+                <label><span class="sr">${T('Your message')}</span><textarea name="message" rows="4" maxlength="4000" placeholder="${T('Your message')}" required></textarea></label>
+                <input class="qf-hp" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
+                <div class="qf-foot"><button class="btn" type="submit">${T('Send message')}</button><p class="qf-status" aria-live="polite"></p></div>
+            </form>`);
+        const f = $('qform'), status = f.querySelector('.qf-status'), btn = f.querySelector('button');
+        const say = (msg, kind) => { status.innerHTML = msg; status.className = 'qf-status' + (kind ? ' ' + kind : ''); };
+        f.addEventListener('submit', async e => {
+            e.preventDefault();
+            const d = Object.fromEntries(new FormData(f));
+            if (d._honey) return;                                              // a bot filled the hidden field
+            if (!d.name.trim() || !d.message.trim() || !f.email.checkValidity() || !d.email.trim()) { say(T('Please fill in all three fields.'), 'err'); return; }
+            btn.disabled = true; say(T('Sending…'));
+            try {
+                const r = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(to)}`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+                    body: JSON.stringify({ name: d.name.trim(), email: d.email.trim(), message: d.message.trim(),
+                        _subject: `CV website: message from ${d.name.trim()}`, _template: 'table', _captcha: 'false' })
+                });
+                const j = await r.json().catch(() => ({}));
+                if (!r.ok || String(j.success) !== 'true') throw new Error(j.message || r.status);
+                f.reset(); f.classList.add('sent'); say(T('Thanks! Your message is on its way.'), 'ok');
+            } catch (err) {
+                const href = `mailto:${to}?subject=${encodeURIComponent('Hello from your website')}&body=${encodeURIComponent(d.message || '')}`;
+                say(`${T('Could not send right now. Please email me directly:')} <a href="${esc(href)}">${esc(to)}</a>`, 'err');
+            } finally { btn.disabled = false; }
+        });
+    }
     $('footer-name').textContent = `Copyright © ${new Date().getFullYear()} ${titleCase(bare)}. ${T('All rights reserved.')}`;
 
     // ---------- reveal on scroll (staggered within rows) ----------
