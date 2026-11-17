@@ -1159,3 +1159,28 @@ html[data-theme="dark"] .pub.star::before { box-shadow: 0 0 0 1px rgba(255, 255,
 .pub .badge.award .laurel { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 @media (max-width: 760px) { .pub.has-cover { padding-left: 62px; } .pub-cover { width: 46px; } }
 @media (prefers-reduced-motion: reduce) { .pub-cover { transition: none; opacity: 1; transform: none; } }
+
+/* all publications: a quiet disclosure under the selected list */
+.pub-more { margin-top: 26px; }
+.pub-more summary { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; list-style: none; color: var(--link); font-size: 0.95rem; font-weight: 500; }
+.pub-more summary::-webkit-details-marker { display: none; }
+.pub-more summary svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.4s var(--ease); }
+.pub-more[open] summary svg { transform: rotate(180deg); }
+.pub-more .pm-close, .pub-more[open] .pm-open { display: none; }
+.pub-more[open] .pm-close { display: inline; }
+.pub-more summary:hover { text-decoration: underline; }
+.pm-list { list-style: none; margin: 18px 0 0; padding: 0; border-bottom: 1px solid var(--line); }
+.pm-list li { display: grid; grid-template-columns: 72px 1fr; column-gap: 16px; padding: 8px 0; }
+.pm-list li.pm-new { border-top: 1px solid var(--line); padding-top: 16px; }
+.pm-list li:last-child { padding-bottom: 16px; }
+.pm-y { color: var(--faint); font-size: 0.85rem; font-weight: 600; padding-top: 2px; }
+@media (max-width: 760px) { .pm-y:empty { display: none; } }
+.pm-t { display: block; color: var(--text); font-size: 0.95rem; line-height: 1.35; text-decoration: none; }
+a.pm-t:hover { color: var(--link); }
+.pm-m { display: block; margin-top: 2px; font-size: 0.8rem; color: var(--muted); }
+.pm-m a { color: var(--link); text-decoration: none; overflow-wrap: anywhere; }
+.pm-m a:hover { text-decoration: underline; }
+.pub-more[open] .pm-list { animation: pm-in 0.5s var(--ease); }
+@keyframes pm-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@media (max-width: 760px) { .pm-list li { grid-template-columns: 1fr; } .pm-y { padding: 0 0 2px; } }
+@media (prefers-reduced-motion: reduce) { .pub-more[open] .pm-list { animation: none; } }

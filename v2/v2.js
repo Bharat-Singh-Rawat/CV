@@ -311,6 +311,22 @@
             }).join('')}
             </div>
         </div>`).join('');
+    // everything else: a compact, collapsed list (one quiet line per paper + its DOI)
+    const more = (P.morePublications || []).map(p => ({ ...p, year: yearOf(p.venue), v: p.venue.replace(/\s*\(\d{4}\)\s*$/, '') }));
+    const moreEl = $('pub-more');
+    if (moreEl && more.length) {
+        const total = pubs.length + more.length;
+        const chev = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg>';
+        moreEl.innerHTML = `<summary><span class="pm-open">${T('All publications')} (${total})</span><span class="pm-close">${T('Show fewer')}</span>${chev}</summary>
+            <ol class="pm-list">${more.map((p, i) => {
+                const url = p.doi ? `https://doi.org/${encodeURI(p.doi)}` : (p.url || '');
+                const yr = i && more[i - 1].year === p.year ? '' : (p.year || '');    // year only on the first paper of that year
+                return `<li${yr ? ' class="pm-new"' : ''}><span class="pm-y">${yr}</span><div>${url ? `<a class="pm-t" href="${url}" target="_blank" rel="noopener">${esc(p.title)}</a>` : `<span class="pm-t">${esc(p.title)}</span>`}
+                    <span class="pm-m">${esc(p.v)}${p.doi ? ` · <a href="${url}" target="_blank" rel="noopener">doi:${esc(p.doi)}</a>` : ''}</span></div></li>`;
+            }).join('')}</ol>`;
+        moreEl.hidden = false;
+    }
+
     // highlighted papers (journal cover, Top 10 breakthrough): as one crosses the middle of the screen
     // the list dims around it and its cover / award slides out from behind
     const stars = [...document.querySelectorAll('#pubs .pub.star')];
