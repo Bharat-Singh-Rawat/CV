@@ -293,13 +293,15 @@
             <span>${y}</span>
             <div>${pubs.filter(p => p.year === y).map(p => {
                 const badges = [
-                    p.badge ? `<span class="badge${/cover/i.test(p.badge) ? ' cover' : ''}">${esc(T(p.badge))}</span>` : '',
-                    /Phys\.\s*Rev\.\s*Lett/i.test(p.v) ? `<span class="badge">${T('Featured')}</span>` : ''
+                    p.badge && p.award ? `<a class="badge award" href="${esc(p.awardLink || '#')}" target="_blank" rel="noopener"><svg class="laurel" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 20c-3-2.2-4.6-5.6-4-9.6M16.5 20c3-2.2 4.6-5.6 4-9.6"/><path d="M4.3 15.6c-1.4-.2-2.3-1-2.6-2.2 1.3-.2 2.4.3 3 1.3M3.6 11.6c-1.2-.6-1.7-1.6-1.6-2.8 1.2.3 2 1 2.2 2.1M4.2 7.8c-.9-.9-1.1-2-.6-3 1 .6 1.5 1.5 1.4 2.6M19.7 15.6c1.4-.2 2.3-1 2.6-2.2-1.3-.2-2.4.3-3 1.3M20.4 11.6c1.2-.6 1.7-1.6 1.6-2.8-1.2.3-2 1-2.2 2.1M19.8 7.8c.9-.9 1.1-2 .6-3-1 .6-1.5 1.5-1.4 2.6"/></svg>${esc(p.award)} · ${esc(T(p.badge))}</a>`
+                        : p.badge ? `<span class="badge${/cover/i.test(p.badge) ? ' cover' : ''}">${esc(T(p.badge))}</span>` : '',
+                    !p.badge && /Phys\.\s*Rev\.\s*Lett/i.test(p.v) ? `<span class="badge">${T('Featured')}</span>` : ''
                 ].join('');
                 const doiUrl = p.doi ? `https://doi.org/${encodeURI(p.doi)}` : (p.url || '');
                 const authors = p.authors ? esc(p.authors).replace(/(Rawat,?\s*B\.\s*S\.?)/g, '<b>$1</b>') : '';
                 return `
-                <div class="pub">
+                <div class="pub${p.cover || p.award ? ' star' : ''}${p.cover ? ' has-cover' : ''}">
+                    ${p.cover ? `<a class="pub-cover" href="${esc(doiUrl)}" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="${esc(p.cover)}" alt="" width="560" height="804" loading="lazy" decoding="async"></a>` : ''}
                     <span class="venue">${esc(p.v)}</span>${badges}
                     ${doiUrl ? `<a class="title" href="${doiUrl}" target="_blank" rel="noopener">${p.title}</a>` : `<span class="title">${p.title}</span>`}
                     ${authors ? `<span class="authors">${authors}</span>` : ''}
@@ -309,6 +311,26 @@
             }).join('')}
             </div>
         </div>`).join('');
+    // highlighted papers (journal cover, Top 10 breakthrough): as one crosses the middle of the screen
+    // the list dims around it and its cover / award slides out from behind
+    const stars = [...document.querySelectorAll('#pubs .pub.star')];
+    if (stars.length) {
+        const list = $('pubs');
+        let tk = 0;
+        const check = () => {
+            tk = 0;
+            const vh = window.innerHeight; let best = null, bd = Infinity;
+            stars.forEach(star => {                                     // only the one nearest the middle of the screen
+                const r = star.getBoundingClientRect(), mid = r.top + r.height / 2, d = Math.abs(mid - vh * 0.47);
+                if (mid > vh * 0.22 && mid < vh * 0.72 && d < bd) { bd = d; best = star; }
+            });
+            stars.forEach(star => star.classList.toggle('lit', star === best));
+            if (best) best.classList.add('seen');
+            list.classList.toggle('focus', !!best);
+        };
+        window.addEventListener('scroll', () => { if (!tk) tk = requestAnimationFrame(check); }, { passive: true });
+        check();
+    }
 
     // ---------- talks ----------
     $('talk-list').innerHTML = P.talks.map(t => {

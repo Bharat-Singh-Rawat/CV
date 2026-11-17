@@ -1137,3 +1137,25 @@ html[lang="gu"] body { line-height: 1.7; }
 .ion-trail { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 45; }
 .lab.dark.lab-light { --text: #1d1d1f; --body: #424245; --muted: #6e6e73; }
 .lab.dark .lab-head h2, .lab.dark .lab-head .sec-sub { transition: color 0.45s var(--ease); }
+
+/* publications: spotlight on highlighted papers; a small upright journal cover beside the cover-story paper */
+.pub, .pub-year > span { transition: opacity 0.6s var(--ease); }
+.pubs.focus .pub:not(.lit) { opacity: 0.32; }
+.pubs.focus .pub-year:not(:has(.star.lit)) > span { opacity: 0.32; }
+.pub.star { position: relative; isolation: isolate; }
+.pub.star::before { content: ''; position: absolute; inset: -14px -18px; z-index: -1; border-radius: 18px; background: var(--card); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.07); opacity: 0; transform: scale(0.97); transition: opacity 0.6s var(--ease), transform 0.6s var(--ease); }
+.pub.star.lit::before { opacity: 1; transform: none; }
+html[data-theme="dark"] .pub.star::before { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08); }
+.pub.has-cover { padding-left: 74px; min-height: 84px; }
+.pub-cover { position: absolute; left: 0; top: 3px; width: 56px; border-radius: 3px; overflow: hidden;
+    box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.14);
+    opacity: 0; transform: translateY(6px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease), box-shadow 0.3s var(--ease); }
+.pub-cover img { display: block; width: 100%; height: auto; }
+.pub.has-cover.seen .pub-cover { opacity: 1; transform: none; }
+.pub-cover:hover { transform: scale(1.05); box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.12), 0 10px 24px rgba(0, 0, 0, 0.2); }
+/* award badge: quiet grey outline pill with a laurel, no colour */
+.pub .badge.award { display: inline-flex; align-items: center; gap: 5px; background: transparent; color: var(--muted); border: 1px solid var(--line); padding: 1px 9px 1px 7px; text-decoration: none; transition: color 0.3s var(--ease), border-color 0.3s var(--ease); }
+.pub .badge.award:hover { color: var(--text); border-color: var(--faint); }
+.pub .badge.award .laurel { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+@media (max-width: 760px) { .pub.has-cover { padding-left: 62px; } .pub-cover { width: 46px; } }
+@media (prefers-reduced-motion: reduce) { .pub-cover { transition: none; opacity: 1; transform: none; } }
