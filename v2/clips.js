@@ -7,6 +7,8 @@
    downloaded once, and only after the first hover (desktop) or scroll into view (phones).
    Desktop: plays while hovered. Touch: plays while the card is mostly on screen.
    A card with two clips ("penning,wall") alternates each loop.
+   If the phone refuses to autoplay (iPhone Low Power Mode) or the visitor asked for reduced motion /
+   less data, a small play button appears instead and one tap starts the clip.
    ===================================================================== */
 (function () {
     const CST = '/CV/assets/video/IonSource.mp4', BEMCS = '/CV/assets/video/PY-BEMCS.mp4';
@@ -22,10 +24,25 @@
     };
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const saveData = navigator.connection && navigator.connection.saveData;
+    const manual = reduce || saveData;                 // never start on its own: tap the play button
     const cards = [...document.querySelectorAll('.project[data-clip]')];
-    if (reduce || saveData || !cards.length) return;
+    if (!cards.length) return;
     const T = window.T || (s => s);
     const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+    const PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>';
+    const PAUSE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor"/></svg>';
+
+    // a round glass play / pause button on the card's picture
+    function playButton(zoom, onTap) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'clip-play'; b.hidden = true;
+        b.setAttribute('aria-label', T('Play clip')); b.innerHTML = PLAY;
+        b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); onTap(); });
+        zoom.appendChild(b);
+        b.set = playing => { b.innerHTML = playing ? PAUSE : PLAY; b.setAttribute('aria-label', T(playing ? 'Pause' : 'Play clip')); };
+        return b;
+    }
+
 
     const media = {};                                  // src -> { v, loops, lastT, pauseTimer }
     const active = new Set();
@@ -45,6 +62,8 @@
         tag.className = 'clip-tag'; tag.textContent = T('Simulation');
         zoom.append(cv, tag);
         const it = { card, zoom, cv, ctx: cv.getContext('2d'), clips, src: clips[0].src, w: 0, h: 0 };
+        it.btn = playButton(zoom, () => tap(it));
+        if (manual) it.btn.hidden = false;
         new ResizeObserver(() => size(it)).observe(zoom);
         return it;
     }).filter(Boolean);
@@ -115,18 +134,36 @@
         if (!users(it.src).length) { try { m.v.currentTime = 0; } catch (e) { /* not loaded yet */ } m.lastT = 0; }
         active.add(it);
         home(it.src);
-        const p = m.v.play(); if (p && p.catch) p.catch(() => {});
+        play(it.src);
+        it.btn.set(true);
         if (!raf) raf = requestAnimationFrame(frame);
+    }
+    // the phone may refuse to start a video on its own (iPhone Low Power Mode): offer a play button
+    function play(src) {
+        const m = media[src], p = m.v.play();
+        if (p && p.then) p.then(() => { m.blocked = false; users(src).forEach(it => it.btn.set(true)); }, err => {
+            if (!err || err.name !== 'NotAllowedError') return;
+            m.blocked = true;
+            for (const it of users(src)) { it.btn.hidden = false; it.btn.set(false); }
+        });
+    }
+    // a tap on the play button (a real gesture, so the phone allows it)
+    function tap(it) {
+        const m = media[it.src];
+        if (active.has(it) && m && !m.v.paused) { stop(it); it.wanted = false; return; }
+        it.wanted = true;
+        if (!active.has(it)) start(it); else play(it.src);
     }
     function stop(it) {
         if (!active.delete(it)) return;
         it.card.classList.remove('clip-on');
+        it.btn.set(false);
         const m = media[it.src];
         if (users(it.src).length) home(it.src);
         else m.pauseTimer = setTimeout(() => m.v.pause(), 600);
     }
 
-    if (fine) {
+    if (fine && !manual) {
         for (const it of items) {
             it.card.addEventListener('pointerenter', () => start(it));
             it.card.addEventListener('pointerleave', () => stop(it));
@@ -136,7 +173,8 @@
     } else {
         const io = new IntersectionObserver(es => es.forEach(e => {
             const it = items.find(i => i.card === e.target);
-            e.isIntersecting && e.intersectionRatio >= 0.6 ? start(it) : stop(it);
+            if (e.isIntersecting && e.intersectionRatio >= 0.6) { if (!manual || it.wanted) start(it); }
+            else stop(it);
         }), { threshold: [0, 0.6] });
         items.forEach(it => io.observe(it.card));
     }
