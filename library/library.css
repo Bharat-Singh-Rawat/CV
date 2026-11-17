@@ -378,3 +378,8 @@ html.locked, html.locked body { overflow: hidden; }
 .lite .nook .desk-scene { box-shadow: 0 0 0 1px rgba(79,216,255,.15); }
 .lite .door { backdrop-filter: none; -webkit-backdrop-filter: none; }
 .librarian { will-change: transform; }
+
+/* sound toggle (button made by the CV's sfx.js) */
+#sfx-toggle { width: 32px; height: 32px; border-radius: 50%; border: 0; padding: 0; display: grid; place-items: center; cursor: pointer; background: var(--line); color: var(--text); }
+#sfx-toggle svg { width: 16px; height: 16px; }
+#sfx-toggle[aria-pressed="false"] { opacity: .5; }

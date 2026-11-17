@@ -252,14 +252,21 @@
         tag.style.top = Math.max(150, r.top - 34) + 'px';
         tag.classList.add('show');
     }
-    function hideTag() { tag.classList.remove('show'); tagFor = null; }
+    function hideTag() { tag.classList.remove('show'); tagFor = null; clearTimeout(waveT); }
     let lastSlide = 0;
     aisle.addEventListener('mouseover', e => {
         const el = e.target.closest('.book.real');
         if (!el || el === tagFor) return;
         showTag(el);
         if (performance.now() - lastSlide > 70) { sfx.hover(); lastSlide = performance.now(); }
+        clearTimeout(waveT);
+        waveT = setTimeout(() => {
+            if (tagFor !== el || performance.now() - lastWave < 12000 || !window.__lib || !window.__lib.react('wave')) return;
+            lastWave = performance.now();
+            if (Math.random() < .6) window.__lib.say(pick(['Good choice!', 'Oh, that one is a classic.', 'Take it, it\u2019s free to read.', 'One of my favourites.']));
+        }, 1100);
     });
+    let waveT = 0, lastWave = -1e9;
     aisle.addEventListener('mouseout', e => { const el = e.target.closest('.book.real'); if (el && !el.contains(e.relatedTarget)) hideTag(); });
     aisle.addEventListener('focusin', e => { const el = e.target.closest('.book.real'); if (el) showTag(el); });
     aisle.addEventListener('focusout', hideTag);
@@ -361,7 +368,10 @@
         clearTimeout(deskT); deskOpen = false;
         ob.classList.remove('opened'); ob.classList.add('closed');
         desk.classList.remove('show');
-        deskT = setTimeout(() => { desk.hidden = true; aisle.querySelectorAll('.pulled').forEach(e => e.classList.remove('pulled')); }, 450);
+        deskT = setTimeout(() => {
+            desk.hidden = true; aisle.querySelectorAll('.pulled').forEach(e => e.classList.remove('pulled'));
+            if (window.__lib && window.__lib.react('nod') && Math.random() < .5) window.__lib.say(pick(['Enjoy the read.', 'Come back for more.', 'Good book, that.']));
+        }, 450);
         lastFocus?.focus?.({ preventScroll: true });
     }
     function turn(step) {
@@ -389,6 +399,7 @@
     // ---------------------------------------------------------------- dust in the light
     const cv = $('dust'), ctx = cv.getContext('2d');
     const winXs = [...aisle.querySelectorAll('.window')].map(w => w.offsetLeft);
+    const bayEls = [...aisle.querySelectorAll('.bay')];
     const motes = Array.from({ length: touch ? 40 : 90 }, () => ({ x: Math.random(), y: Math.random(), r: .6 + Math.random() * 1.6, vx: (Math.random() - .5) * .00012, vy: (Math.random() - .3) * .00008, p: Math.random() * 6.28 }));
     let dustOn = !reduce && !lite;
     function dust(t) {
@@ -396,6 +407,19 @@
         if (cv.width !== vw || cv.height !== vh) { cv.width = vw; cv.height = vh; }
         ctx.clearRect(0, 0, vw, vh);
         const dark = root.dataset.theme === 'dark';
+        if (dark) {                                      // warm pools of lamp light on the floor, drifting with you as you walk
+            const fy = vh - floorH, rx = 270 * k, ry = floorH * .55;
+            ctx.globalCompositeOperation = 'lighter';
+            bayEls.forEach((b, i) => {
+                if (!b.classList.contains('lit')) return;
+                const x = items[i].x * k - cur; if (x < -rx * 2 || x > vw + rx * 2) return;
+                ctx.save(); ctx.translate(x + (x - vw / 2) * .1, fy + floorH * .38); ctx.scale(1, ry / rx);
+                const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+                g.addColorStop(0, 'rgba(255,212,130,.3)'); g.addColorStop(.45, 'rgba(255,200,110,.11)'); g.addColorStop(1, 'rgba(255,200,110,0)');
+                ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, rx, 0, 6.283); ctx.fill(); ctx.restore();
+            });
+            ctx.globalCompositeOperation = 'source-over';
+        }
         // light shafts on screen: under each window
         const shafts = winXs.map(x => [(x + 40) * k - cur - 40, (x + 290) * k - cur + 260 * k]);
         for (const m of motes) {
@@ -445,7 +469,43 @@
         lctx.clearRect(0, 0, FW, FH);
         if (SHEET.complete && SHEET.naturalWidth) lctx.drawImage(SHEET, col * FW, row * FH, FW, FH, 0, 0, FW, FH);
     }
-    SHEET.onload = () => { libTick.k = null; };
+    let ARM = null;                          // colours for the waving arm, read from his own sprite
+    SHEET.onload = () => {
+        libTick.k = null;
+        try {
+            const c = document.createElement('canvas'); c.width = FW; c.height = FH;
+            const x = c.getContext('2d'); x.drawImage(SHEET, 0, 0, FW, FH, 0, 0, FW, FH);
+            const px = (a, b) => { const d = x.getImageData(a, b, 1, 1).data; return `rgb(${d[0]},${d[1]},${d[2]})`; };
+            ARM = { shirt: px(21, 27), sleeve: px(24, 22), skin: px(23, 27), ink: px(6, 20) };
+        } catch (e) { /* no wave without pixels */ }
+    };
+    // reactions: he looks at you and waves when you linger on a book; nods when you put a book back
+    function drawReact(kind, el) {
+        sprite(0, 0);
+        if (kind === 'nod') {
+            if (Math.floor(el / 230) % 2) { const head = lctx.getImageData(0, 0, FW, 19); lctx.clearRect(0, 0, FW, 20); lctx.putImageData(head, 0, 1); }
+            return;
+        }
+        if (!ARM) return;
+        const up = Math.floor(el / 200) % 2, cells = [];
+        for (let y = 13; y <= 18; y++) { const x = 25 + (up ? 1 : Math.round((18 - y) * .45) + 1); cells.push([x, y, ARM.sleeve], [x + 1, y, ARM.sleeve]); }
+        const hx = up ? 25 : 27;
+        for (let y = 10; y <= 12; y++) for (let x = hx; x <= hx + 2; x++) cells.push([x, y, ARM.skin]);
+        const img = lctx.getImageData(0, 0, FW, FH).data, own = new Set(cells.map(([x, y]) => x + ',' + y));
+        lctx.fillStyle = ARM.ink;
+        cells.forEach(([x, y]) => [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([a, b]) => {
+            const X = x + a, Y = y + b; if (own.has(X + ',' + Y) || X >= FW || Y < 0) return;
+            if (img[(Y * FW + X) * 4 + 3] < 128) lctx.fillRect(X, Y, 1, 1);
+        }));
+        cells.forEach(([x, y, c]) => { lctx.fillStyle = c; lctx.fillRect(x, y, 1, 1); });
+        lctx.fillStyle = ARM.shirt; lctx.fillRect(22, 27, 3, 2);       // the arm is up, so no hand at his side
+    }
+    function react(kind) {
+        if (reduce || lb.pose === 'sit') return false;
+        const sx = lb.x * k - cur; if (sx < 0 || sx > vw) return false;
+        lb.react = { kind, t0: performance.now(), dur: kind === 'wave' ? 1800 : 950 };
+        return true;
+    }
     const L0 = x0 + 40, L1 = NOOK + 460;      // L1 = the chair at the computer                 // walkable range; L1 = in front of the study table
     const bayXs = items.slice(0, -1).map(it => it.x);
     const lb = { x: x0 + BAY / 2, to: null, pose: 'stand', carry: false, dir: 2, anim: 0, wait: 600, step: 0, task: null, t0: 0 };
@@ -455,6 +515,14 @@
         if (!bay) return;
         const f = [...bay.querySelectorAll('.book.filler:not(.secret)')];
         for (let n = 0; n < 3 && f.length; n++) { const el = f.splice(Math.floor(Math.random() * f.length), 1)[0]; el.classList.remove('tidy'); void el.offsetWidth; el.classList.add('tidy'); }
+    }
+    window.__lib = { react, say };
+    // room tone: a distant clock ticking and now and then a page turning (follows the sound toggle)
+    if (!reduce) {
+        let tock = false;
+        setInterval(() => { if (!document.hidden && ent.classList.contains('gone') && window.cvSfx && window.cvSfx.clock) window.cvSfx.clock(tock = !tock); }, 1000);
+        const page = () => { if (!document.hidden && ent.classList.contains('gone') && window.cvSfx && window.cvSfx.rustle) window.cvSfx.rustle(); setTimeout(page, 14000 + Math.random() * 18000); };
+        setTimeout(page, 9000);
     }
     function nextTask() {
         const r = Math.random();
@@ -468,7 +536,9 @@
         if (lite && (libTick.f = !libTick.f)) { requestAnimationFrame(libTick); return; }
         const dt = Math.min(60, t - (lt || t)); lt = t;
         if (!document.hidden) {
-            if (lb.pose === 'walk') {
+            if (lb.react && t - lb.react.t0 > lb.react.dur) { lb.react = null; libTick.k = null; }
+            if (lb.react) drawReact(lb.react.kind, t - lb.react.t0);
+            else if (lb.pose === 'walk') {
                 const d = lb.to - lb.x, v = .17 * dt;      // stride matches his size
                 lb.dir = d < 0 ? 1 : 2;
                 if (Math.abs(d) <= v) {
@@ -486,7 +556,7 @@
             const row = lb.pose === 'walk' ? lb.dir : lb.pose === 'reach' || lb.pose === 'sit' ? 3 : 0;
             const col = lb.pose === 'stand' ? 0 : Math.floor(lb.anim / (lb.pose === 'walk' ? 110 : 260)) % 6;
             const key = row * 10 + col;
-            if (key !== libTick.k) { sprite(row, col); libTick.k = key; }
+            if (!lb.react && key !== libTick.k) { sprite(row, col); libTick.k = key; }
             const sx = lb.x * k - cur;
             if (sx > -400 && sx < vw + 400) lib.style.transform = `translate3d(${lb.x - 160}px, 0, ${lite ? 0 : 40}px)`;
         }

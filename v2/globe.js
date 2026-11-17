@@ -78,6 +78,10 @@
     // view state
     let lon0 = 0, lat0 = 20, zoom = 1, active = -1, arcT = 1, arcFrom = null, arcTo = null, pulse = 0, talkT = 1;
     let tLon = 0, tLat = 20, tZoom = 1;
+    let fly = null, inertia = null, arriveT = 1, near = [], badgeT = 1, talkEnd = 1;
+    const TSTAG = 0.35;                                   // talk arcs launch one after another
+    const easeIO = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    const backOut = t => { const k = 1.7, u = t - 1; return 1 + (k + 1) * u * u * u + k * u * u; };
     let mode = 'work', hover = -1, travelPts = [], drag = null, spinPause = 0, mini = false;
     let shots = [], shotIdx = 0, shotKey = '', shotTimer = 0, unhover = 0, workHover = null, workPts = [];
     function currentShots() {
@@ -107,7 +111,8 @@
         if (!q) { bub.classList.remove('show'); return; }
         const w = bub.offsetWidth || 128, h = bub.offsetHeight || 96, size = cv.clientWidth;
         const x = q[0] / dpr, y = q[1] / dpr;
-        let left = x + 14, top = y - h - 10;
+        const lift = mode === 'work' ? 12 : 0;              // work pins stand on a stem: keep clear of the head and its label
+        let left = x + 14, top = y - h - 10 - lift;
         if (left + w > size) left = x - w - 14;
         if (top < 0) top = y + 14;
         bub.style.transform = `translate(${Math.round(Math.max(0, Math.min(size - w, left)))}px, ${Math.round(Math.max(0, Math.min(size - h, top)))}px)`;
@@ -124,7 +129,7 @@
         mode = m; hover = -1;
         box.classList.toggle('travel', m === 'travel');
         box.querySelectorAll('.globe-mode button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
-        if (m === 'travel') { tZoom = 1; tLat = 25; tLon = lon0; arcFrom = arcTo = null; travelLabel(); }
+        if (m === 'travel') { tZoom = 1; tLat = 25; tLon = lon0; arcFrom = arcTo = null; fly = null; near = []; travelLabel(); }
         else { active = -1; pick(); }
         dirty = true; kick();
     }
@@ -140,8 +145,17 @@
         const a = from && centroid(from.places), b = centroid(s.places);
         if (a && Math.hypot(a.lat - b.lat, a.lon - b.lon) > 1.5) { arcFrom = vec(a); arcTo = vec(b); arcT = reduce ? 1 : 0; }
         else { arcFrom = arcTo = null; }
-        talkT = reduce ? 1 : 0;
-        if (reduce) { lon0 = tLon; lat0 = tLat; zoom = tZoom; }
+        talkEnd = s.talks.length ? 1 + (s.talks.length - 1) * TSTAG + 0.4 : 0;
+        talkT = reduce ? 99 : 0;
+        // dots around the new city, for the arrival ripple
+        const cv0 = vec(centroid(s.places)), cmin = Math.cos(16 * R); near = [];
+        for (let k = 0; k < n; k++) { const d = vx[k] * cv0[0] + vy[k] * cv0[1] + vz[k] * cv0[2]; if (d > cmin) near.push(k, Math.acos(Math.min(1, d)) / R); }
+        if (reduce) { lon0 = tLon; lat0 = tLat; zoom = tZoom; fly = null; arriveT = 1; badgeT = 1; }
+        else {                                          // timed flight: lift off, glide along the great circle, settle
+            const d = angle(vec({ lat: lat0, lon: lon0 }), vec({ lat: tLat, lon: tLon }));
+            fly = { lat: lat0, lon: lon0, zoom, d, t: 0, dur: 900 + Math.min(1100, d * 14) };
+            arriveT = -1; badgeT = 0;
+        }
         dirty = true; kick();
     }
     function pick() {                                   // the career card nearest the middle of the screen
@@ -165,19 +179,48 @@
         return [a[0] * k1 + b[0] * k2, a[1] * k1 + b[1] * k2, a[2] * k1 + b[2] * k2];
     }
 
-    function arc(a, b, t, color, width, dash, c, rad, lens) {
+    function arc(a, b, t, rgb, alpha, width, dash, c, rad, lens, comet) {
         const d = angle(a, b) * R, lift = Math.min(0.3, 0.04 + d * 0.16), steps = 64, end = Math.round(steps * Math.min(1, t));
         ctx.lineWidth = width; ctx.lineCap = 'round'; ctx.setLineDash(dash);
-        ctx.beginPath(); let pen = false, head = null;
+        ctx.beginPath(); let pen = false, trail = [];
         for (let k = 0; k <= end; k++) {
             const u = k / steps, v = slerp(a, b, u), h = 1 + lift * Math.sin(Math.PI * u);
             const p = proj(v[0] * h, v[1] * h, v[2] * h);
             const vis = p[2] > 0 || Math.hypot(p[0], p[1]) * h > 1;
             const x = c + p[0] * rad, y = c - p[1] * rad;
-            if (vis && Math.hypot(x - c, y - c) < lens) { pen ? ctx.lineTo(x, y) : ctx.moveTo(x, y); pen = true; head = [x, y]; } else pen = false;
+            if (vis && Math.hypot(x - c, y - c) < lens) { pen ? ctx.lineTo(x, y) : (ctx.moveTo(x, y), trail = []); pen = true; trail.push([x, y]); } else pen = false;
         }
-        ctx.strokeStyle = color; ctx.stroke(); ctx.setLineDash([]);
-        return t < 1 ? head : null;
+        ctx.strokeStyle = `rgba(${rgb},${alpha})`; ctx.stroke(); ctx.setLineDash([]);
+        if (t >= 1 || !comet || !pen || trail.length < 2) return;
+        // comet: a brighter, thicker tail that fades out behind a soft glowing head (like a beam bunch)
+        const N = Math.min(trail.length - 1, 16), s0 = trail.length - 1 - N;
+        for (let j = s0 + 1; j < trail.length; j++) {
+            const f = (j - s0) / N;
+            ctx.strokeStyle = `rgba(${rgb},${0.9 * f})`; ctx.lineWidth = width * (1 + 1.4 * f * comet);
+            ctx.beginPath(); ctx.moveTo(...trail[j - 1]); ctx.lineTo(...trail[j]); ctx.stroke();
+        }
+        const [hx, hy] = trail[trail.length - 1], gr = 10 * dpr * comet;
+        const g = ctx.createRadialGradient(hx, hy, 0, hx, hy, gr);
+        g.addColorStop(0, `rgba(${rgb},0.85)`); g.addColorStop(0.35, `rgba(${rgb},0.3)`); g.addColorStop(1, `rgba(${rgb},0)`);
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(hx, hy, gr, 0, 7); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(hx, hy, 1.7 * dpr * comet, 0, 7); ctx.fill();
+    }
+    function edge(c, lens, rad, ink, dark) {           // lens rim; in dark mode a faint blue atmosphere while the whole globe shows
+        const a = dark ? 0.3 * Math.max(0, 1 - (zoom - 1) * 1.6) : 0;
+        if (a > 0.01) {
+            const r = Math.min(rad, lens), g = ctx.createRadialGradient(c, c, r * 0.9, c, c, r * 1.06);
+            g.addColorStop(0, 'rgba(41,151,255,0)'); g.addColorStop(0.6, `rgba(41,151,255,${a})`); g.addColorStop(1, 'rgba(41,151,255,0)');
+            ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c, c, r * 1.06, 0, 7); ctx.fill();
+        }
+        ctx.strokeStyle = `rgba(${ink},0.12)`; ctx.lineWidth = dpr;
+        ctx.beginPath(); ctx.arc(c, c, lens - dpr / 2, 0, 7); ctx.stroke();
+        if (!mini) {                                     // soft contact shadow: the globe floats just above the page
+            const sy = c + lens + cv.width * 0.014, sx = lens * 0.62, syr = cv.width * 0.013;
+            ctx.save(); ctx.translate(c, sy); ctx.scale(1, syr / sx);
+            const sh = ctx.createRadialGradient(0, 0, 0, 0, 0, sx);
+            sh.addColorStop(0, `rgba(0,0,0,${dark ? 0.5 : 0.16})`); sh.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = sh; ctx.beginPath(); ctx.arc(0, 0, sx, 0, 7); ctx.fill(); ctx.restore();
+        }
     }
 
     function label(text, x, y, color, W, bold, taken) {
@@ -200,6 +243,7 @@
         ctx.save();
         ctx.beginPath(); ctx.arc(c, c, lens, 0, 7); ctx.clip();      // the globe is seen through a round lens
         // sphere + land dots are cached: redrawn only when the view moves, not for every pulse frame
+        const dr = Math.max(0.8, W / 420) * (0.75 + 0.35 * zoom) * (mini ? 1.5 : 1);
         const key = `${lon0.toFixed(2)},${lat0.toFixed(2)},${zoom.toFixed(3)},${W},${dark}`;
         if (key !== landKey) {
             landKey = key;
@@ -211,16 +255,41 @@
             L.fillStyle = g; L.beginPath(); L.arc(c, c, rad, 0, 7); L.fill();
             if (zoom < 1.05) { L.strokeStyle = `rgba(${ink},0.1)`; L.lineWidth = dpr; L.stroke(); }
             const step = mini ? 3 : 1;                    // the small docked globe needs far fewer dots
-            const dr = Math.max(0.8, W / 420) * (0.75 + 0.35 * zoom) * (mini ? 1.5 : 1);
             L.fillStyle = `rgb(${ink})`;
             for (let i = 0; i < n; i += step) {
                 const p = proj(vx[i], vy[i], vz[i]); if (p[2] <= 0.02) continue;
                 const x = c + p[0] * rad, y = c - p[1] * rad;
                 if ((x - c) * (x - c) + (y - c) * (y - c) > lens * lens) continue;
-                L.globalAlpha = (dark ? 0.12 : 0.14) + p[2] * (dark ? 0.55 : 0.56);
-                L.fillRect(x - dr / 2, y - dr / 2, dr, dr);
+                const sun = p[0] * -0.5 + p[1] * 0.42 + p[2] * 0.757;        // light from upper left: soft day / night
+                const day = sun < -0.3 ? 0 : sun > 0.25 ? 1 : (sun + 0.3) / 0.55;
+                L.globalAlpha = ((dark ? 0.12 : 0.14) + p[2] * (dark ? 0.55 : 0.56)) * (0.3 + 0.7 * day * day * (3 - 2 * day));
+                const sz = dr * (0.5 + 0.65 * Math.sqrt(p[2]));          // dots shrink towards the rim: reads as a sphere
+                L.fillRect(x - sz / 2, y - sz / 2, sz, sz);
             }
             L.globalAlpha = 1;
+            if (!mini) {                                  // hairline latitude / longitude grid, bending with the curve
+                L.lineWidth = 0.7 * dpr; L.strokeStyle = `rgba(${ink},${dark ? 0.09 : 0.07})`;
+                const line = pts => {
+                    L.beginPath(); let pen = false;
+                    pts.forEach(([la, lo]) => {
+                        const v = vec({ lat: la, lon: lo }), p = proj(v[0], v[1], v[2]);
+                        if (p[2] > 0) { const x = c + p[0] * rad, y = c - p[1] * rad; pen ? L.lineTo(x, y) : L.moveTo(x, y); pen = true; } else pen = false;
+                    });
+                    L.stroke();
+                };
+                for (let la = -60; la <= 60; la += 30) line(Array.from({ length: 121 }, (_, k) => [la, -180 + k * 3]));
+                for (let lo = -180; lo < 180; lo += 30) line(Array.from({ length: 61 }, (_, k) => [-90 + k * 3, lo]));
+            }
+            // glossy highlight top-left and a soft darker rim: light on a marble
+            const r = Math.min(rad, lens * 1.15);
+            const gl = L.createRadialGradient(c - r * 0.4, c - r * 0.46, 0, c - r * 0.4, c - r * 0.46, r * 0.75);
+            gl.addColorStop(0, `rgba(255,255,255,${dark ? 0.07 : 0.55})`); gl.addColorStop(1, 'rgba(255,255,255,0)');
+            L.fillStyle = gl; L.beginPath(); L.arc(c, c, rad, 0, 7); L.fill();
+            if (!dark) {
+                const lm = L.createRadialGradient(c, c, rad * 0.78, c, c, rad);
+                lm.addColorStop(0, 'rgba(0,0,0,0)'); lm.addColorStop(1, 'rgba(0,0,0,0.05)');
+                L.fillStyle = lm; L.beginPath(); L.arc(c, c, rad, 0, 7); L.fill();
+            }
         }
         ctx.drawImage(landCv, 0, 0);
         const at = pl => { const p = proj(...vec(pl)); if (p[2] <= 0) return null; const x = c + p[0] * rad, y = c - p[1] * rad; return Math.hypot(x - c, y - c) < lens ? [x, y] : null; };
@@ -250,8 +319,7 @@
             tl.forEach(([t, q, col, b]) => label(t, q[0], q[1], col, W, b, taken));
             syncShots(); placeBubble(at, hover >= 0);
             ctx.restore();
-            ctx.strokeStyle = `rgba(${ink},0.12)`; ctx.lineWidth = dpr;
-            ctx.beginPath(); ctx.arc(c, c, lens - dpr / 2, 0, 7); ctx.stroke();
+            edge(c, lens, rad, ink, dark);
             return;
         }
         // faint pins for every other stop
@@ -261,19 +329,32 @@
             const q = at(pl); if (!q) return;
             ctx.fillStyle = `rgba(${ink},0.3)`; ctx.beginPath(); ctx.arc(q[0], q[1], 2.4 * dpr, 0, 7); ctx.fill();
         }));
-        // travel arc from the previous stop
-        if (arcFrom && arcT > 0) {
-            const h = arc(arcFrom, arcTo, arcT, `rgba(${acc},0.85)`, 2 * dpr, [], c, rad, lens);
-            if (h) { ctx.fillStyle = `rgb(${acc})`; ctx.beginPath(); ctx.arc(h[0], h[1], 3 * dpr, 0, 7); ctx.fill(); }
+        // arrival: a ripple runs out through the land dots, and the dots around the city stay raised
+        if (near.length && arriveT >= 0) {
+            const front = arriveT * 15, fade = 1 - arriveT, grow = Math.min(1, arriveT * 3);
+            for (let j = 0; j < near.length; j += 2) {
+                const k = near[j], a = near[j + 1];
+                const b = Math.max(Math.exp(-(((a - front) / 1.4) ** 2)) * fade * 0.9, Math.max(0, 1 - a / 4) * grow * 0.6);
+                if (b < 0.04) continue;
+                const p = proj(vx[k], vy[k], vz[k]); if (p[2] <= 0.02) continue;
+                const x = c + p[0] * rad, y = c - p[1] * rad;
+                if ((x - c) * (x - c) + (y - c) * (y - c) > lens * lens) continue;
+                const sz = dr * (1 + 1.2 * b);
+                ctx.fillStyle = `rgba(${acc},${(0.15 + 0.6 * b).toFixed(3)})`; ctx.fillRect(x - sz / 2, y - sz / 2, sz, sz);
+            }
         }
+        // travel arc from the previous stop, drawn as a beam with a comet head
+        if (arcFrom && arcT > 0) arc(arcFrom, arcTo, arcT, acc, 0.85, 2 * dpr, [], c, rad, lens, 1);
         // talks: dashed arcs out from base, orange rings
         const base = vec(centroid(s.places)), labels = [], talkLabels = [];
         workPts = [];
-        s.talks.forEach(tp => {
-            if (talkT > 0) arc(base, vec(tp), talkT, `rgba(${warm},0.75)`, 1.4 * dpr, [3 * dpr, 4 * dpr], c, rad, lens);
-            const q = at(tp); if (!q || talkT < 1) return;
+        s.talks.forEach((tp, ti) => {
+            const tt = Math.max(0, Math.min(1, talkT - ti * TSTAG));
+            if (tt > 0) arc(base, vec(tp), tt, warm, 0.75, 1.4 * dpr, [3 * dpr, 4 * dpr], c, rad, lens, 0.7);
+            const q = at(tp); if (!q || tt < 1) return;
+            const pop = backOut(Math.min(1, (talkT - ti * TSTAG - 1) / 0.4));   // ring pops in when its arc lands
             ctx.strokeStyle = `rgb(${warm})`; ctx.lineWidth = 1.8 * dpr; ctx.fillStyle = dark ? '#000' : '#fff';
-            ctx.beginPath(); ctx.arc(q[0], q[1], (tp === workHover ? 5 : 3.6) * dpr, 0, 7); ctx.fill(); ctx.stroke();
+            ctx.beginPath(); ctx.arc(q[0], q[1], Math.max(0.1, (tp === workHover ? 5 : 3.6) * dpr * pop), 0, 7); ctx.fill(); ctx.stroke();
             workPts.push([q[0], q[1], tp]);
             talkLabels.push([tp.name.split(',')[0], q, `rgb(${warm})`, false]);
         });
@@ -281,21 +362,44 @@
         const done = new Set();
         s.places.forEach(pl => {
             const q = at(pl); if (!q) return;
-            workPts.push([q[0], q[1], pl]);
-            ctx.fillStyle = `rgb(${acc})`; ctx.beginPath(); ctx.arc(q[0], q[1], (pl === workHover ? 5.6 : 4.4) * dpr, 0, 7); ctx.fill();
-            const k = pulse % 1;
-            ctx.strokeStyle = `rgba(${acc},${0.55 * (1 - k)})`; ctx.lineWidth = 1.5 * dpr;
-            ctx.beginPath(); ctx.arc(q[0], q[1], (5 + k * 14) * dpr, 0, 7); ctx.stroke();
-            const nm = pl.name.split(',')[0]; if (!done.has(nm)) { done.add(nm); labels.push([nm, q, `rgb(${ink})`, true]); }
+            const p = proj(...vec(pl)), tilt = Math.max(0.25, p[2]), rot = Math.atan2(q[1] - c, q[0] - c);
+            const ring = (r0, st) => { ctx.beginPath(); ctx.ellipse(q[0], q[1], r0, r0 * tilt, rot, 0, 7); st ? ctx.stroke() : ctx.fill(); };
+            const k = pulse % 1;                          // pulse ring lies on the ground, foreshortened by the curve
+            ctx.strokeStyle = `rgba(${acc},${0.55 * (1 - k)})`; ctx.lineWidth = 1.5 * dpr; ring((5 + k * 14) * dpr, true);
+            ctx.fillStyle = 'rgba(0,0,0,0.22)'; ring(3.2 * dpr, false);            // contact shadow
+            const hgt = (mini ? 6 : 11) * dpr * Math.min(1, arcT * 1.2), hx = q[0], hy = q[1] - hgt, hr = (pl === workHover ? 5.4 : 4.4) * dpr;
+            ctx.strokeStyle = `rgb(${acc})`; ctx.lineWidth = 1.6 * dpr; ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.moveTo(q[0], q[1]); ctx.lineTo(hx, hy); ctx.stroke();      // stem
+            const hg = ctx.createRadialGradient(hx - hr * 0.35, hy - hr * 0.4, hr * 0.1, hx, hy, hr);   // shaded pin head
+            hg.addColorStop(0, dark ? '#8cc8ff' : '#5aa9ff'); hg.addColorStop(1, `rgb(${acc})`);
+            ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(hx, hy, hr, 0, 7); ctx.fill();
+            workPts.push([hx, hy, pl]);
+            const nm = pl.name.split(',')[0]; if (!done.has(nm)) { done.add(nm); labels.push([nm, [hx, hy], `rgb(${ink})`, true]); }
         });
+        // year badge: a small pill under the city, fades up once the globe has landed
+        let pill = null;
+        const bq = !mini && !s.borrowed && badgeT > 0 && s.span[0] ? at(s.places[0]) : null;
+        if (bq) {
+            const [y0, y1] = s.span, txt = y1 === 9999 ? `${y0} →` : y1 === y0 ? `${y0}` : `${y0} – ${y1}`;
+            ctx.font = `600 ${Math.round(10.5 * dpr)}px -apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, 'Segoe UI', sans-serif`;
+            const e = easeIO(badgeT), tw = ctx.measureText(txt).width, pw = tw + 14 * dpr, ph = 18 * dpr;
+            const px = Math.max(3 * dpr, Math.min(W - pw - 3 * dpr, bq[0] - pw / 2)), py = bq[1] + 13 * dpr + (1 - e) * 6 * dpr;
+            pill = [px, py, px + pw, py + ph];
+            ctx.globalAlpha = e;
+            ctx.fillStyle = dark ? 'rgba(44,44,46,0.92)' : 'rgba(255,255,255,0.94)';
+            ctx.strokeStyle = `rgba(${ink},${dark ? 0.18 : 0.1})`; ctx.lineWidth = dpr;
+            ctx.beginPath(); ctx.roundRect ? ctx.roundRect(px, py, pw, ph, ph / 2) : ctx.rect(px, py, pw, ph); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = `rgb(${ink})`; ctx.textAlign = 'center'; ctx.fillText(txt, px + pw / 2, py + ph / 2 + 3.6 * dpr); ctx.textAlign = 'start';
+            ctx.globalAlpha = 1;
+        }
         if (zoom > 1.6) {                                 // main cities first, then talks where there is room
             const taken = labels.concat(talkLabels).map(([, q]) => [q[0] - 5 * dpr, q[1] - 5 * dpr, q[0] + 5 * dpr, q[1] + 5 * dpr]);
+            if (pill) taken.push(pill);
             labels.concat(talkLabels).forEach(([t, q, col, b]) => label(t, q[0], q[1], col, W, b, taken));
         }
         syncShots(); placeBubble(at, arcT >= 1 && Math.abs(zoom - tZoom) < 0.08);
         ctx.restore();
-        ctx.strokeStyle = `rgba(${ink},0.12)`; ctx.lineWidth = dpr;
-        ctx.beginPath(); ctx.arc(c, c, lens - dpr / 2, 0, 7); ctx.stroke();
+        edge(c, lens, rad, ink, dark);
     }
 
     // animation: fly-to (zoom out while turning, zoom back in on arrival); runs only on screen
@@ -303,26 +407,47 @@
     function frame(now) {
         const dt = Math.min(64, now - (lastT || now)); lastT = now;
         const e = 1 - Math.exp(-dt / 380);
-        if (mode === 'travel' && !drag && !reduce && hover < 0 && now > spinPause) tLon -= dt * 0.006;   // slow spin
-        const dl = ((tLon - lon0 + 540) % 360) - 180;
-        lon0 += dl * e; lat0 += (tLat - lat0) * e;
+        if (inertia && !drag) {                          // a flicked globe keeps rolling and slows down
+            tLon += inertia.vl * dt; tLat = Math.max(-60, Math.min(70, tLat + inertia.va * dt));
+            lon0 = tLon; lat0 = tLat;
+            const k = Math.exp(-dt / 600); inertia.vl *= k; inertia.va *= k;
+            if (Math.abs(inertia.vl) + Math.abs(inertia.va) < 0.003) { inertia = null; spinPause = now + 1500; }
+        }
+        if (mode === 'travel' && !drag && !inertia && !reduce && hover < 0 && now > spinPause) tLon -= dt * 0.006;   // slow spin
+        let want = tZoom;
+        if (fly && mode === 'work') {                   // timed flight between career stops
+            fly.t = Math.min(1, fly.t + dt / fly.dur);
+            const u = easeIO(fly.t), v = slerp(vec(fly), vec({ lat: tLat, lon: tLon }), u);
+            lat0 = Math.asin(Math.max(-1, Math.min(1, v[1]))) / R; lon0 = Math.atan2(v[0], v[2]) / R;
+            const lin = fly.zoom + (tZoom - fly.zoom) * u;
+            const peak = Math.min(lin, 1 + (Math.min(fly.zoom, tZoom) - 1) * Math.exp(-fly.d / 18));   // lift off: see more of the globe
+            const land = fly.t > 0.78 ? Math.sin(Math.PI * (fly.t - 0.78) / 0.22) * 0.04 : 0;           // small push-in as it settles
+            zoom = (lin + (peak - lin) * Math.sin(Math.PI * fly.t)) * (1 + land);
+            if (fly.t >= 1) { fly = null; lon0 = tLon; lat0 = tLat; zoom = tZoom; arriveT = 0; }
+        } else {
+            const dl = ((tLon - lon0 + 540) % 360) - 180;
+            lon0 += dl * e; lat0 += (tLat - lat0) * e;
+            const far0 = angle(vec({ lat: lat0, lon: lon0 }), vec({ lat: tLat, lon: tLon }));
+            want = 1 + (tZoom - 1) * Math.exp(-far0 / 18);   // far away → whole globe, arriving → zoom in
+            zoom += (want - zoom) * (1 - Math.exp(-dt / 260));
+        }
         const far = angle(vec({ lat: lat0, lon: lon0 }), vec({ lat: tLat, lon: tLon }));
-        const want = 1 + (tZoom - 1) * Math.exp(-far / 18);   // far away → whole globe, arriving → zoom in
-        zoom += (want - zoom) * (1 - Math.exp(-dt / 260));
-        if (arcT < 1) arcT = Math.min(1, arcT + dt / 1100);
-        else if (talkT < 1 && far < 6) talkT = Math.min(1, talkT + dt / 900);
+        if (arcT < 1) arcT = Math.min(1, arcT + dt / (fly ? fly.dur * 0.95 : 1100));
+        else if (talkT < talkEnd && far < 6) talkT = Math.min(talkEnd, talkT + dt / 900);
+        if (arriveT >= 0 && arriveT < 1) arriveT = Math.min(1, arriveT + dt / 1500);
+        if (arriveT >= 0 && badgeT < 1) badgeT = Math.min(1, badgeT + dt / 550);
         if (!reduce) pulse += dt / 1600;
         draw();
-        const moving = far > 0.05 || Math.abs(want - zoom) > 0.005 || arcT < 1 || talkT < 1 || mode === 'travel';
+        const moving = fly || inertia || far > 0.05 || Math.abs(want - zoom) > 0.005 || arcT < 1 || talkT < talkEnd || (arriveT >= 0 && arriveT < 1) || badgeT < 1 || mode === 'travel';
         if (visible && (moving || !reduce)) requestAnimationFrame(frame); else running = false;
     }
     function kick() {
         if (!running && visible) { running = true; lastT = 0; requestAnimationFrame(frame); }
-        else if (!visible && dirty) { lon0 = tLon; lat0 = tLat; zoom = tZoom; arcT = talkT = 1; draw(); dirty = false; }
+        else if (!visible && dirty) { lon0 = tLon; lat0 = tLat; zoom = tZoom; arcT = 1; talkT = 99; fly = null; arriveT = 1; badgeT = 1; draw(); dirty = false; }
     }
 
     resize();
-    pick(); lon0 = tLon; lat0 = tLat; zoom = tZoom; arcT = talkT = 1;
+    pick(); lon0 = tLon; lat0 = tLat; zoom = tZoom; arcT = 1; talkT = 99; fly = null; arriveT = 1; badgeT = 1;
     if ('IntersectionObserver' in window) {
         new IntersectionObserver(([en]) => { visible = en.isIntersecting; kick(); }, { rootMargin: '100px' }).observe(box);
     } else { visible = true; kick(); }
@@ -375,13 +500,15 @@
         const s = stops[active];
         window.cvPhotos.open(ph.map(src => ({ src, title: pl.name, text: s && s.talks.includes(pl) ? TT('Talks') : (s ? s.dates : ''), el: bub })), 0);
     });
-    cv.addEventListener('pointerdown', e => { if (mode !== 'travel') return; drag = { x: e.clientX, y: e.clientY, lon: tLon, lat: tLat, moved: false }; cv.setPointerCapture(e.pointerId); });
+    cv.addEventListener('pointerdown', e => { if (mode !== 'travel') return; inertia = null; drag = { x: e.clientX, y: e.clientY, lon: tLon, lat: tLat, moved: false, t: performance.now(), vl: 0, va: 0 }; cv.setPointerCapture(e.pointerId); });
     cv.addEventListener('pointermove', e => {
         if (mode !== 'travel') return;
         if (drag) {
             const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
             if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
-            tLon = drag.lon - dx * 0.45; tLat = Math.max(-60, Math.min(70, drag.lat + dy * 0.35));
+            const nl = drag.lon - dx * 0.45, na = Math.max(-60, Math.min(70, drag.lat + dy * 0.35)), now = performance.now(), dt = Math.max(1, now - drag.t);
+            drag.vl = drag.vl * 0.6 + ((nl - tLon) / dt) * 0.4; drag.va = drag.va * 0.6 + ((na - tLat) / dt) * 0.4; drag.t = now;   // smoothed fling speed
+            tLon = nl; tLat = na;
             lon0 = tLon; lat0 = tLat; kick(); return;
         }
         const h = hit(e);
@@ -392,7 +519,9 @@
     const end = e => {
         if (!drag) return;
         if (!drag.moved) { hover = hit(e); travelLabel(); }   // tap selects a pin on touch screens
-        drag = null; spinPause = performance.now() + 2500;
+        else if (!reduce && performance.now() - drag.t < 80 && Math.abs(drag.vl) + Math.abs(drag.va) > 0.01)
+            inertia = { vl: Math.max(-0.6, Math.min(0.6, drag.vl)), va: Math.max(-0.3, Math.min(0.3, drag.va)) };
+        drag = null; spinPause = performance.now() + 2500; kick();
     };
     cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
     cv.addEventListener('pointerleave', e => {

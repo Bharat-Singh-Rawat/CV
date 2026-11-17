@@ -109,6 +109,7 @@ img { display: block; max-width: 100%; }
 .about-photo { margin: 0; aspect-ratio: 4 / 5; border-radius: var(--radius); box-shadow: var(--shadow); transition: box-shadow 0.6s var(--ease); }
 .about-photo:hover { box-shadow: var(--shadow-hover); }
 .about-photo:hover img { transform: scale(1.04); }
+.about-photo img { filter: grayscale(calc(1 - var(--colour, 0))); }
 .about-title { font-size: clamp(2.4rem, 5vw, 3.6rem); letter-spacing: -0.04em; line-height: 1.05; margin: 0 0 22px; font-weight: 700; }
 .about-body { font-size: clamp(1.15rem, 1.7vw, 1.35rem); line-height: 1.5; color: var(--muted); margin: 0 0 28px; font-weight: 500; letter-spacing: -0.015em; }
 
@@ -189,6 +190,19 @@ img { display: block; max-width: 100%; }
 }
 .tile.active p, .tile:hover p { max-height: 6em; opacity: 1; transform: none; margin-top: 8px; }
 .tile:hover img { transform: scale(1.04); }
+/* lab gallery: slow Ken Burns drift on the centre photo, spotlight, hover tilt + shine */
+.tile.active > img:first-child { animation: kenburns 18s ease-in-out infinite alternate; }
+@keyframes kenburns { from { transform: scale(1.02) translate(0, 0); } to { transform: scale(1.1) translate(-2%, -1.6%); } }
+.tile .shine { position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0; transition: opacity 0.5s var(--ease);
+    background: radial-gradient(circle at var(--mx, 50%) var(--my, 30%), rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05) 35%, transparent 60%); }
+.tile:hover .shine { opacity: 1; }
+.tile figcaption { z-index: 3; }
+.lab.dark .lab-pin::before { content: ''; position: absolute; inset: 0; pointer-events: none;
+    background:
+        radial-gradient(ellipse 34% 42% at 50% 64%, rgba(255, 255, 255, 0.09), transparent 72%),
+        conic-gradient(from 162deg at 50% -6%, transparent 0deg, rgba(255, 255, 255, 0.045) 12deg, rgba(255, 255, 255, 0.07) 18deg, rgba(255, 255, 255, 0.045) 24deg, transparent 36deg); }
+.lab-pin > * { position: relative; z-index: 1; }
+@media (prefers-reduced-motion: reduce) { .tile.active > img:first-child { animation: none; } }
 .lab-progress { width: min(240px, 50vw); height: 3px; margin: clamp(18px, 4vh, 40px) auto 0; border-radius: 3px; background: rgba(0, 0, 0, 0.08); overflow: hidden; }
 .lab-progress span { display: block; height: 100%; width: 100%; background: var(--text); transform-origin: left; transform: scaleX(0); }
 /* static fallback (reduced motion / no JS): plain horizontal scroller */

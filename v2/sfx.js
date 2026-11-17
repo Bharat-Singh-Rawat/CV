@@ -58,7 +58,18 @@
     const sfx = {
         click() { if (quiet()) return; const t = ac.currentTime; tone(jitter(620), t, 0.05, 0.16, 'sine', 260); noiseTick(t, 0.018, 0.07, 2500); },
         hover() { if (quiet()) return; const t = ac.currentTime; tone(jitter(2300), t, 0.018, 0.022, 'sine'); },
-        toggle() { if (quiet()) return; const t = ac.currentTime; tone(jitter(880), t, 0.05, 0.08, 'triangle'); tone(jitter(1320), t + 0.045, 0.07, 0.07, 'triangle'); }
+        toggle() { if (quiet()) return; const t = ac.currentTime; tone(jitter(880), t, 0.05, 0.08, 'triangle'); tone(jitter(1320), t + 0.045, 0.07, 0.07, 'triangle'); },
+        // library room tone: a distant clock and the odd page turning, very quiet
+        clock(tock) { if (quiet()) return; const t = ac.currentTime; noiseTick(t, 0.012, 0.035, tock ? 2200 : 3200); tone(tock ? 1850 : 2450, t, 0.02, 0.006, 'sine'); },
+        rustle() {
+            if (quiet()) return;
+            const t = ac.currentTime, dur = 0.45 + Math.random() * 0.3, n = Math.ceil(ac.sampleRate * dur);
+            const buf = ac.createBuffer(1, n, ac.sampleRate), d = buf.getChannelData(0);
+            for (let i = 0; i < n; i++) { const u = i / n; d[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * u) * (0.6 + 0.4 * Math.sin(u * 40 + Math.random())); }
+            const src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+            src.buffer = buf; f.type = 'bandpass'; f.frequency.value = 2600 + Math.random() * 1500; f.Q.value = 0.7; g.gain.value = 0.045;
+            src.connect(f); f.connect(g); g.connect(master); src.start(t);
+        }
     };
 
     // ---- hover: only key items, only when entering a new one, at most every 70 ms ----

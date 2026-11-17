@@ -47,6 +47,28 @@
     $('about-body').innerHTML = esc(about.text || strip(P.summary));
     if (about.photo) $('about-photo').innerHTML = `<div class="zoom" style="height:100%"><img src="${esc(about.photo)}" srcset="${esc(about.photo.replace(/\.webp$/, '-sm.webp'))} 540w, ${esc(about.photo)} 900w" sizes="(max-width: 1000px) 90vw, 440px" width="900" height="1200" alt="${esc(about.photoAlt || '')}" decoding="async"></div>`;
     else $('about-photo').remove();
+    // profile photo: starts black & white, colour fades in gradually as you scroll it up the screen
+    (() => {
+        const fig = $('about-photo');
+        if (!fig || !fig.isConnected) return;
+        let cur = 0, goal = 0, raf = 0;
+        const target = () => {
+            const r = fig.getBoundingClientRect(), vh = innerHeight;
+            // 0 when the top enters the bottom of the screen, 1 when the photo's centre reaches ~40% from the top
+            const p = (vh - r.top) / (vh * 0.6 + r.height / 2);
+            return Math.min(1, Math.max(0, p));
+        };
+        const tick = () => {
+            cur += (goal - cur) * 0.06;                                      // slow follow, so the colour seeps in
+            if (Math.abs(goal - cur) < 0.002) cur = goal;
+            fig.style.setProperty('--colour', cur.toFixed(3));
+            raf = cur === goal ? 0 : requestAnimationFrame(tick);
+        };
+        const kick = () => { goal = target(); if (!raf) raf = requestAnimationFrame(tick); };
+        addEventListener('scroll', kick, { passive: true });
+        addEventListener('resize', kick);
+        kick();
+    })();
     $('about-links').innerHTML = extLinks();
 
     // ---------- career beamline (newest first) ----------
@@ -101,6 +123,7 @@
     track.innerHTML = (P.gallery || []).map(g => `
         <figure class="tile">
             ${img(g.img, g.title)}
+            <span class="shine" aria-hidden="true"></span>
             <figcaption><h3>${esc(g.title)}</h3><p>${esc(g.text)}</p></figcaption>
         </figure>`).join('');
     // pinned row: page scroll slides the cards sideways, the centred one grows (used by the lab gallery and the offer cards)
@@ -111,6 +134,29 @@
     let geo = { centers: [], widths: [], step: 1 }, bestIdx = -1;
     const labStatic = reduceMotion || !tiles.length;                        // reduced motion: natural swipe row
     const pin = lab.querySelector('.lab-pin');
+    // desktop: the photo under the mouse tilts towards it, with a soft glass shine
+    const tilt = track.id === 'gallery' && !labStatic && !touchSmall && matchMedia('(hover: hover) and (pointer: fine)').matches;
+    if (tilt) {
+        const st = new Map(); let traf = 0;
+        const step = () => {
+            traf = 0; let more = false;
+            st.forEach((v, t) => {
+                v.x += (v.tx - v.x) * 0.12; v.y += (v.ty - v.y) * 0.12;
+                t.style.setProperty('--ry', v.x.toFixed(2) + 'deg'); t.style.setProperty('--rx', v.y.toFixed(2) + 'deg');
+                if (Math.abs(v.tx - v.x) + Math.abs(v.ty - v.y) > 0.02) more = true; else if (!v.tx && !v.ty) st.delete(t);
+            });
+            if (more) traf = requestAnimationFrame(step);
+        };
+        tiles.forEach(t => {
+            t.addEventListener('pointermove', e => {
+                const r = t.getBoundingClientRect(), px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
+                const v = st.get(t) || { x: 0, y: 0 }; v.tx = (px - 0.5) * 9; v.ty = -(py - 0.5) * 7; st.set(t, v);
+                t.style.setProperty('--mx', (px * 100).toFixed(1) + '%'); t.style.setProperty('--my', (py * 100).toFixed(1) + '%');
+                if (!traf) traf = requestAnimationFrame(step);
+            });
+            t.addEventListener('pointerleave', () => { const v = st.get(t); if (v) { v.tx = v.ty = 0; if (!traf) traf = requestAnimationFrame(step); } });
+        });
+    }
     const pinH = () => (pin && pin.offsetHeight) || window.innerHeight;     // 100svh: stable while phone toolbars slide
     if (!tiles.length) { lab.remove(); return; }
     if (labStatic) lab.classList.add('static');
@@ -145,7 +191,7 @@
             const n = Math.min(2.2, Math.abs(off) / geo.step);
             const sc = 1 - 0.38 * Math.min(1, n) - 0.08 * Math.max(0, n - 1);
             const pull = -Math.sign(off) * (1 - sc) * geo.widths[k] * 0.42;
-            tiles[k].style.transform = `translate3d(${pull.toFixed(1)}px, 0, 0) scale(${sc.toFixed(4)})`;
+            tiles[k].style.transform = `translate3d(${pull.toFixed(1)}px, 0, 0) scale(${sc.toFixed(4)})` + (tilt ? ' perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))' : '');
             tiles[k].style.opacity = (1 - 0.35 * Math.min(1, n) - 0.25 * Math.max(0, n - 1)).toFixed(3);
             if (Math.abs(off) < bestD) { bestD = Math.abs(off); best = k; }
         }
