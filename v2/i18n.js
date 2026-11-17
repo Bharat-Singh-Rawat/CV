@@ -99,7 +99,7 @@
         gu: {
             'Skip to content': 'મુખ્ય સામગ્રી પર જાઓ', 'About': 'મારા વિશે', 'Career': 'કારકિર્દી', 'Research': 'સંશોધન',
             'Lab': 'પ્રયોગશાળા', 'Videos': 'વીડિયો', 'Publications': 'પ્રકાશનો', 'Offer': 'સેવાઓ', 'Plain CV': 'સાદો CV',
-            'Contact': 'સંપર્ક', 'Download CV (PDF)': 'CV ડાઉનલોડ કરો (PDF)', 'Get in touch': 'સંપર્ક કરો', "Hi, I'm": 'નમસ્તે, હું',
+            'Contact': 'સંપર્ક', 'Download CV (PDF)': 'CV ડાઉનલોડ કરો (PDF)', 'Get in touch': 'સંપર્ક કરો', "Hi, I'm": 'નમસ્તે, મારું નામ',
             'The beamline so far.': 'મારી સફર.', 'Highlights.': 'મુખ્ય કાર્યો.', 'In the lab': 'પ્રયોગશાળામાં',
             "Instruments I've built.": 'મેં બનાવેલાં ઉપકરણો.',
             'Ion sources, grids and the diagnostics that measure their beams.': 'આયન સ્રોતો, ગ્રિડ અને તેમના બીમ માપતાં ડાયગ્નોસ્ટિક્સ.',
@@ -478,7 +478,7 @@
         const set = (obj, src, keys) => keys.forEach(k => { if (src && src[k] !== undefined) obj[k] = src[k]; });
         set(P, L, ['title', 'summary', 'expertise']);
         if (L.experience && L.experience[0] && L.experience[0].role) document.title = document.title.replace('Accelerator Physicist', L.experience[0].role);
-        const NAMES = { ru: 'БХАРАТ СИНГХ РАВАТ', gu: 'ભરત સિંહ રાવત' };
+        const NAMES = { ru: 'БХАРАТ СИНГХ РАВАТ', gu: 'ભારત સિંહ રાવત' };
         if (NAMES[LANG] && P.name) {
             P.nameEn = P.name;
             P.name = P.name.replace(/^[^,]+/, NAMES[LANG]);

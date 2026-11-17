@@ -16,7 +16,7 @@
     window.LANG = LANG;
     document.documentElement.lang = LANG;
 
-    const NAME = { en: 'Bharat Singh Rawat', es: 'Bharat Singh Rawat', fr: 'Bharat Singh Rawat', ru: 'Бхарат Сингх Рават', gu: 'ભરત સિંહ રાવત' };
+    const NAME = { en: 'Bharat Singh Rawat', es: 'Bharat Singh Rawat', fr: 'Bharat Singh Rawat', ru: 'Бхарат Сингх Рават', gu: 'ભારત સિંહ રાવત' };
     window.LNAME = NAME[LANG];
 
     // English templates (the keys that are not plain text)

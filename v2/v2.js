@@ -69,7 +69,7 @@
 
     // ---------- about ----------
     const about = P.about || {};
-    $('about-first').textContent = words[0];
+    $('about-first').textContent = words[0] + (LANG === 'gu' ? ' છે' : '');      // Gujarati: «મારું નામ ભારત છે»
     $('about-body').innerHTML = esc(about.text || strip(P.summary));
     if (about.photo) $('about-photo').innerHTML = `<div class="zoom" style="height:100%"><img src="${esc(about.photo)}" srcset="${esc(about.photo.replace(/\.webp$/, '-sm.webp'))} 540w, ${esc(about.photo)} 900w" sizes="(max-width: 1000px) 90vw, 440px" width="900" height="1200" alt="${esc(about.photoAlt || '')}" decoding="async"></div>`;
     else $('about-photo').remove();
