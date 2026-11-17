@@ -129,6 +129,14 @@
         const v = (UI[LANG] && UI[LANG][s] !== undefined) ? UI[LANG][s] : (EN[s] !== undefined ? EN[s] : s);
         return typeof v === 'function' ? v(...args) : v;
     };
+    // the news strip, the Outreach menu and the side pages (library, news)
+    const MORE = {
+        es: { 'In the news.': 'En los medios.', 'See all stories': 'Ver todas las noticias', 'Read the stories': 'Leer las noticias', 'News': 'Noticias', 'Outreach': 'Divulgación' },
+        ru: { 'In the news.': 'В новостях.', 'See all stories': 'Все статьи', 'Read the stories': 'Читать статьи', 'News': 'Новости', 'Outreach': 'Популяризация' },
+        fr: { 'In the news.': 'Dans la presse.', 'See all stories': 'Voir tous les articles', 'Read the stories': 'Lire les articles', 'News': 'Presse', 'Outreach': 'Vulgarisation' },
+        gu: { 'In the news.': 'સમાચારમાં.', 'See all stories': 'બધા લેખો જુઓ', 'Read the stories': 'લેખો વાંચો', 'News': 'સમાચાર', 'Outreach': 'જનજાગૃતિ' }
+    };
+    Object.keys(MORE).forEach(l => { UI[l] = Object.assign({}, MORE[l], UI[l]); });
     window.T = T;
 
     // ---------------------------------------------------------------- content overrides
@@ -465,9 +473,17 @@
 
     const P = window.PROFILE;
     const L = C[LANG];
+    const titleName = n => n.toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase());
     if (P && L) {
         const set = (obj, src, keys) => keys.forEach(k => { if (src && src[k] !== undefined) obj[k] = src[k]; });
         set(P, L, ['title', 'summary', 'expertise']);
+        if (L.experience && L.experience[0] && L.experience[0].role) document.title = document.title.replace('Accelerator Physicist', L.experience[0].role);
+        const NAMES = { ru: 'БХАРАТ СИНГХ РАВАТ', gu: 'ભરત સિંહ રાવત' };
+        if (NAMES[LANG] && P.name) {
+            P.nameEn = P.name;
+            P.name = P.name.replace(/^[^,]+/, NAMES[LANG]);
+            document.title = document.title.replace('Bharat Singh Rawat', titleName(NAMES[LANG]));
+        }
         if (P.about && L.about) P.about.text = L.about;
         (P.experience || []).forEach((e, i) => set(e, L.experience[i], ['role', 'org', 'bullets']));
         (P.education || []).forEach((e, i) => set(e, L.education[i], ['role', 'org', 'bullets']));

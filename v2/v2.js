@@ -684,4 +684,16 @@
         }).observe(hero);
     }
     size(); draw();
+
+    // ---------- headings with one long word (e.g. Russian «Опубликованные») ----------
+    // a word cannot wrap, so in the narrow side column it would run into the list next to it:
+    // shrink that heading just enough for its longest word to fit
+    const fitHeads = () => document.querySelectorAll('.sec-head h2').forEach(h => {
+        h.style.fontSize = '';
+        let fs = parseFloat(getComputedStyle(h).fontSize);
+        while (h.scrollWidth > h.clientWidth + 1 && fs > 18) { fs -= 1; h.style.fontSize = fs + 'px'; }
+    });
+    fitHeads();
+    document.fonts && document.fonts.ready.then(fitHeads);
+    let fitT = 0; window.addEventListener('resize', () => { clearTimeout(fitT); fitT = setTimeout(fitHeads, 150); });
 })();

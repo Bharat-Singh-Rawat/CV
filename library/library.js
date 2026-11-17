@@ -8,6 +8,12 @@
    ===================================================================== */
 (function () {
     const L = window.LIBRARY || { shelves: [], books: [] };
+    // languages (pages-i18n.js): shelf names and blurbs translated; book titles and authors stay in English
+    const LT = window.LT || ((s, ...a) => s), LANG = window.LANG || 'en', NAME = window.LNAME || 'Bharat Singh Rawat';
+    const ABOUT = (window.LIBRARY_ABOUT || {})[LANG] || {};
+    L.shelves.forEach(s => { s.name = LT(s.name); });
+    L.books.forEach(b => { if (ABOUT[b.id]) b.about = ABOUT[b.id]; });
+    if (window.LTPAGE) { window.LTPAGE(); document.title = LT('libTitle', NAME); }
     const root = document.documentElement;
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const touch = matchMedia('(hover: none) and (pointer: coarse)').matches;
@@ -49,7 +55,7 @@
         const [sc, ink] = monoSpine(b);
         const author = b.author.split(/,|&/)[0].trim().split(' ').pop();
         return `<div class="book real" tabindex="0" role="button" data-i="${i}" ${ink ? `data-ink="${ink}"` : ''}
-            aria-label="${esc(b.title)} by ${esc(b.author)}" style="--h:${h}px;--w:${w}px;--d:${d}px;--c:${sc};${img}">
+            aria-label="${esc(LT('bookBy', b.title, b.author))}" style="--h:${h}px;--w:${w}px;--d:${d}px;--c:${sc};${img}">
             ${lite ? '' : '<div class="top"></div><div class="side"></div>'}
             <div class="spine"><span class="t">${esc(b.title)}</span><span class="a">${esc(author)}</span></div></div>`;
     };
@@ -78,7 +84,7 @@
             put('<div class="bookend" aria-hidden="true"></div>', 26);
         }
         if (opts.stack) put(stack(), 140);
-        if (opts.secret) put(`<div class="book filler secret" role="button" tabindex="0" aria-label="A book that says: do not pull" style="--h:158px;--w:30px;--d:114px;--c:#ff3b30"><div class="top"></div><div class="side"></div><div class="spine"><span class="t" style="display:block;font-size:8px;letter-spacing:.2em">DO NOT PULL</span></div></div>`, 30);
+        if (opts.secret) put(`<div class="book filler secret" role="button" tabindex="0" aria-label="${LT('A book that says: do not pull')}" style="--h:158px;--w:30px;--d:114px;--c:#ff3b30"><div class="top"></div><div class="side"></div><div class="spine"><span class="t" style="display:block;font-size:8px;letter-spacing:.2em">${LT('DO NOT PULL')}</span></div></div>`, 30);
         let tail = '';
         if (opts.object && !out.includes('class="obj"')) { tail = OBJ[opts.object]; used += opts.object === 'globe' ? 90 : 70; }
         while (used < INNER - 26) {
@@ -111,10 +117,10 @@
         })).join('');
         items.push({ name: sec.name, x: pos + BAY / 2 });
         html.push(`<section class="bay lit${secret ? ' secret-bay' : ''}" data-sec="${si}" aria-label="${esc(sec.name)}">
-            <button type="button" class="lamp" aria-label="Switch the lamp over ${esc(sec.name)}"><span class="cord"></span><span class="shade-top"></span><span class="bulb"></span></button>
+            <button type="button" class="lamp" aria-label="${esc(LT('lampOver', sec.name))}"><span class="cord"></span><span class="shade-top"></span><span class="bulb"></span></button>
             <div class="crown"></div><div class="sign">${esc(sec.name)}</div>
-            ${secret ? `<a class="passage" href="/CV/#retro" aria-label="Secret passage">
-                 <span>Secret passage</span><b>Play Bio Menace ▸</b></a>` : ''}
+            ${secret ? `<a class="passage" href="/CV/#retro" aria-label="${LT('Secret passage')}">
+                 <span>${LT('Secret passage')}</span><b>${LT('Play Bio Menace ▸')}</b></a>` : ''}
             <div class="case">${shelvesHtml}</div><div class="plinth"></div>
             <div class="glow"></div><div class="shade"></div></section>`);
         pos += BAY + 24;
@@ -124,9 +130,9 @@
         } else html.push('<div style="width:24px;flex:none"></div>');
     });
     const NOOK = pos;                      // the study table sits at NOOK + 300 … NOOK + 800
-    items.push({ name: 'Reading nook', x: pos + 380 });
+    items.push({ name: LT('Reading nook'), x: pos + 380 });
     html.push(`<div class="nook">
-        <div class="note"><h2>More books are coming.</h2><p>The librarian is still collecting. Take any book off the shelves, or <a href="/CV/">go back to the CV</a>.</p></div>
+        <div class="note"><h2>${LT('More books are coming.')}</h2><p>${LT('noteP')}</p></div>
         <canvas class="desk-scene" id="deskScene" width="60" height="46" aria-hidden="true"></canvas></div>`);
     pos += 760;
     aisle.innerHTML = html.join('');
@@ -136,7 +142,7 @@
     // every book you open lands on the cart (remembered in this browser); click one to open it again
     const cart = document.createElement('div');
     cart.className = 'cart'; cart.id = 'cart';
-    cart.innerHTML = `<div class="cart-head"><b>Your reading pile</b><button type="button" class="cart-clear" aria-label="Clear the pile">Clear</button></div>
+    cart.innerHTML = `<div class="cart-head"><b>${LT('Your reading pile')}</b><button type="button" class="cart-clear" aria-label="${LT('Clear the pile')}">${LT('Clear')}</button></div>
         <div class="cart-pile" id="pile"></div>
         <svg class="cart-frame" viewBox="0 0 220 70" aria-hidden="true">
             <rect x="6" y="0" width="208" height="8" rx="3" fill="currentColor"/>
@@ -151,7 +157,7 @@
         pileEl.innerHTML = pile.length ? pile.map(i => {
             const b = books[i], [c, ink] = monoSpine(b);
             return `<button type="button" class="pile-book${i === added ? ' drop' : ''}" data-i="${i}" style="--c:${c};--w:${150 + (i * 37) % 40}px"${ink ? ' data-ink="light"' : ''} title="${esc(b.title)}">${esc(b.title)}</button>`;
-        }).join('') : '<span class="pile-empty">Books you open land here</span>';
+        }).join('') : `<span class="pile-empty">${LT('Books you open land here')}</span>`;
         cart.classList.toggle('has', pile.length > 0);
     }
     function addToPile(i) {
@@ -163,7 +169,7 @@
     pileEl.addEventListener('click', e => { const b = e.target.closest('.pile-book'); if (b) openDesk(+b.dataset.i, aisle.querySelector(`.book.real[data-i="${b.dataset.i}"]`)); });
     cart.querySelector('.cart-clear').addEventListener('click', () => { pile = []; try { localStorage.removeItem('lib-pile'); } catch (e) {} drawPile(); });
     drawPile();
-    if (touch) $('hint').textContent = 'Swipe to walk the aisle · tap a book to take it to the desk';
+    if (touch) $('hint').textContent = LT('Swipe to walk the aisle · tap a book to take it to the desk');
 
     // minimap
     const mm = $('minimap');
@@ -245,7 +251,7 @@
     let tagFor = null;
     function showTag(el) {
         const b = books[+el.dataset.i]; tagFor = el;
-        const has = b.pdf ? '<i>Free PDF ↓</i>' : b.web ? `<i>Free at ${esc(b.from || 'the web')}</i>` : b.get ? `<i>${/open library/i.test(b.from) ? 'Find it online ↗' : 'PDF at ' + esc(b.from)}</i>` : '';
+        const has = b.pdf ? `<i>${LT('Free PDF ↓')}</i>` : b.web ? `<i>${b.from ? esc(LT('freeAt', b.from)) : LT('Free online')}</i>` : b.get ? `<i>${/open library/i.test(b.from) ? LT('Find it online ↗') : esc(LT('pdfAt', b.from))}</i>` : '';
         tag.innerHTML = `<b>${esc(b.title)}</b><span>${esc(b.author)} · ${b.year}</span>${has}`;
         const r = el.getBoundingClientRect();
         tag.style.left = Math.max(150, Math.min(innerWidth - 150, r.left + r.width / 2)) + 'px';
@@ -324,7 +330,7 @@
     const right = $('rightPage');
     let deskOpen = false, deskI = 0, deskT = 0, lastFocus = null;
     const ORDER = books.map((b, i) => i);
-    const ex = `<div class="exlibris"><small>Ex libris</small><b>Bharat Singh Rawat</b><em>Accelerator physicist</em>
+    const ex = `<div class="exlibris"><small>Ex libris</small><b>${NAME}</b><em>${LT('Accelerator physicist')}</em>
         <img class="exlibris-me" src="/CV/library/me-pixel.png?v=3" alt="" width="56" height="56"></div>`;
     fin.innerHTML = ex;
     function fill(i) {
@@ -334,10 +340,10 @@
         ob.style.setProperty('--img', b.cover === false ? 'none' : `url('/CV/library/covers/${b.id}.webp')`);
         fout.innerHTML = b.cover === false ? `<div style="height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:14px;padding:30px;text-align:center;color:#f5f5f7;background:linear-gradient(90deg,rgba(255,255,255,.08),transparent 10%),#1d1d1f;border-radius:inherit"><b style="font-size:28px;line-height:1.1;letter-spacing:-.02em;font-weight:600">${esc(b.title)}</b><span style="font-size:14px;color:#a1a1a6">${esc(b.author)}</span></div>` : '';
         const acts = [];
-        if (b.pdf) acts.push(`<a href="${esc(b.pdf)}" target="_blank" rel="noopener" download>Download PDF ↓</a>`);
-        if (b.web) acts.push(`<a href="${esc(b.web)}" target="_blank" rel="noopener"${b.pdf ? ' class="ghost"' : ''}>${b.from ? 'Free at ' + esc(b.from) : 'Read online'} ↗</a>`);
-        if (b.get) acts.push(`<a href="${esc(b.get)}" target="_blank" rel="noopener"${acts.length ? ' class="ghost"' : ''}>${/open library/i.test(b.from) ? 'Find it online' : 'Download at ' + esc(b.from)} ↗</a>`);
-        right.innerHTML = `<span class="kicker">${esc(sec)}</span><h2>${esc(b.title)}</h2><div class="by">${esc(b.author)}</div><div class="yr">First published ${b.year}</div>
+        if (b.pdf) acts.push(`<a href="${esc(b.pdf)}" target="_blank" rel="noopener" download>${LT('Download PDF ↓')}</a>`);
+        if (b.web) acts.push(`<a href="${esc(b.web)}" target="_blank" rel="noopener"${b.pdf ? ' class="ghost"' : ''}>${b.from ? esc(LT('freeAt', b.from)) : LT('Read online')} ↗</a>`);
+        if (b.get) acts.push(`<a href="${esc(b.get)}" target="_blank" rel="noopener"${acts.length ? ' class="ghost"' : ''}>${/open library/i.test(b.from) ? LT('Find it online') : esc(LT('downloadAt', b.from))} ↗</a>`);
+        right.innerHTML = `<span class="kicker">${esc(sec)}</span><h2>${esc(b.title)}</h2><div class="by">${esc(b.author)}</div><div class="yr">${LT('firstPub', b.year)}</div>
             <div class="rule"></div><p>${esc(b.about || '')}</p><div class="acts">${acts.join('')}</div>`;
     }
     function openDesk(i, fromEl) {
@@ -509,7 +515,7 @@
     const L0 = x0 + 40, L1 = NOOK + 460;      // L1 = the chair at the computer                 // walkable range; L1 = in front of the study table
     const bayXs = items.slice(0, -1).map(it => it.x);
     const lb = { x: x0 + BAY / 2, to: null, pose: 'stand', carry: false, dir: 2, anim: 0, wait: 600, step: 0, task: null, t0: 0 };
-    const say = (txt, ms = 1800) => { bubble.textContent = txt; bubble.classList.add('show'); clearTimeout(say.t); say.t = setTimeout(() => bubble.classList.remove('show'), ms); };
+    const say = (txt, ms = 1800) => { bubble.textContent = LT(txt); bubble.classList.add('show'); clearTimeout(say.t); say.t = setTimeout(() => bubble.classList.remove('show'), ms); };
     function tidyNear(x) {          // nudge a few old volumes on the bookcase in front of her
         const bay = [...aisle.querySelectorAll('.bay')].find(b => Math.abs(b.offsetLeft + BAY / 2 - x) < BAY / 2 + 20);
         if (!bay) return;

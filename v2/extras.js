@@ -17,7 +17,7 @@
 
     // ------------------------------------------------------------- 1. vCard
     function vcard() {
-        const bare = P.name.replace(/,.*$/, '').trim(), parts = bare.split(/\s+/).map(w => w[0] + w.slice(1).toLowerCase());
+        const bare = (P.nameEn || P.name).replace(/,.*$/, '').trim(), parts = bare.split(/\s+/).map(w => w[0] + w.slice(1).toLowerCase());
         const v = s => String(s).replace(/([,;\\])/g, '\\$1');
         const now = (P.experience || [])[0] || {};
         const li = links.find(l => /linkedin/i.test(l.url));

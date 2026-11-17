@@ -105,12 +105,15 @@
     </main>
 
     <script src="/Dossier/profile.js?v=20261118d"></script>
+    <script src="/CV/v2/pages-i18n.js?v=20261118a"></script>
     <script src="/CV/v2/sfx.js?v=20261117z"></script>
     <script>
         (function () {
+            var LT = window.LT || function (s) { return s; }, NAME = window.LNAME || 'Bharat Singh Rawat';
+            if (window.LTPAGE) { window.LTPAGE(); document.title = LT('newsTitle', NAME); }
             var P = window.PROFILE || {}, list = (P.news || []).slice().sort(function (a, b) { return b.date.localeCompare(a.date); });
             var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
-            var fmt = function (d) { var t = new Date(d + 'T12:00:00'); return isNaN(t) ? d : t.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }); };
+            var fmt = function (d) { return window.LDATE ? window.LDATE(d, { day: 'numeric', month: 'long', year: 'numeric' }) : d; };
             var years = [];
             list.forEach(function (n) { var y = n.date.slice(0, 4); if (years.indexOf(y) < 0) years.push(y); });
             document.getElementById('news').innerHTML = years.map(function (y) {
@@ -118,10 +121,10 @@
                     return '<a class="item" href="' + esc(n.url) + '" target="_blank" rel="noopener">' +
                         '<span class="mark" aria-hidden="true">' + esc(n.mark || n.source.slice(0, 2)) + '</span>' +
                         '<span><span class="meta"><span class="src">' + esc(n.source) + '</span><span>' + fmt(n.date) + '</span>' +
-                        (n.kind ? '<span class="pill">' + esc(n.kind) + '</span>' : '') +
-                        (n.named ? '<span class="me" data-tip="Mentions my work" role="img" aria-label="Mentions my work"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5.2" r="2.7"/><path d="M2.8 14c.6-2.8 2.7-4.4 5.2-4.4s4.6 1.6 5.2 4.4"/></svg></span>' : '') + '</span>' +
+                        (n.kind ? '<span class="pill">' + esc(LT(n.kind)) + '</span>' : '') +
+                        (n.named ? '<span class="me" data-tip="' + esc(LT('Mentions my work')) + '" role="img" aria-label="' + esc(LT('Mentions my work')) + '"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5.2" r="2.7"/><path d="M2.8 14c.6-2.8 2.7-4.4 5.2-4.4s4.6 1.6 5.2 4.4"/></svg></span>' : '') + '</span>' +
                         '<span class="title">' + esc(n.title) + '</span>' +
-                        (n.about ? '<p class="about">' + esc(n.about) + '</p>' : '') + '</span></a>';
+                        (n.about ? '<p class="about">' + esc(window.LNEWS ? window.LNEWS(n.about) : n.about) + '</p>' : '') + '</span></a>';
                 }).join('') + '</div></section>';
             }).join('');
             // fade the stories in as they scroll into view
