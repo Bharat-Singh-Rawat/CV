@@ -62,7 +62,14 @@
         .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 0.82rem; color: var(--muted); }
         .meta .src { font-weight: 600; color: var(--text); }
         .pill { display: inline-block; padding: 0 8px; border-radius: 980px; font-size: 0.72rem; font-weight: 500; line-height: 1.6; border: 1px solid var(--line); color: var(--muted); }
-        .pill.named { color: var(--warm); border-color: color-mix(in srgb, var(--warm) 40%, transparent); }
+        /* a tiny grey person icon: this story mentions my work (hover / focus shows the note) */
+        .me { position: relative; display: inline-flex; align-items: center; color: var(--faint); }
+        .me svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+        .me::after { content: attr(data-tip); position: absolute; left: 50%; bottom: calc(100% + 7px); transform: translate(-50%, 3px); white-space: nowrap;
+            padding: 4px 9px; border-radius: 8px; font-size: 0.72rem; font-weight: 500; color: var(--bg); background: var(--text);
+            opacity: 0; pointer-events: none; transition: opacity 0.2s var(--ease), transform 0.2s var(--ease); }
+        .me:hover::after { opacity: 1; transform: translate(-50%, 0); }
+        .item:hover .me { color: var(--muted); }
         .title { display: block; margin-top: 3px; font-size: 1.12rem; font-weight: 600; line-height: 1.3; letter-spacing: -0.015em; color: var(--text); transition: color 0.3s var(--ease); }
         .title::after { content: ' ↗'; font-weight: 400; color: var(--faint); font-size: 0.9em; }
         .about { margin: 4px 0 0; color: var(--body); font-size: 0.95rem; line-height: 1.45; }
@@ -97,7 +104,7 @@
         <p class="end">Know of a story that is missing? <a href="/CV/#contact">Let me know</a>.</p>
     </main>
 
-    <script src="/Dossier/profile.js?v=20261117z"></script>
+    <script src="/Dossier/profile.js?v=20261118d"></script>
     <script src="/CV/v2/sfx.js?v=20261117z"></script>
     <script>
         (function () {
@@ -112,7 +119,7 @@
                         '<span class="mark" aria-hidden="true">' + esc(n.mark || n.source.slice(0, 2)) + '</span>' +
                         '<span><span class="meta"><span class="src">' + esc(n.source) + '</span><span>' + fmt(n.date) + '</span>' +
                         (n.kind ? '<span class="pill">' + esc(n.kind) + '</span>' : '') +
-                        (n.named ? '<span class="pill named">Features me</span>' : '') + '</span>' +
+                        (n.named ? '<span class="me" data-tip="Mentions my work" role="img" aria-label="Mentions my work"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5.2" r="2.7"/><path d="M2.8 14c.6-2.8 2.7-4.4 5.2-4.4s4.6 1.6 5.2 4.4"/></svg></span>' : '') + '</span>' +
                         '<span class="title">' + esc(n.title) + '</span>' +
                         (n.about ? '<p class="about">' + esc(n.about) + '</p>' : '') + '</span></a>';
                 }).join('') + '</div></section>';
