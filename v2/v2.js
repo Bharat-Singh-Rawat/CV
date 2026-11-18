@@ -50,7 +50,7 @@
     const bare = P.name.replace(/,.*$/, '').trim();
     const words = titleCase(bare).split(/\s+/);
     const degree = (P.name.match(/,\s*(.+)$/) || [])[1] || '';
-    $('ln-title').textContent = words.join(' ');
+    $('ln-name').textContent = words.join(' ');
 
     // section bar: chevron menu on small screens
     const topbarEl = $('topbar'), lnToggle = $('ln-toggle');

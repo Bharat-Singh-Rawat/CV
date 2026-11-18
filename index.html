@@ -19,16 +19,16 @@
     <meta property="og:title" content="Bharat Singh Rawat, Ph.D. — Accelerator Physicist">
     <meta property="og:description" content="Accelerator physicist working on ion & electron sources, beam diagnostics and digital twins. Research, lab instruments, publications, lectures and simulations.">
     <meta property="og:url" content="https://bharat-singh-rawat.github.io/CV/">
-    <meta property="og:image" content="https://bharat-singh-rawat.github.io/CV/v2/img/og-card.jpg">
+    <meta property="og:image" content="https://bharat-singh-rawat.github.io/CV/v2/img/og-card.jpg?v=bsr1">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Portrait of Bharat Singh Rawat">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Bharat Singh Rawat, Ph.D. — Accelerator Physicist">
     <meta name="twitter:description" content="Accelerator physicist working on ion & electron sources, beam diagnostics and digital twins. Research, lab instruments, publications, lectures and simulations.">
-    <meta name="twitter:image" content="https://bharat-singh-rawat.github.io/CV/v2/img/og-card.jpg">
+    <meta name="twitter:image" content="https://bharat-singh-rawat.github.io/CV/v2/img/og-card.jpg?v=bsr1">
     <!-- ALL CV CONTENT COMES FROM /Dossier/profile.js — edit that file, not this page -->
-    <script src="/Dossier/profile.js?v=20261118k"></script>
+    <script src="/Dossier/profile.js?v=20261118l"></script>
     <script>
         /* theme: follow the system unless the visitor picked one (footer / search); decided before the page paints */
         (function () {
@@ -39,14 +39,30 @@
             window.cvInkRGB = dark ? '245, 245, 247' : '29, 29, 31';   /* line colour for the canvas scenes */
         })();
     </script>
-    <link rel="stylesheet" href="/CV/v2/v2.css?v=20261118k">
+    <link rel="stylesheet" href="/CV/v2/v2.css?v=20261118l">
 </head>
 <body>
+    <!-- BSR intro: once per visit, skipped for reduced motion -->
+    <script>
+        (function () {
+            var seen = false; try { seen = sessionStorage.getItem('bsr-intro') === '1'; sessionStorage.setItem('bsr-intro', '1'); } catch (e) {}
+            if (seen || location.hash || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+            document.documentElement.classList.add('intro-on');
+            document.write('<div class="bsr-intro" id="bsr-intro" aria-hidden="true"><div class="bi-lock">' +
+                '<svg class="bi-mark" viewBox="2 7.5 33 25"><path class="bi-cup" d="M15 9H33V31H15" pathLength="1"/>' +
+                '<circle class="bi-p bi-p1" cx="4" cy="20" r="1.5"/><circle class="bi-p bi-p2" cx="12" cy="20" r="2.1"/><circle class="bi-dot" cx="25" cy="20" r="3.2"/></svg>' +
+                '<span class="bi-word">BSR</span></div></div>');
+            var el = document.getElementById('bsr-intro');
+            var done = function () { if (!el) return; el.classList.add('out'); document.documentElement.classList.remove('intro-on'); setTimeout(function () { el && el.remove(); el = null; }, 700); };
+            el.addEventListener('click', done);
+            setTimeout(done, 1900);
+        })();
+    </script>
     <a class="skip" href="#main">Skip to content</a>
 
     <!-- Apple-style sticky section bar: name left, section links, blue pill right -->
     <header class="topbar" id="topbar">
-        <a class="ln-title" id="ln-title" href="#top"></a>
+        <a class="ln-title" id="ln-title" href="#top" aria-label="BSR — back to top"><svg class="brand-mark" viewBox="2 7.5 33 25" aria-hidden="true"><path d="M15 9H33V31H15" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"/><circle class="bm-p1" cx="4" cy="20" r="1.5" fill="currentColor" fill-opacity=".3"/><circle class="bm-p2" cx="12" cy="20" r="2.1" fill="currentColor" fill-opacity=".6"/><circle class="bm-dot" cx="25" cy="20" r="3.2"/></svg><span id="ln-name"></span></a>
         <button type="button" class="ln-toggle" id="ln-toggle" aria-label="Sections" aria-expanded="false" aria-controls="ln-nav">
             <svg viewBox="0 0 14 8" aria-hidden="true"><path d="M1 1.5 7 6.5 13 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
@@ -237,18 +253,18 @@
         </div>
     </footer>
 
-    <script src="/CV/v2/i18n.js?v=20261118k"></script>
-    <script src="/CV/v2/v2.js?v=20261118k"></script>
-    <script src="/CV/v2/globe-dots.js?v=20261118k"></script>
-    <script src="/CV/v2/globe.js?v=20261118k"></script>
-    <script src="/CV/v2/music.js?v=20261118k"></script>
-    <script src="/CV/v2/scenes.js?v=20261118k"></script>
-    <script src="/CV/v2/sfx.js?v=20261118k"></script>
-    <script src="/CV/v2/extras.js?v=20261118k"></script>
-    <script src="/CV/v2/clips.js?v=20261118k"></script>
-    <script src="/CV/v2/retro.js?v=20261118k"></script>
-    <script src="/CV/v2/polish.js?v=20261118k"></script>
-    <script src="/CV/v2/apple.js?v=20261118k"></script>
-    <script src="/CV/v2/flow.js?v=20261118k"></script>
+    <script src="/CV/v2/i18n.js?v=20261118l"></script>
+    <script src="/CV/v2/v2.js?v=20261118l"></script>
+    <script src="/CV/v2/globe-dots.js?v=20261118l"></script>
+    <script src="/CV/v2/globe.js?v=20261118l"></script>
+    <script src="/CV/v2/music.js?v=20261118l"></script>
+    <script src="/CV/v2/scenes.js?v=20261118l"></script>
+    <script src="/CV/v2/sfx.js?v=20261118l"></script>
+    <script src="/CV/v2/extras.js?v=20261118l"></script>
+    <script src="/CV/v2/clips.js?v=20261118l"></script>
+    <script src="/CV/v2/retro.js?v=20261118l"></script>
+    <script src="/CV/v2/polish.js?v=20261118l"></script>
+    <script src="/CV/v2/apple.js?v=20261118l"></script>
+    <script src="/CV/v2/flow.js?v=20261118l"></script>
 </body>
 </html>
