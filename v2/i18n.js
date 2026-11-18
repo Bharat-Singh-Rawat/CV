@@ -201,7 +201,7 @@
                 ['Sensor de empuje', 'Medición del empuje en ensayos de propulsión eléctrica.']
             ],
             offer: [
-                { title: 'Consultoría', text: 'Diseño de fuentes de iones y trampas de partículas, diagnóstico de haces y estudios basados en simulación con CST Studio, MAD-X y más.' },
+                { title: 'Consultoría', text: 'Diseño de fuentes de iones, trampas de partículas y diagnóstico de haces, respaldado por software multifísico y flujos de trabajo computacionales propios (CST Studio, MAD-X, Python). Para start-ups de tecnología profunda, laboratorios gubernamentales y empresas especializadas.' },
                 { title: 'Mentoría', text: 'Orientación para candidatos a máster y doctorado: estrategia de solicitud, cartas de presentación y CV.' },
                 { title: 'Charlas y divulgación', text: 'Seminarios, conferencias especializadas y charlas en colegios sobre fuentes de iones, propulsión eléctrica y aceleradores de partículas.' },
                 { title: 'Apoyo en reclutamiento', text: 'Ayudo a empresas y grupos de investigación a encontrar talento cualificado en física de plasmas, fuentes de iones y física aplicada a través de mi red profesional.' }
@@ -283,7 +283,7 @@
                 ['Датчик тяги', 'Измерение тяги при испытаниях электрических двигателей.']
             ],
             offer: [
-                { title: 'Консалтинг', text: 'Проектирование ионных источников и ловушек частиц, диагностика пучков и расчётные исследования в CST Studio, MAD-X и других программах.' },
+                { title: 'Консалтинг', text: 'Проектирование ионных источников, ловушек частиц и систем диагностики пучков на основе мультифизического ПО и собственных расчётных конвейеров (CST Studio, MAD-X, Python). Для наукоёмких стартапов, государственных лабораторий и специализированных компаний.' },
                 { title: 'Наставничество', text: 'Помощь абитуриентам магистратуры и аспирантуры: стратегия поступления, мотивационные письма и резюме.' },
                 { title: 'Лекции и популяризация', text: 'Семинары, экспертные лекции и выступления в школах об ионных источниках, электрических двигателях и ускорителях частиц.' },
                 { title: 'Помощь в подборе кадров', text: 'Помогаю компаниям и исследовательским группам находить квалифицированных специалистов в физике плазмы, ионных источниках и прикладной физике через свою профессиональную сеть.' }
@@ -365,7 +365,7 @@
                 ['Capteur de poussée', 'Mesure de la poussée lors d’essais de propulsion électrique.']
             ],
             offer: [
-                { title: 'Conseil', text: 'Conception de sources d’ions et de pièges à particules, diagnostic de faisceaux et études par simulation avec CST Studio, MAD-X et d’autres outils.' },
+                { title: 'Conseil', text: 'Conception de sources d’ions, de pièges à particules et de diagnostics de faisceaux, appuyée par des logiciels multiphysiques et des chaînes de calcul que je développe (CST Studio, MAD-X, Python). Pour les start-up deep tech, les laboratoires publics et les entreprises spécialisées.' },
                 { title: 'Mentorat', text: 'Accompagnement des candidats au master et au doctorat : stratégie de candidature, lettres de motivation et CV.' },
                 { title: 'Conférences et vulgarisation', text: 'Séminaires, conférences d’expert et interventions en milieu scolaire sur les sources d’ions, la propulsion électrique et les accélérateurs de particules.' },
                 { title: 'Aide au recrutement', text: 'J’aide les entreprises et les groupes de recherche à trouver des talents qualifiés en physique des plasmas, sources d’ions et physique appliquée grâce à mon réseau professionnel.' }
@@ -447,7 +447,7 @@
                 ['થ્રસ્ટ સેન્સર', 'ઇલેક્ટ્રિક પ્રોપલ્શન પરીક્ષણોમાં થ્રસ્ટનું માપન.']
             ],
             offer: [
-                { title: 'કન્સલ્ટિંગ', text: 'CST Studio, MAD-X અને અન્ય સાધનો વડે આયન સ્રોત અને પાર્ટિકલ ટ્રેપ ડિઝાઇન, બીમ ડાયગ્નોસ્ટિક્સ અને સિમ્યુલેશન આધારિત અભ્યાસ.' },
+                { title: 'કન્સલ્ટિંગ', text: 'મલ્ટિફિઝિક્સ સોફ્ટવેર અને મારા બનાવેલા કમ્પ્યુટેશનલ વર્કફ્લો (CST Studio, MAD-X, Python) વડે આયન સ્રોત, પાર્ટિકલ ટ્રેપ અને બીમ ડાયગ્નોસ્ટિક્સ ડિઝાઇન. ડીપ-ટેક સ્ટાર્ટ-અપ્સ, સરકારી પ્રયોગશાળાઓ અને વિશિષ્ટ કંપનીઓ માટે.' },
                 { title: 'માર્ગદર્શન', text: 'MS અને Ph.D. ઉમેદવારો માટે માર્ગદર્શન: અરજીની વ્યૂહરચના, કવર લેટર અને CV.' },
                 { title: 'વક્તવ્યો અને જનજાગૃતિ', text: 'આયન સ્રોતો, ઇલેક્ટ્રિક પ્રોપલ્શન અને પાર્ટિકલ એક્સિલરેટર પર સેમિનાર, નિષ્ણાત વ્યાખ્યાનો અને શાળાઓમાં વક્તવ્યો.' },
                 { title: 'ભરતીમાં સહાય', text: 'મારા વ્યાવસાયિક નેટવર્ક દ્વારા કંપનીઓ અને સંશોધન જૂથોને પ્લાઝ્મા ભૌતિકશાસ્ત્ર, આયન સ્રોતો અને પ્રયોજિત ભૌતિકશાસ્ત્રમાં લાયક પ્રતિભા શોધવામાં મદદ કરું છું.' }
