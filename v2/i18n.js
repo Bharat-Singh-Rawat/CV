@@ -131,10 +131,10 @@
     };
     // the news strip, the Outreach menu and the side pages (library, news)
     const MORE = {
-        es: { 'In the news.': 'En los medios.', 'See all stories': 'Ver todas las noticias', 'Read the stories': 'Leer las noticias', 'News': 'Noticias', 'Outreach': 'Divulgación' },
-        ru: { 'In the news.': 'В новостях.', 'See all stories': 'Все статьи', 'Read the stories': 'Читать статьи', 'News': 'Новости', 'Outreach': 'Популяризация' },
-        fr: { 'In the news.': 'Dans la presse.', 'See all stories': 'Voir tous les articles', 'Read the stories': 'Lire les articles', 'News': 'Presse', 'Outreach': 'Vulgarisation' },
-        gu: { 'In the news.': 'સમાચારમાં.', 'See all stories': 'બધા લેખો જુઓ', 'Read the stories': 'લેખો વાંચો', 'News': 'સમાચાર', 'Outreach': 'જનજાગૃતિ' }
+        es: { 'View in 3D': 'Ver en 3D', 'In the news.': 'En los medios.', 'See all stories': 'Ver todas las noticias', 'Read the stories': 'Leer las noticias', 'News': 'Noticias', 'Outreach': 'Divulgación' },
+        ru: { 'View in 3D': 'Смотреть в 3D', 'In the news.': 'В новостях.', 'See all stories': 'Все статьи', 'Read the stories': 'Читать статьи', 'News': 'Новости', 'Outreach': 'Популяризация' },
+        fr: { 'View in 3D': 'Voir en 3D', 'In the news.': 'Dans la presse.', 'See all stories': 'Voir tous les articles', 'Read the stories': 'Lire les articles', 'News': 'Presse', 'Outreach': 'Vulgarisation' },
+        gu: { 'View in 3D': '3Dમાં જુઓ', 'In the news.': 'સમાચારમાં.', 'See all stories': 'બધા લેખો જુઓ', 'Read the stories': 'લેખો વાંચો', 'News': 'સમાચાર', 'Outreach': 'જનજાગૃતિ' }
     };
     Object.keys(MORE).forEach(l => { UI[l] = Object.assign({}, MORE[l], UI[l]); });
     window.T = T;

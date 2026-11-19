@@ -218,6 +218,13 @@ html[data-theme="dark"] .bsr-intro { background: #000; }
 }
 .tile.active p, .tile:hover p { max-height: 6em; opacity: 1; transform: none; margin-top: 8px; }
 .tile:hover img { transform: scale(1.04); }
+.tile-3d { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; padding: 7px 14px; border-radius: 980px; font-size: 0.82rem; font-weight: 600;
+    color: #1d1d1f; background: rgba(255, 255, 255, 0.9); text-decoration: none; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    transition: background 0.3s var(--ease), transform 0.3s var(--ease); }
+.tile-3d::before { content: ''; width: 13px; height: 13px; background: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linejoin='round'%3E%3Cpath d='M12 2 3 7v10l9 5 9-5V7z'/%3E%3Cpath d='M3 7l9 5 9-5M12 12v10'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linejoin='round'%3E%3Cpath d='M12 2 3 7v10l9 5 9-5V7z'/%3E%3Cpath d='M3 7l9 5 9-5M12 12v10'/%3E%3C/svg%3E") center / contain no-repeat; }
+.tile-3d:hover { background: #fff; transform: scale(1.03); }
 /* lab gallery: slow Ken Burns drift on the centre photo, spotlight, hover tilt + shine */
 .tile.active > img:first-child { animation: kenburns 18s ease-in-out infinite alternate; }
 @keyframes kenburns { from { transform: scale(1.02) translate(0, 0); } to { transform: scale(1.1) translate(-2%, -1.6%); } }

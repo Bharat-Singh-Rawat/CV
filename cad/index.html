@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="color-scheme" content="light dark">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/CV/v2/icons/favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="/CV/v2/icons/apple-touch-icon.png">
+    <title>Hardware in 3D — Bharat Singh Rawat</title>
+    <meta name="description" content="Interactive 3D models of instruments designed by Bharat Singh Rawat: an octagonal ring-cusp ion source, a Faraday cup array and a magnetic retarding potential analyser. Turn them, take them apart and inspect every part.">
+    <meta property="og:title" content="Hardware in 3D — Bharat Singh Rawat">
+    <meta property="og:description" content="Turn them, take them apart, inspect every part.">
+    <meta property="og:image" content="https://bharat-singh-rawat.github.io/CV/v2/img/og-card.jpg">
+    <script>
+        (function () {
+            var pref = 'auto'; try { pref = localStorage.getItem('cv-theme') || 'auto'; } catch (e) {}
+            var dark = pref === 'dark' || (pref === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+            document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        })();
+    </script>
+    <link rel="stylesheet" href="/CV/cad/cad.css?v=20261119f">
+    <script type="importmap">
+        { "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        } }
+    </script>
+</head>
+<body>
+    <nav class="bar" aria-label="Site">
+        <a href="/CV/">‹ Bharat Singh Rawat</a>
+        <strong>Hardware in 3D</strong>
+        <a href="/CV/#contact">Contact</a>
+    </nav>
+    <main>
+        <header class="hero">
+            <p class="eyebrow">Hardware</p>
+            <h1>Take it apart.</h1>
+            <p class="sub">Instruments I designed, straight from the CAD. Turn them, pull them apart, and tap any part to see what it does.</p>
+        </header>
+
+        <div class="models" id="models" role="tablist" aria-label="Choose an assembly"></div>
+
+        <section class="stage" id="stage" aria-label="3D model viewer">
+            <canvas id="view" aria-label="Interactive 3D model. Drag to rotate, scroll to zoom."></canvas>
+            <div class="caption" id="caption"><h2 id="m-name"></h2><p id="m-blurb"></p></div>
+            <div class="loading" id="loading"><span class="spin" aria-hidden="true"></span><span>Loading model</span></div>
+            <div class="labels" id="labels" aria-hidden="true"></div>
+            <button type="button" class="sys-back" id="sys-back" hidden>‹ All systems</button>
+            <div class="tip" id="tip" role="tooltip"></div>
+
+            <aside class="info" id="info" aria-live="polite" hidden>
+                <button class="x" id="info-x" type="button" aria-label="Close">✕</button>
+                <p class="i-mat" id="i-mat"></p>
+                <h3 id="i-name"></h3>
+                <p class="i-blurb" id="i-blurb"></p>
+                <dl>
+                    <div><dt id="i-qty-t">Quantity</dt><dd id="i-qty"></dd></div>
+                    <div><dt id="i-size-t">Envelope</dt><dd id="i-size"></dd></div>
+                </dl>
+                <div class="i-act">
+                    <button type="button" id="i-solo" class="pill-btn">Show only this</button>
+                    <button type="button" id="i-zoom" class="pill-btn">Zoom to it</button>
+                </div>
+            </aside>
+
+            <div class="dock" id="dock">
+                <label class="explode">
+                    <span>Assembled</span>
+                    <input type="range" id="explode" min="0" max="1" step="0.001" value="0" aria-label="Explode the assembly">
+                    <span>Exploded</span>
+                </label>
+                <span class="sep" aria-hidden="true"></span>
+                <button type="button" class="tool" id="t-cut" aria-pressed="false" title="Cut-away">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5z" opacity=".45"/><path d="M12 3 4 7.5v9L12 21" fill="currentColor" fill-opacity=".18"/></svg>
+                    <span>Cut</span>
+                </button>
+                <button type="button" class="tool" id="t-spin" aria-pressed="false" title="Turntable">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 4 0 1 1-4.5-3.6"/><path d="m14.5 5.5 1.2 3-3 1"/></svg>
+                    <span>Spin</span>
+                </button>
+                <button type="button" class="tool" id="t-reset" title="Reset view">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/></svg>
+                    <span>Reset</span>
+                </button>
+            </div>
+        </section>
+        <p class="hint" id="hint">Drag to turn · scroll or pinch to zoom · right-drag or two fingers to move</p>
+
+        <section class="box" aria-labelledby="box-h">
+            <h2 id="box-h">In the box.</h2>
+            <ul class="parts" id="parts"></ul>
+        </section>
+        <p class="end">Models are exported from the original CAD assemblies. <a href="/CV/#contact">Ask me about the designs</a>.</p>
+    </main>
+
+    <script src="/CV/v2/sfx.js?v=20261117z"></script>
+    <script type="module" src="/CV/cad/cad.js?v=20261119f"></script>
+</body>
+</html>

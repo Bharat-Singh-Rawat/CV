@@ -150,7 +150,7 @@
         <figure class="tile">
             ${img(g.img, g.title)}
             <span class="shine" aria-hidden="true"></span>
-            <figcaption><h3>${esc(g.title)}</h3><p>${esc(g.text)}</p></figcaption>
+            <figcaption><h3>${esc(g.title)}</h3><p>${esc(g.text)}</p>${g.cad ? `<a class="tile-3d" href="/CV/cad/#${esc(g.cad)}">${esc(T('View in 3D'))}</a>` : ''}</figcaption>
         </figure>`).join('');
     // pinned row: page scroll slides the cards sideways, the centred one grows (used by the lab gallery and the offer cards)
     const touchSmall = window.matchMedia('(max-width: 760px), (hover: none) and (pointer: coarse)').matches;
