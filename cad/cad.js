@@ -9,11 +9,13 @@ import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
 import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { penningData, PenningEvents, DetectorPlots, STAGES } from './penning.js?v=20261120f';
 
 const MODELS = [
     { key: 'oris', short: 'Ion source', photo: '/CV/v2/img/oris.webp', beam: true },
-    { key: 'fc-array', short: 'Faraday cups', photo: '/CV/v2/img/fc-array.webp' },
-    { key: 'magnetic-rpa', short: 'Magnetic RPA', photo: '/CV/v2/img/magnet-rpa.webp' }
+    { key: 'fc-array', short: 'Faraday cups', photo: '/CV/v2/img/fc-array.webp', profile: true, deskAz: 1.25 },
+    { key: 'magnetic-rpa', short: 'Magnetic RPA', photo: '/CV/v2/img/magnet-rpa.webp' },
+    { key: 'penning', short: 'Penning trap', photo: '/CV/v2/img/at-aegis.webp', procedural: true, noAR: true }
 ];
 // magnet polarity per model (not in the CAD): returns the magnetisation direction (S to N inside the magnet), CAD axes.
 //  ORIS: ring-cusp, each ring one pole towards the plasma, neighbouring rings alternate (front N in, rear S in, back N in).
@@ -29,6 +31,34 @@ const POLES = {
 // field-line seeding per model: seeds per pole face (odd), how far lines may wander, and seeds across a filter gap
 // surface field of the permanent magnets (both models): the model is calibrated so the pole faces read this
 const SURFACE_GAUSS = 2500, G_MIN = 20;
+// guided story (desktop): beats shown in the assembled view before it comes apart; each frames one subsystem or set of parts
+const STORY = {
+    'oris': [
+        { sys: 'Filament & feedthroughs', title: 'Electrons first', text: 'A hot filament boils off electrons. Vacuum feedthroughs carry its current in through the back flange.' },
+        { sys: 'Plasma chamber', title: 'Lighting the plasma', text: 'The electrons collide with the gas in the octagonal chamber and ionise it.' },
+        { sys: 'Ring-cusp magnets', title: 'Keeping it dense', text: 'Rings of magnets line the walls. Electrons spiral along the cusp field and bounce back, so they stay in the plasma for longer.', fx: 'field' },
+        { sys: 'Extraction grids', title: 'Out comes the beam', text: 'Two grids a short gap apart pull the ions out through thousands of apertures, as a beam.', fx: 'beam' },
+        { sys: 'Insulators & hardware', title: 'Holding the voltage', text: 'Alumina bushes keep every electrode at its own potential.' }
+    ],
+    'fc-array': [
+        { parts: ['Faraday cup'], title: 'Catching the beam', text: 'Eleven copper cups each collect the current that lands on them. Side by side, they read the beam profile.', fx: 'profile' },
+        { parts: ['Suppressor electrode'], title: 'No escaping electrons', text: 'Biased negative, the suppressor turns secondary electrons back into the cups, so each reading stays honest.' },
+        { parts: ['Earth electrode and base'], title: 'A defined view', text: 'The grounded front electrode shields the cups and sets the patch of beam each one sees.' },
+        { parts: ['Ceramic bush', 'Stepped ceramic bush', 'Plain ceramic bush'], title: 'Every cup on its own', text: 'Ceramic bushes isolate the cups, so every current is measured separately.' }
+    ],
+    'magnetic-rpa': [
+        { parts: ['Front cover'], title: 'Ions in', text: 'Ions enter through the aperture in the front cover.' },
+        { parts: ['Side cusp magnet'], title: 'Electrons out', text: 'Magnets on both sides set up a field across the path that turns electrons away, so only ions go on.', fx: 'field' },
+        { parts: ['Copper collector'], title: 'Counting what passes', text: 'The copper collector measures the ions that get past the retarding potential.' }
+    ]
+};
+STORY['penning'] = [
+    { parts: ['Degrader foil'], title: 'Slowing the antiprotons', text: 'Antiprotons from CERN\'s decelerator pass a thin foil that slows them enough to be caught.' },
+    { parts: ['Catching electrodes (C)', 'High-voltage electrodes', '5 T solenoid'], title: 'Caught in 5 tesla', text: 'High voltage on the gold electrodes and a 5 tesla field hold the antiprotons in a Penning–Malmberg trap.' },
+    { parts: ['B electrodes', 'Rotating-wall electrode', '1 T solenoid'], title: 'The 1 tesla trap', text: 'Further along, a second trap sits in the 1 tesla magnet, with a rotating-wall electrode to compress the cloud.' },
+    { parts: ['Scintillator detectors'], title: 'Annihilation', text: 'When an antiproton meets matter it annihilates into pions, photons and nuclear fragments. The scintillators catch the charged ones.' }
+];
+const STORY_W0 = 0.12, STORY_W1 = 0.64;
 const FIELD = { 'oris': { seeds: 3, reach: 0.62, box: true }, 'magnetic-rpa': { seeds: 3, reach: 0.8, gap: true } };
 const BASE = '/CV/cad/models/';
 
@@ -43,10 +73,19 @@ const FINISH = {
     ceramic:  { color: 0xf6f4ef, metalness: 0, roughness: 0.32, clearcoat: 0.9, clearcoatRoughness: 0.12, label: 'Ceramic' },
     ptfe:     { color: 0xf2f2ee, metalness: 0, roughness: 0.6, sheen: 0.4, sheenRoughness: 0.8, label: 'PTFE' },
     magnet:   { color: 0x5b5e64, metalness: 1, roughness: 0.26, label: 'Magnet' },
-    filament: { color: 0x9d968c, metalness: 1, roughness: 0.38, label: '' }
+    filament: { color: 0x9d968c, metalness: 1, roughness: 0.38, label: '' },
+    gold:     { color: 0xe8c47c, metalness: 1, roughness: 0.2, label: 'Gold' },
+    coil:     { color: 0x9aa3b5, metalness: 0.6, roughness: 0.35, opacity: 0.16, label: '' },
+    scint:    { color: 0x34c759, metalness: 0, roughness: 0.3, opacity: 0.22, label: '' },
+    foil:     { color: 0xf2f2f7, metalness: 0.3, roughness: 0.3, opacity: 0.7, label: '' }
 };
 
 // one chapter of scroll: [progress, distance (× fit), explode]; eased between keys
+// desktop chapters with a story: the beats run in the assembled view, then it comes apart
+const KEYS_STORY = [
+    [0.00, 2.5, 0], [0.08, 1.0, 0], [0.64, 1.0, 0], [0.70, 0.85, 0.18],
+    [0.78, 1.14, 1], [0.88, 1.14, 1], [0.95, 1.35, 0], [1.00, 2.5, 0]
+];
 const KEYS = [
     [0.00, 2.5, 0], [0.16, 1.0, 0], [0.32, 0.68, 0], [0.42, 0.82, 0.18],
     [0.58, 1.14, 1], [0.80, 1.14, 1], [0.93, 1.35, 0], [1.00, 2.5, 0]
@@ -56,6 +95,8 @@ const AZ0 = 0.64, POL0 = 1.15;            // three-quarter view from slightly ab
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // phones: lighter textures, shadows and pixel ratio so the page loads and runs smoothly
 const phone = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 820;
+// desktop only: the guided story, electrons in the cusp field, the beam on the Faraday cups (phones keep the simple version)
+const desk = !phone && innerWidth >= 900;
 const $ = id => document.getElementById(id);
 const dark = () => document.documentElement.dataset.theme === 'dark';
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
@@ -147,8 +188,11 @@ let explodeT = 0, cut = false;
 let hovered = -1, selected = -1, solo = false;
 let focus = -1, hoverSys = -1;   // subsystem in focus / under the pointer (models that define subsystems)
 let userAz = 0, userPol = 0, velAz = 0, velPol = 0;
-let gTarget = 0, gSmooth = 0, pending = null;
+let gTarget = 0, gSmooth = 0, pending = null, plotLift = 0;
+const followC = new THREE.Vector3();
 let beamOn = false, fieldOn = false, photoOn = false, beamVis = 0, fieldVis = 0;
+let profileOn = false, profVis = 0, storyOn = false;
+const storyFx = { field: 0, beam: 0, profile: 0 };
 
 // ---------- loading ----------
 async function fetchModel(k) {
@@ -211,6 +255,7 @@ function makeMaterial(kind) {
         envMapIntensity: 1, clipShadows: true
     });
     m.emissive = new THREE.Color(0x0071e3); m.emissiveIntensity = 0;
+    if (f.opacity) { m.userData.baseOpacity = f.opacity; m.transparent = true; m.depthWrite = false; m.opacity = f.opacity; m.side = THREE.DoubleSide; m.userData.perforated = true; }
     // the cut-away shows inner faces as a darker "section" tone
     const cap = new THREE.Color(f.color).multiplyScalar(f.metalness ? 0.42 : 0.7);
     m.userData.capOn = { value: 0 };
@@ -296,12 +341,31 @@ function activate(i) {
     paint();
     document.querySelectorAll('#chapters button').forEach((b, k) => b.setAttribute('aria-selected', String(k === i)));
     // per-model extras
-    $('t-beam').hidden = !MODELS[i].beam; $('t-field').hidden = !POLES[MODELS[i].key];
-    beamOn = fieldOn = false; beamVis = fieldVis = 0;
+    $('t-beam').hidden = !(MODELS[i].beam || (desk && MODELS[i].profile)); $('t-field').hidden = !POLES[MODELS[i].key];
+    beamOn = fieldOn = profileOn = false; beamVis = fieldVis = profVis = 0;
+    if (hasStory(i) && !model.story) {          // desktop story: beats, plus whatever they show
+        model.story = buildStory(model, MODELS[i].key);
+        model.story.forEach(b => {
+            if (b.fx === 'field' && !model.field) model.field = buildField(model);
+            if (b.fx === 'beam' && !model.beam) model.beam = buildBeam(model);
+            if (b.fx === 'profile' && !model.profile) model.profile = buildProfile(model);
+            if (b.fx === 'profile' && model.profile) b.sph = new THREE.Box3().setFromPoints([...model.profile.extent, ...[0, 1].map(k => b.sph.center.clone().addScaledVector(new THREE.Vector3(0, 1, 0), (k ? 1 : -1) * b.sph.radius))]).getBoundingSphere(new THREE.Sphere());
+        });
+    }
+    if (desk && model.field && !model.electrons) model.electrons = buildElectrons(model);
+    $('cap-story').style.opacity = 0; storyDom = -1;
     $('t-beam').setAttribute('aria-pressed', 'false'); $('t-field').setAttribute('aria-pressed', 'false'); $('legend').hidden = true;
     $('cmp-img').src = $('cmp-bg').src = MODELS[i].photo; $('cmp-img').alt = 'Lab photo of the ' + model.data.name;
     $('ar-pop').hidden = true;
     $('t-ar-ios').href = `/CV/cad/ar/${MODELS[i].key}.usdz`;
+    const noAR = !!MODELS[i].noAR;
+    $('t-ar').hidden = noAR || (isIOS && quickLook); $('t-ar-ios').hidden = noAR || !(isIOS && quickLook);
+    stage.classList.toggle('night', MODELS[i].key === 'penning');
+    if (MODELS[i].key === 'penning' && !model.events) {
+        model.events = new PenningEvents(model, model.holder, det => { if (model.plots) model.plots.hit(det); });
+        if (desk) model.plots = new DetectorPlots($('plots'), model.events);
+    }
+    $('plots').hidden = true; $('phase').hidden = true;
     $('loading').classList.add('done');
 }
 
@@ -328,19 +392,25 @@ function applyExplode(force) {
 
 // ---------- scroll: which chapter, how far into it ----------
 const track = $('chapter-track');
-track.innerHTML = MODELS.map(() => '<div></div>').join('');
-const chapterLen = () => track.firstElementChild.offsetHeight;
+// chapters with a story are longer on desktop (one extra stretch of scroll per beat)
+const hasStory = i => desk && !!STORY[MODELS[i].key];
+track.innerHTML = MODELS.map((m, i) => hasStory(i) ? `<div style="height:${320 + 150 * STORY[m.key].length}vh"></div>` : '<div></div>').join('');
+const chapterSpans = () => { let t = 0; return [...track.children].map(el => { const a = t; t += el.offsetHeight; return [a, el.offsetHeight]; }); };
 function scrollG() {
-    const s = -scrolly.getBoundingClientRect().top;
-    return clamp(s / chapterLen(), 0, MODELS.length - 1e-4);
+    const s = -scrolly.getBoundingClientRect().top, spans = chapterSpans();
+    if (s <= 0) return 0;
+    for (let i = 0; i < spans.length; i++) if (s < spans[i][0] + spans[i][1]) return i + (s - spans[i][0]) / spans[i][1];
+    return MODELS.length - 1e-4;
 }
 function scrollToChapter(i, p, instant) {
-    const top = scrolly.getBoundingClientRect().top + scrollY + (i + p) * chapterLen();
-    window.scrollTo({ top, behavior: instant || reduce ? 'auto' : 'smooth' });
+    const [a, h] = chapterSpans()[i];
+    window.scrollTo({ top: scrolly.getBoundingClientRect().top + scrollY + a + p * h, behavior: instant || reduce ? 'auto' : 'smooth' });
 }
-function keyAt(p) {
-    let k = 0; while (k < KEYS.length - 2 && p > KEYS[k + 1][0]) k++;
-    const [p0, m0, e0] = KEYS[k], [p1, m1, e1] = KEYS[k + 1], s = smooth(p0, p1, p);
+const holdP = i => hasStory(i) ? 0.83 : 0.68;      // where a chapter rests fully exploded
+function keyAt(p, story) {
+    const K = story ? KEYS_STORY : KEYS;
+    let k = 0; while (k < K.length - 2 && p > K[k + 1][0]) k++;
+    const [p0, m0, e0] = K[k], [p1, m1, e1] = K[k + 1], s = smooth(p0, p1, p);
     return { m: m0 + (m1 - m0) * s, e: e0 + (e1 - e0) * s };
 }
 
@@ -381,13 +451,13 @@ function stepMaterials(dt) {
         const m = g.mat;
         const f = m.userData.fade + ((g.goalFade ?? 1) - m.userData.fade) * k;
         m.userData.fade = f;
-        const transparent = f < 0.995;
+        const baseOp = m.userData.baseOpacity || 1, transparent = f < 0.995 || baseOp < 1;
         if (m.transparent !== transparent) { m.transparent = transparent; m.depthWrite = !transparent; m.needsUpdate = true; }
-        m.opacity = transparent ? f : 1;
+        m.opacity = transparent ? f * baseOp : 1;
         const hot = g.label === 'Filament' ? beamVis * 2.4 * (0.92 + 0.08 * Math.sin(performance.now() / 45)) : 0;
         if (hot > 0.02) m.emissive.setHex(0xff6a1a); else if (m.emissiveIntensity < 0.3) m.emissive.setHex(0x0071e3);
         m.emissiveIntensity += (Math.max(g.goalGlow || 0, hot) - m.emissiveIntensity) * k;
-        g.meshes.forEach(me => { me.castShadow = f > 0.5; });
+        g.meshes.forEach(me => { me.castShadow = f > 0.5 && baseOp >= 1; });
     });
 }
 
@@ -425,7 +495,7 @@ function focusSystem(sIdx, toggle = true) {
     paint();
     if (focus < 0) { closeInfo(); return; }
     showSystemCard();
-    if (explodeT < 0.55) scrollToChapter(active, 0.68);   // labels live on the exploded view
+    if (explodeT < 0.55) scrollToChapter(active, holdP(active));   // labels live on the exploded view
 }
 function clearAll() { selected = -1; focus = -1; solo = false; paint(); closeInfo(); }
 $('sys-back').addEventListener('click', () => focusSystem(focus));
@@ -457,13 +527,13 @@ function renderParts() {
     const here = () => listIdx === active;
     ul.querySelectorAll('.part').forEach(b => {
         const i = +b.dataset.i;
-        b.addEventListener('click', () => { pending = { chapter: listIdx, kind: 'g', idx: i }; scrollToChapter(listIdx, 0.68); });
+        b.addEventListener('click', () => { pending = { chapter: listIdx, kind: 'g', idx: i }; scrollToChapter(listIdx, holdP(listIdx)); });
         b.addEventListener('pointerenter', () => { tick(); if (here()) { hovered = i; paint(); } });
         b.addEventListener('pointerleave', () => { if (here()) { hovered = -1; paint(); } });
     });
     ul.querySelectorAll('.sys-btn').forEach(b => {
         const s = +b.dataset.s;
-        b.addEventListener('click', () => { pending = { chapter: listIdx, kind: 's', idx: s }; scrollToChapter(listIdx, 0.68); });
+        b.addEventListener('click', () => { pending = { chapter: listIdx, kind: 's', idx: s }; scrollToChapter(listIdx, holdP(listIdx)); });
         b.addEventListener('pointerenter', () => { tick(); if (here()) { hoverSys = s; paint(); } });
         b.addEventListener('pointerleave', () => { if (here()) { hoverSys = -1; paint(); } });
     });
@@ -563,7 +633,7 @@ function placeLabels() {
 
 // ---------- pointer: drag to turn (on top of the scroll turntable), hover names, click to inspect ----------
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
-let pointer = null, down = null, dragging = false;
+let pointer = null, down = null, dragging = false, lastPick = null;
 function pick(x, y) {
     if (!model) return -1;
     const r = canvas.getBoundingClientRect();
@@ -572,6 +642,7 @@ function pick(x, y) {
     const hits = ray.intersectObjects(model.meshes.filter(m => m.visible && m.material.userData.fade > 0.5), false);
     for (const h of hits) {
         if (cut && h.point.z > 0.01) continue;   // ignore the cut-away half
+        lastPick = h.object;
         return h.object.userData.g;
     }
     return -1;
@@ -597,7 +668,7 @@ const endDrag = e => {
     canvas.classList.remove('grabbing');
     if (down && !dragging && e.type === 'pointerup') {
         const g = pick(e.clientX, e.clientY);
-        if (g >= 0) { sound('click'); select(g); }
+        if (g >= 0) { sound('click'); select(g); if (model.plots && lastPick && lastPick.userData.det >= 0) model.plots.pin(lastPick.userData.det); }
         else if (selected >= 0 && focus >= 0) { sound('click'); focusSystem(focus, false); }
         else if (selected >= 0 || focus >= 0) { sound('click'); clearAll(); }
     }
@@ -763,19 +834,21 @@ function buildField(M) {
     }
     const box = new THREE.Box3(); M.meshes.forEach(m => box.union(m.userData.bb)); box.expandByScalar(M.radius * 0.01);
     function addLine(line) {        // coloured N (red) to S (blue), drawn as segments
-        if (cfg.box && line.some(p => !box.containsPoint(p))) return;   // keep the picture inside the source
+        if (cfg.box && line.some(p => !box.containsPoint(p))) return false;   // keep the picture inside the source
         for (let s2 = 0; s2 < line.length - 1; s2++) {
             pos.push(line[s2].x, line[s2].y, line[s2].z, line[s2 + 1].x, line[s2 + 1].y, line[s2 + 1].z);
             for (const q2 of [line[s2], line[s2 + 1]]) { const c3 = shade(B(q2, tmpB).length() * kG); col.push(c3.r, c3.g, c3.b); }
         }
+        return true;
     }
+    const kept = [];
     mags.forEach(g => {
         const nu = cfg.seeds, nv = cfg.seeds;
         for (let i = 0; i < nu; i++) for (let j = 0; j < nv; j++) {
             const fu = nu > 1 ? (i / (nu - 1) - 0.5) * 1.4 : 0, fv = nv > 1 ? (j / (nv - 1) - 0.5) * 1.4 : 0;
             const p = g.c.clone().addScaledVector(g.m, g.h + ds * 0.3).addScaledVector(g.u, fu * g.hu).addScaledVector(g.v, fv * g.hv);
             const line = trace(p, 1);
-            if (line) addLine(line);      // only loops that return to a magnet: the cusps, not the stray outer flux
+            if (line && addLine(line)) kept.push(line);      // only loops that return to a magnet: the cusps, not the stray outer flux
         }
     });
     // filter gap: seed across the middle and trace both ways, so the field that crosses the gap is drawn too
@@ -785,7 +858,7 @@ function buildField(M) {
         for (let i = -2; i <= 2; i++) for (let j = -2; j <= 2; j++) {
             const p0 = mid.clone().addScaledVector(m0.u, i / 2 * span).addScaledVector(m0.v, j / 2 * m0.hv * 0.8);
             const back = trace(p0.clone(), -1), fwd = trace(p0.clone(), 1);
-            if (back && fwd) addLine(back.reverse().concat(fwd.slice(1)));
+            if (back && fwd) { const l = back.reverse().concat(fwd.slice(1)); if (addLine(l)) kept.push(l); }
         }
     }
     const geo = new LineSegmentsGeometry(); geo.setPositions(pos); geo.setColors(col);
@@ -796,7 +869,7 @@ function buildField(M) {
     const ghostMat = mat.clone(); ghostMat.depthTest = false; ghostMat.resolution = mat.resolution;
     const ghost = new LineSegments2(geo, ghostMat); ghost.renderOrder = 1;
     const grp = new THREE.Group(); grp.add(ghost, lines); grp.visible = false;
-    grp.material = mat; grp.ghost = ghostMat;
+    grp.material = mat; grp.ghost = ghostMat; grp.lines = kept;
     M.holder.add(grp);
     return grp;
 }
@@ -804,8 +877,18 @@ function buildField(M) {
 function stepExtras(dt, time) {
     if (!model) return;
     const away = 1 - smooth(0.04, 0.2, explodeT);          // extras belong to the assembled view
-    beamVis += ((beamOn ? away : 0) - beamVis) * (1 - Math.exp(-dt * 4));
-    fieldVis += ((fieldOn ? away : 0) - fieldVis) * (1 - Math.exp(-dt * 5));
+    beamVis += (Math.max(beamOn ? 1 : 0, storyFx.beam) * away - beamVis) * (1 - Math.exp(-dt * 4));
+    fieldVis += (Math.max(fieldOn ? 1 : 0, storyFx.field) * away - fieldVis) * (1 - Math.exp(-dt * 5));
+    profVis += (Math.max(profileOn ? 1 : 0, storyFx.profile) * away - profVis) * (1 - Math.exp(-dt * 4));
+    const pxScale = stage.clientHeight * renderer.getPixelRatio() / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+    if (model.profile) {
+        const P = model.profile; P.uOn.value = profVis; P.uTime.value = time; P.uScale.value = pxScale;
+        P.holder.visible = profVis > 0.01; if (P.holder.visible) P.step(profVis, time);
+    }
+    if (model.electrons) {
+        const E = model.electrons; E.uniforms.uOn.value = fieldVis; E.uniforms.uScale.value = pxScale;
+        E.pts.visible = fieldVis > 0.01; if (E.pts.visible) E.step(Math.min(dt, 0.033));
+    }
     if (model.beam) {
         const u = model.beam.uniforms; u.uOn.value = beamVis; u.uTime.value = time;
         u.uScale.value = stage.clientHeight * renderer.getPixelRatio() / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
@@ -818,20 +901,195 @@ function stepExtras(dt, time) {
         model.field.material.dashOffset -= dt * model.radius * 0.06; model.field.ghost.dashOffset = model.field.material.dashOffset;
         model.field.visible = fieldVis > 0.01;
     }
-    $('legend').hidden = !(fieldOn && fieldVis > 0.3);
+    $('legend').hidden = !(fieldVis > 0.3);
+    if (model.events) {
+        model.events.step(dt, away, pxScale);
+        const chip = $('phase'), si = model.events.stage();
+        chip.hidden = away < 0.6;
+        if (chip.dataset.s !== String(si)) { chip.dataset.s = si; chip.querySelector('span').textContent = STAGES[si]; chip.classList.remove('tick'); void chip.offsetWidth; chip.classList.add('tick'); }
+        const showPlots = !!model.plots && away > 0.6 && $('info').hidden;
+        $('plots').hidden = !showPlots;
+        if (showPlots) model.plots.step(dt);
+    }
 }
 
 $('t-beam').addEventListener('click', e => {
     if (!model) return;
+    if (MODELS[active].profile) {      // Faraday cups: the beam arrives and the profile is read out
+        if (!model.profile) model.profile = buildProfile(model);
+        profileOn = !profileOn; e.currentTarget.setAttribute('aria-pressed', String(profileOn)); sound('toggle'); return;
+    }
     if (!model.beam) model.beam = buildBeam(model);
     beamOn = !beamOn; e.currentTarget.setAttribute('aria-pressed', String(beamOn)); sound('toggle');
 });
 $('t-field').addEventListener('click', e => {
     if (!model) return;
     if (!model.field) model.field = buildField(model);
+    if (desk && model.field && !model.electrons) model.electrons = buildElectrons(model);
     fieldOn = !fieldOn; e.currentTarget.setAttribute('aria-pressed', String(fieldOn)); sound('toggle');
     if (fieldOn && !cut) { cut = true; applyCut(); }   // the cusps live inside the chamber: open it up
 });
+
+
+// --- story (desktop): beats that frame one subsystem at a time ---
+let storyDom = -1;
+function buildStory(M, key) {
+    return (STORY[key] || []).map(b => {
+        let set = null;
+        if (b.sys) { const sy = M.systems.find(x => x.label === b.sys); set = sy && sy.set; }
+        else set = new Set(M.groups.map((g, i) => b.parts.includes(g.label) ? i : -1).filter(i => i >= 0));
+        if (!set || !set.size) return null;
+        return { ...b, set, sph: boundsOf(M, 0, set).getBoundingSphere(new THREE.Sphere()) };
+    }).filter(Boolean);
+}
+// where in the story we are: which beat leads, how far the camera has moved between beats, how visible the text is
+function storyAt(p, n) {
+    const slot = (STORY_W1 - STORY_W0) / n;
+    if (p < STORY_W0) { const b = smooth(STORY_W0 - 0.05, STORY_W0 + 0.015, p); return { from: -1, to: 0, b, w: b, dom: 0, text: smooth(STORY_W0 - 0.01, STORY_W0 + 0.03, p) }; }
+    if (p >= STORY_W1) { const b = smooth(STORY_W1 - 0.015, STORY_W1 + 0.05, p); return { from: n - 1, to: -1, b, w: 1 - b, dom: n - 1, text: 1 - smooth(STORY_W1 - 0.03, STORY_W1 + 0.005, p) }; }
+    const u = (p - STORY_W0) / slot, k = Math.min(n - 1, Math.floor(u)), f = u - k;
+    if (k < n - 1 && f > 0.66) { const b = smooth(0.66, 1, f); return { from: k, to: k + 1, b, w: 1, dom: b < 0.5 ? k : k + 1, text: 1 - 4 * b * (1 - b) }; }
+    return { from: k, to: k, b: 0, w: 1, dom: k, text: 1 };
+}
+
+// --- electrons (desktop): gyrating along the traced field lines, bouncing near the magnets (magnetic mirrors) ---
+function buildElectrons(M) {
+    const all = M.field && M.field.lines;
+    if (!all || !all.length) return null;
+    // electrons live in the plasma: keep only the stretches of field line inside the discharge chamber
+    // (or, in the RPA, inside the gap between the magnets); they turn back at the ends of those stretches
+    const ch = M.groups.find(g => g.label === 'Discharge chamber'), mg = M.groups.find(g => /cusp magnet/i.test(g.label));
+    let inside;
+    if (ch) {
+        const b = ch.meshes[0].userData.bb, c = b.getCenter(new THREE.Vector3()), sz = b.getSize(new THREE.Vector3());
+        const R = Math.min(sz.x, sz.y) / 2 * 0.86, z0 = b.min.z + sz.z * 0.06, z1 = b.max.z - sz.z * 0.06;
+        inside = p => Math.hypot(p.x - c.x, p.y - c.y) < R && p.z > z0 && p.z < z1;
+    } else if (mg) {
+        const cs = mg.meshes.map(m => m.userData.c), c = cs.reduce((a, v) => a.add(v), new THREE.Vector3()).divideScalar(cs.length);
+        const half = mg.meshes[0].userData.bb.getSize(new THREE.Vector3()).multiplyScalar(0.5);
+        const gapX = Math.min(...cs.map(v => Math.abs(v.x - c.x))) - half.x, ySpan = Math.max(...cs.map(v => Math.abs(v.y - c.y))) + half.y;
+        inside = p => Math.abs(p.x - c.x) < gapX * 0.92 && Math.abs(p.y - c.y) < ySpan && Math.abs(p.z - c.z) < half.z;
+    } else return null;
+    const lines = [];
+    all.forEach(l => { let run = []; l.forEach(p => { if (inside(p)) run.push(p); else { if (run.length > 8) lines.push(run); run = []; } }); if (run.length > 8) lines.push(run); });
+    if (!lines.length) return null;
+    const NE = 36, TR = 6, n = NE * TR, pos = new Float32Array(n * 3), fade = new Float32Array(n);
+    for (let e = 0; e < NE; e++) for (let k = 0; k < TR; k++) fade[e * TR + k] = Math.pow(1 - k / TR, 1.5);
+    const ds = M.radius * 0.01, list = [];
+    for (let e = 0; e < NE; e++) {
+        const line = lines[Math.floor(Math.random() * lines.length)], L = line.length;
+        list.push({ line, s: 1 + (L - 3) * Math.random(), dir: Math.random() < 0.5 ? -1 : 1, v: (16 + 14 * Math.random()), ph: Math.random() * 6.28, w: 9 + 4 * Math.random() });
+    }
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('aFade', new THREE.BufferAttribute(fade, 1));
+    const uniforms = { uOn: { value: 0 }, uScale: { value: 400 }, uSize: { value: M.radius * 0.0065 } };
+    const pts = new THREE.Points(geo, new THREE.ShaderMaterial({
+        uniforms, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+        vertexShader: `attribute float aFade; uniform float uScale, uSize, uOn; varying float vA;
+            void main() { vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; gl_PointSize = uSize * uScale / -mv.z * (0.5 + 0.5 * aFade); vA = uOn * aFade; }`,
+        fragmentShader: `varying float vA; void main() { float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.0, d) * vA; gl_FragColor = vec4(vec3(0.45, 0.82, 1.0), a * 0.8); }`
+    }));
+    pts.frustumCulled = false; pts.renderOrder = 3; pts.visible = false; M.holder.add(pts);
+    const rg = M.radius * 0.0035, up = new THREE.Vector3(0, 0, 1), T = new THREE.Vector3(), A = new THREE.Vector3(), Bv = new THREE.Vector3(), P = new THREE.Vector3();
+    const at = (line, s) => { const i = clamp(Math.floor(s), 0, line.length - 2), f = clamp(s - i, 0, 1); P.copy(line[i]).lerp(line[i + 1], f); T.copy(line[i + 1]).sub(line[i]).normalize(); return P; };
+    return {
+        pts, uniforms,
+        step(dt) {
+            list.forEach((e, ei) => {
+                const L = e.line.length, lo = 1, hi = L - 2;
+                e.s += e.dir * e.v * dt; if (e.s > hi) { e.s = hi; e.dir = -1; } if (e.s < lo) { e.s = lo; e.dir = 1; }
+                e.ph += e.w * dt;
+                for (let k = 0; k < TR; k++) {
+                    at(e.line, e.s - e.dir * k * 0.55);
+                    A.crossVectors(T, Math.abs(T.z) > 0.9 ? new THREE.Vector3(1, 0, 0) : up).normalize(); Bv.crossVectors(T, A);
+                    const ph = e.ph - k * 0.3;
+                    P.addScaledVector(A, Math.cos(ph) * rg).addScaledVector(Bv, Math.sin(ph) * rg);
+                    pos.set([P.x, P.y, P.z], (ei * TR + k) * 3);
+                }
+            });
+            geo.attributes.position.needsUpdate = true;
+        }
+    };
+}
+
+// --- beam on the Faraday cups (desktop): a beam comes in, each cup glows, a live profile rises above the array ---
+function buildProfile(M) {
+    const cg = M.groups.find(g => g.label === 'Faraday cup'), eg = M.groups.find(g => g.label === 'Earth electrode and base'), sg = M.groups.find(g => g.label === 'Suppressor electrode');
+    if (!cg || !eg || !sg) return null;
+    const cups = cg.meshes.map(m => m.userData.c.clone());
+    const cb = new THREE.Box3().setFromPoints(cups), csz = cb.getSize(new THREE.Vector3()), cc = cb.getCenter(new THREE.Vector3());
+    const u = csz.x >= csz.y && csz.x >= csz.z ? new THREE.Vector3(1, 0, 0) : csz.y >= csz.z ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(0, 0, 1);
+    // the beam side: the suppressor electrodes sit in front of the cups
+    const eb = eg.meshes[0].userData.bb, sc = sg.meshes.reduce((a, m) => a.add(m.userData.c), new THREE.Vector3()).divideScalar(sg.meshes.length);
+    const nrm = sc.clone().sub(cc); nrm.addScaledVector(u, -nrm.dot(u)); nrm.normalize();
+    const w = new THREE.Vector3().crossVectors(nrm, u).normalize();
+    const corners = []; for (let i = 0; i < 8; i++) corners.push(new THREE.Vector3(i & 1 ? eb.max.x : eb.min.x, i & 2 ? eb.max.y : eb.min.y, i & 4 ? eb.max.z : eb.min.z));
+    const top = Math.max(...corners.map(c => c.dot(nrm))), width = Math.max(...corners.map(c => c.dot(w))) - Math.min(...corners.map(c => c.dot(w)));
+    cups.sort((a, b) => a.dot(u) - b.dot(u));
+    const xs = cups.map(c => c.dot(u)), span = xs[xs.length - 1] - xs[0], pitch = span / Math.max(1, cups.length - 1);
+    const mu = (xs[0] + xs[xs.length - 1]) / 2 + span * 0.08, sig = span * 0.26, gauss = x => Math.exp(-((x - mu) ** 2) / (2 * sig * sig));
+    const onPlane = c => c.clone().addScaledVector(nrm, top - c.dot(nrm));
+    const holder = new THREE.Group(); holder.visible = false; M.holder.add(holder);
+    const uScale = { value: 400 }, uOn = { value: 0 }, uTime = { value: 0 };
+    // incoming beam
+    const L = M.radius * 0.5, NB = 1500, start = new Float32Array(NB * 3), seed = new Float32Array(NB);
+    const g2 = () => { let a = 0; for (let i = 0; i < 6; i++) a += Math.random(); return (a - 3) / Math.sqrt(0.5); };
+    const base = onPlane(cc);
+    for (let i = 0; i < NB; i++) {
+        const p0 = base.clone().addScaledVector(u, mu - cc.dot(u) + g2() * sig * 0.5).addScaledVector(w, (Math.random() - 0.5) * width * 0.45).addScaledVector(nrm, L);
+        start.set([p0.x, p0.y, p0.z], i * 3); seed[i] = Math.random();
+    }
+    const bg = new THREE.BufferGeometry(); bg.setAttribute('position', new THREE.BufferAttribute(start, 3)); bg.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
+    const beam = new THREE.Points(bg, new THREE.ShaderMaterial({
+        uniforms: { uOn, uTime, uScale, uLen: { value: L }, uDir: { value: nrm.clone().negate() }, uSize: { value: M.radius * 0.007 } },
+        transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+        vertexShader: `attribute float aSeed; uniform float uTime, uLen, uScale, uSize, uOn; uniform vec3 uDir; varying float vA;
+            void main() { float s = fract(aSeed + uTime * 0.6); vec3 p = position + uDir * (s * uLen); vec4 mv = modelViewMatrix * vec4(p, 1.0);
+              gl_Position = projectionMatrix * mv; gl_PointSize = uSize * uScale / -mv.z; vA = uOn * smoothstep(0.0, 0.25, s) * (1.0 - smoothstep(0.96, 1.0, s)); }`,
+        fragmentShader: `varying float vA; void main() { float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.05, d) * vA; gl_FragColor = vec4(vec3(0.56, 0.64, 1.0) + 0.3 * a, a); }`
+    }));
+    beam.frustumCulled = false;
+    // cup glows at each aperture
+    const glowPos = new Float32Array(cups.length * 3), glowI = new Float32Array(cups.length);
+    cups.forEach((c, k) => { const p = onPlane(c).addScaledVector(nrm, 0.6); glowPos.set([p.x, p.y, p.z], k * 3); glowI[k] = gauss(xs[k]); });
+    const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.BufferAttribute(glowPos, 3)); gg.setAttribute('aI', new THREE.BufferAttribute(glowI, 1));
+    const glows = new THREE.Points(gg, new THREE.ShaderMaterial({
+        uniforms: { uOn, uTime, uScale, uSize: { value: pitch * 1.15 } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+        vertexShader: `attribute float aI; uniform float uTime, uScale, uSize, uOn; varying float vA;
+            void main() { vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; gl_PointSize = uSize * uScale / -mv.z;
+              vA = uOn * aI * (0.85 + 0.15 * sin(uTime * 9.0 + position.x)); }`,
+        fragmentShader: `varying float vA; void main() { float d = length(gl_PointCoord - 0.5); float a = pow(smoothstep(0.5, 0.0, d), 1.6) * vA; gl_FragColor = vec4(1.0, 0.62, 0.32, a); }`
+    }));
+    glows.frustumCulled = false;
+    // live profile: one bar per cup above the array, and the fitted Gaussian
+    const lift = M.radius * 0.08, Hmax = M.radius * 0.22;
+    const barMat = new THREE.MeshBasicMaterial({ color: 0x0a84ff, transparent: true, opacity: 0, depthWrite: false });
+    const bars = cups.map(c => { const m = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), barMat); m.matrixAutoUpdate = false; m.userData.b = onPlane(c).addScaledVector(nrm, lift); holder.add(m); return m; });
+    const NC = 80, curvePos = new Float32Array(NC * 3), curveGeo = new THREE.BufferGeometry(); curveGeo.setAttribute('position', new THREE.BufferAttribute(curvePos, 3));
+    const curveMat = new THREE.LineBasicMaterial({ color: 0xff9f0a, transparent: true, opacity: 0, depthWrite: false });
+    const curve = new THREE.Line(curveGeo, curveMat); curve.frustumCulled = false;
+    const baseLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints([onPlane(cups[0]).addScaledVector(u, -pitch).addScaledVector(nrm, lift), onPlane(cups[cups.length - 1]).addScaledVector(u, pitch).addScaledVector(nrm, lift)]),
+        new THREE.LineBasicMaterial({ color: 0x86868b, transparent: true, opacity: 0, depthWrite: false }));
+    holder.add(beam, glows, curve, baseLine);
+    const M4 = new THREE.Matrix4(), bw = pitch * 0.55, bd = Math.min(width * 0.18, pitch * 0.5), x0 = xs[0] - pitch, x1 = xs[xs.length - 1] + pitch;
+    const extent = [onPlane(cups[0]).addScaledVector(u, -pitch), onPlane(cups[cups.length - 1]).addScaledVector(u, pitch),
+        onPlane(cups[0]).addScaledVector(nrm, lift + Hmax * 1.1), onPlane(cups[cups.length - 1]).addScaledVector(nrm, lift + Hmax * 1.1)].map(v => v.applyMatrix4(root.matrixWorld));
+    return {
+        holder, uOn, uTime, uScale, extent,
+        step(vis, time) {
+            barMat.opacity = 0.85 * vis; curveMat.opacity = vis; baseLine.material.opacity = 0.6 * vis;
+            bars.forEach((m, k) => {
+                const h = Math.max(0.01, Hmax * glowI[k] * (0.94 + 0.06 * Math.sin(time * 5 + k * 1.7)) * vis);
+                M4.makeBasis(u.clone().multiplyScalar(bw), nrm.clone().multiplyScalar(h), w.clone().multiplyScalar(bd));
+                M4.setPosition(m.userData.b.clone().addScaledVector(nrm, h / 2)); m.matrix.copy(M4); m.matrixWorldNeedsUpdate = true;
+            });
+            for (let i = 0; i < NC; i++) {
+                const x = x0 + (x1 - x0) * i / (NC - 1), p = onPlane(cc).addScaledVector(u, x - cc.dot(u)).addScaledVector(nrm, lift + Hmax * gauss(x) * vis + 0.4);
+                curvePos.set([p.x, p.y, p.z], i * 3);
+            }
+            curveGeo.attributes.position.needsUpdate = true;
+        }
+    };
+}
 
 // --- lab photo: drag the divider to wipe between the live model and the photo ---
 const cmp = $('compare'), bar = $('cmp-bar');
@@ -897,7 +1155,7 @@ function loop(now) {
     if (!visible || document.hidden) return;
 
     gTarget = scrollG();
-    gSmooth = reduce ? gTarget : gSmooth + (gTarget - gSmooth) * (1 - Math.exp(-dt * 9));
+    gSmooth = reduce ? gTarget : gSmooth + (gTarget - gSmooth) * (1 - Math.exp(-dt * 6));
     if (Math.abs(gTarget - gSmooth) < 1e-4) gSmooth = gTarget;
     const ci = Math.min(MODELS.length - 1, Math.floor(gSmooth)), p = gSmooth - ci;
     activate(ci);
@@ -905,14 +1163,33 @@ function loop(now) {
     if (!model || active !== ci) { $('loading').classList.remove('done'); return; }
 
     // scroll keyframes: distance, explode; the turntable follows the scroll
-    const kf = keyAt(p);
+    const story = hasStory(ci) && model.story && model.story.length ? model.story : null;
+    const kf = keyAt(p, !!story);
     if (Math.abs(kf.e - explodeT) > 1e-4) { explodeT = kf.e; applyExplode(); }
     // fade between chapters, captions per phase
     const fadeIn = ci > 0 ? smooth(0, 0.05, p) : 1, fadeOut = ci < MODELS.length - 1 ? 1 - smooth(0.95, 1, p) : 1;
     const vis = fadeIn * fadeOut;
     canvas.style.opacity = vis.toFixed(3); labelsEl.style.setProperty('--vis', vis.toFixed(3));
-    const intro = (ci > 0 ? smooth(0.0, 0.05, p) : 1) * (1 - smooth(0.17, 0.27, p));
-    const exCap = smooth(0.52, 0.6, p) * (1 - smooth(0.84, 0.9, p)) * (focus < 0 && selected < 0 ? 1 : 0);
+    const intro = (ci > 0 ? smooth(0.0, 0.05, p) : 1) * (story ? 1 - smooth(0.06, 0.11, p) : 1 - smooth(0.17, 0.27, p));
+    const exCap = (story ? smooth(0.74, 0.79, p) * (1 - smooth(0.88, 0.92, p)) : smooth(0.52, 0.6, p) * (1 - smooth(0.84, 0.9, p))) * (focus < 0 && selected < 0 ? 1 : 0);
+    // the story: which beat, its caption, what it shows, what fades back
+    let st = null;
+    storyFx.field = storyFx.beam = storyFx.profile = 0;
+    if (story) {
+        st = storyAt(p, story.length);
+        const beat = story[st.dom], capS = $('cap-story');
+        if (storyDom !== st.dom) {
+            storyDom = st.dom;
+            $('s-step').textContent = `${st.dom + 1} / ${story.length}`; $('s-title').textContent = beat.title; $('s-text').textContent = beat.text;
+        }
+        const tOp = st.w * st.text * (focus < 0 && selected < 0 ? 1 : 0);
+        capS.style.opacity = tOp.toFixed(3); capS.style.transform = `translateY(calc(-50% + ${(14 * (1 - st.text)).toFixed(1)}px))`;
+        if (beat.fx) storyFx[beat.fx] = st.w * st.text;
+        if (selected < 0 && focus < 0 && st.w > 0.001) {
+            model.groups.forEach((g, i) => { g.goalFade = beat.set.has(i) ? 1 : 1 - 0.86 * st.w; });
+            storyOn = true;
+        } else if (storyOn) { storyOn = false; paint(); }
+    } else if (storyOn) { storyOn = false; paint(); }
     const capI = $('cap-intro'), capE = $('cap-explode');
     capI.style.opacity = intro.toFixed(3); capI.style.transform = `translateY(${(-24 * (1 - intro)).toFixed(1)}px)`;
     capE.style.opacity = exCap.toFixed(3);
@@ -922,8 +1199,19 @@ function loop(now) {
     const sph = model.fit0.clone();
     sph.center.lerp(model.fit1.center, explodeT); sph.radius += (model.fit1.radius - sph.radius) * explodeT;
     const vfov = THREE.MathUtils.degToRad(camera.fov), hfov = 2 * Math.atan(Math.tan(vfov / 2) * camera.aspect);
-    const dist = sph.radius / Math.sin(Math.min(vfov, hfov) / 2) * kf.m;
-    const az = AZ0 + (p - 0.45) * 1.9 + userAz, pol = POL0 + userPol - 0.1 * Math.sin(Math.PI * p);
+    const fitK = 1 / Math.sin(Math.min(vfov, hfov) / 2);
+    let dist = sph.radius * fitK * kf.m;
+    if (model.events && explodeT < 0.3) {     // Penning trap: come closer and follow the antiproton bunch along the trap
+        const fw = (1 - (st ? st.w : 0)) * (1 - smooth(0.05, 0.3, explodeT)), c3 = model.events.centre.clone().applyMatrix4(root.matrixWorld);
+        followC.lerp(c3, 1 - Math.exp(-dt * 2.5));
+        sph.center.lerp(followC, fw * 0.85); dist *= 1 - 0.42 * fw;
+    }
+    if (st && st.w > 0) {        // move the camera to the beat's subsystem (and between beats)
+        const anchor = i => i < 0 ? { c: sph.center, d: dist } : { c: story[i].sph.center, d: clamp(story[i].sph.radius * fitK * 1.75, dist * 0.38, dist * 1.05) };
+        const A = anchor(st.from), B2 = anchor(st.to);
+        sph.center = A.c.clone().lerp(B2.c, st.b); dist = A.d + (B2.d - A.d) * st.b;
+    }
+    const az = AZ0 + (desk && MODELS[ci].deskAz || 0) + (p - 0.45) * 1.9 + userAz, pol = POL0 + userPol - 0.1 * Math.sin(Math.PI * p);
     _c.copy(sph.center);
     camera.position.set(_c.x + dist * Math.sin(pol) * Math.sin(az), _c.y + dist * Math.cos(pol), _c.z + dist * Math.sin(pol) * Math.cos(az));
     camera.lookAt(_c);
@@ -931,8 +1219,9 @@ function loop(now) {
     camera.near = Math.max(model.radius * 0.004, dist - model.radius * 2.2); camera.far = dist + model.radius * 3; camera.updateProjectionMatrix();
     // while the title shows on the left, slide the model to the right of it
     const W = stage.clientWidth, H = stage.clientHeight;
-    const shift = W > 900 ? intro * W * 0.16 : 0;
-    if (shift > 0.5) camera.setViewOffset(W, H, -shift, 0, W, H); else camera.clearViewOffset();
+    const shift = W > 900 ? Math.max(intro, st ? st.w * st.text : 0) * W * 0.16 : 0;
+    plotLift += ((!$('plots').hidden ? H * 0.1 : 0) - plotLift) * (1 - Math.exp(-dt * 4));
+    if (shift > 0.5 || plotLift > 0.5) camera.setViewOffset(W, H, -shift, plotLift, W, H); else camera.clearViewOffset();
 
     // a list click waits until the scroll has arrived
     if (pending && pending.chapter === ci && explodeT > 0.9) {
@@ -951,7 +1240,7 @@ function loop(now) {
 (async () => {
     try {
         for (let i = 0; i < MODELS.length; i++) {
-            const data = await fetchModel(MODELS[i].key);
+            const data = MODELS[i].procedural ? await penningData(BASE) : await fetchModel(MODELS[i].key);
             built[i] = build(data);
             if (i === listIdx) renderParts();
             if (i === 0) {

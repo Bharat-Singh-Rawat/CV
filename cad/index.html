@@ -7,7 +7,7 @@
     <link rel="icon" href="/CV/v2/icons/favicon.ico" sizes="any">
     <link rel="apple-touch-icon" href="/CV/v2/icons/apple-touch-icon.png">
     <title>Hardware in 3D — Bharat Singh Rawat</title>
-    <meta name="description" content="Interactive 3D models of instruments designed by Bharat Singh Rawat: an octagonal ring-cusp ion source, a Faraday cup array and a magnetic retarding potential analyser. Scroll to take them apart and inspect every part.">
+    <meta name="description" content="Interactive 3D models of instruments designed by Bharat Singh Rawat: an octagonal ring-cusp ion source, a Faraday cup array, a magnetic retarding potential analyser and the AEgIS Penning trap with antiproton annihilations. Scroll to take them apart and inspect every part.">
     <meta property="og:title" content="Hardware in 3D — Bharat Singh Rawat">
     <meta property="og:description" content="Scroll to take them apart, inspect every part.">
     <meta property="og:image" content="https://bharat-singh-rawat.github.io/CV/v2/img/og-card.jpg">
@@ -18,7 +18,7 @@
             document.documentElement.dataset.theme = dark ? 'dark' : 'light';
         })();
     </script>
-    <link rel="stylesheet" href="/CV/cad/cad.css?v=20261120p">
+    <link rel="stylesheet" href="/CV/cad/cad.css?v=20261120y">
     <script type="importmap">
         { "imports": {
             "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
@@ -48,6 +48,7 @@
                 <div class="chapters-nav" id="chapters" role="tablist" aria-label="Jump to a model"></div>
 
                 <div class="caption" id="cap-intro"><p class="c-eyebrow" id="c-num"></p><h2 id="m-name"></h2><p id="m-blurb"></p></div>
+                <div class="caption story" id="cap-story"><p class="c-eyebrow" id="s-step"></p><h2 id="s-title"></h2><p id="s-text"></p></div>
                 <div class="caption small" id="cap-explode"><p class="c-eyebrow">Exploded view</p><p id="c-hint">Tap a label to look closer.</p></div>
 
                 <div class="loading" id="loading"><span class="spin" aria-hidden="true"></span><span>Loading model</span></div>
@@ -61,6 +62,8 @@
                     <div class="cmp-bar" id="cmp-bar" role="slider" aria-label="Compare the 3D model with the lab photo" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0"><i></i></div>
                     <span class="cmp-tag l">3D model</span><span class="cmp-tag r">Lab photo</span>
                 </div>
+                <aside class="plots" id="plots" aria-label="Detector plots" hidden></aside>
+                <div class="phase" id="phase" aria-live="polite" hidden><i aria-hidden="true"></i><span></span></div>
                 <div class="legend" id="legend" hidden><span class="lg-t">|B|</span><span class="lg-scale"><span class="lg-bar" aria-hidden="true"></span><span class="lg-ticks"><i>20 G</i><i>200 G</i><i>2.5 kG</i></span></span><span class="lg-note">Magnets 2500 G at the surface · dashes flow N → S</span></div>
                 <div class="ar-pop" id="ar-pop" hidden>
                     <button class="x" id="ar-x" type="button" aria-label="Close">✕</button>
@@ -126,6 +129,6 @@
     </main>
 
     <script src="/CV/v2/sfx.js?v=20261117z"></script>
-    <script type="module" src="/CV/cad/cad.js?v=20261120p"></script>
+    <script type="module" src="/CV/cad/cad.js?v=20261120y"></script>
 </body>
 </html>
