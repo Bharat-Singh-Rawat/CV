@@ -185,6 +185,12 @@
         audio.play().catch(() => { /* blocked until a user gesture */ });
     }
     const pause = () => audio.pause();
+    // start buffering before the first press: opening the player, or reaching for Play, picks the song and loads it,
+    // so Play starts at once instead of waiting for the server
+    const warm = () => {
+        if (idx < 0) load(shuffle ? (order = shuffled())[0] : 0, false);
+        if (audio.preload !== 'auto') { audio.preload = 'auto'; try { audio.load(); } catch (e) { /* not ready */ } }
+    };
 
     audio.addEventListener('play', () => { $('mp-play').innerHTML = ICON.pause; $('mp-play').setAttribute('aria-label', 'Pause'); mp.classList.add('playing'); beatStart(); notify(); });
     audio.addEventListener('pause', () => { $('mp-play').innerHTML = ICON.play; $('mp-play').setAttribute('aria-label', 'Play'); mp.classList.remove('playing'); beatStop(); notify(); });
@@ -199,6 +205,7 @@
     });
 
     $('mp-play').addEventListener('click', () => audio.paused ? play() : pause());
+    ['pointerenter', 'pointerdown', 'focus'].forEach(ev => { $('mp-play').addEventListener(ev, warm, { passive: true }); $('mp-fab').addEventListener(ev, warm, { passive: true }); });
     $('mp-next').addEventListener('click', () => load(nextIndex(1), true));
     $('mp-prev').addEventListener('click', () => { if (audio.currentTime > 3) audio.currentTime = 0; else load(nextIndex(-1), true); });
     // shuffle play: every click jumps to a random song (never the current one) and keeps shuffle on
@@ -254,15 +261,16 @@
     }
 
     // ---- small round button until used; remembers open/closed, song and position ----
-    const setOpen = open => {
+    const setOpen = (open, atStart) => {
         mp.classList.toggle('collapsed', !open);
+        if (open) atStart ? setTimeout(warm, 3500) : warm();     // a player left open: let the page load first
         if (!open && !queue.hidden) toggleQueue(false);
         store.set('open', open);
         notify();
     };
     $('mp-fab').addEventListener('click', () => setOpen(true));
     $('mp-min').addEventListener('click', e => { e.stopPropagation(); setOpen(false); });
-    if (store.get('open') && !window.matchMedia('(max-width: 600px)').matches) setOpen(true);   // phones always start small
+    if (store.get('open') && !window.matchMedia('(max-width: 600px)').matches) setOpen(true, true);   // phones always start small
     const saved = store.get('pos');
     if (saved && TRACKS[saved.i]) {
         load(saved.i, false);
