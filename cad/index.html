@@ -18,7 +18,7 @@
             document.documentElement.dataset.theme = dark ? 'dark' : 'light';
         })();
     </script>
-    <link rel="stylesheet" href="/CV/cad/cad.css?v=20261120n">
+    <link rel="stylesheet" href="/CV/cad/cad.css?v=20261120o">
     <script type="importmap">
         { "imports": {
             "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
@@ -101,6 +101,8 @@
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 7.5v9L12 21l8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg>
                         <span>AR</span>
                     </button>
+                    <!-- iPhone / iPad: a real AR Quick Look link (Safari only opens AR from an <a rel="ar"> with an image inside) -->
+                    <a class="tool ar-link" id="t-ar-ios" rel="ar" href="/CV/cad/ar/oris.usdz" hidden><img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231d1d1f' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 4 7.5v9L12 21l8-4.5v-9z'/><path d='m4 7.5 8 4.5 8-4.5M12 12v9'/></svg>" alt="View in AR" width="18" height="18"></a>
                     <span class="sep" aria-hidden="true"></span>
                     <button type="button" class="tool" id="t-cut" aria-pressed="false" title="Cut-away">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5z" opacity=".45"/><path d="M12 3 4 7.5v9L12 21" fill="currentColor" fill-opacity=".18"/></svg>
@@ -124,6 +126,6 @@
     </main>
 
     <script src="/CV/v2/sfx.js?v=20261117z"></script>
-    <script type="module" src="/CV/cad/cad.js?v=20261120n"></script>
+    <script type="module" src="/CV/cad/cad.js?v=20261120o"></script>
 </body>
 </html>

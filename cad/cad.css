@@ -179,6 +179,8 @@ h1 { margin: 0; font-size: clamp(2.6rem, 7vw, 4.4rem); line-height: 1.04; letter
 .tool:hover { background: var(--line); }
 .tool[aria-pressed="true"] { background: var(--accent); color: #fff; }
 .tool[hidden] { display: none; }
+.ar-link img { display: block; width: 18px; height: 18px; }
+:root[data-theme="dark"] .ar-link img { filter: invert(1); }
 @media (max-width: 1100px) { .d-hint, .d-hint + .sep { display: none; } }
 
 

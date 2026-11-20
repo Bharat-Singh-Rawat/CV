@@ -301,6 +301,7 @@ function activate(i) {
     $('t-beam').setAttribute('aria-pressed', 'false'); $('t-field').setAttribute('aria-pressed', 'false'); $('legend').hidden = true;
     $('cmp-img').src = $('cmp-bg').src = MODELS[i].photo; $('cmp-img').alt = 'Lab photo of the ' + model.data.name;
     $('ar-pop').hidden = true;
+    $('t-ar-ios').href = `/CV/cad/ar/${MODELS[i].key}.usdz`;
     $('loading').classList.add('done');
 }
 
@@ -869,6 +870,8 @@ $('t-ar').addEventListener('click', () => {
     if (!pop.hidden) qrInto($('ar-qr'), location.href.split('#')[0] + '#' + k);
 });
 $('ar-x').addEventListener('click', () => { $('ar-pop').hidden = true; });
+// on iPhone / iPad the AR button is the native Quick Look link itself: Safari opens it on tap, no script in between
+if (isIOS && quickLook) { $('t-ar').hidden = true; $('t-ar-ios').hidden = false; }
 let qrLib = null;
 function qrInto(el, text) {
     el.innerHTML = '';
