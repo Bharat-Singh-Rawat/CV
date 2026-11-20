@@ -7,9 +7,9 @@
     <link rel="icon" href="/CV/v2/icons/favicon.ico" sizes="any">
     <link rel="apple-touch-icon" href="/CV/v2/icons/apple-touch-icon.png">
     <title>Hardware in 3D — Bharat Singh Rawat</title>
-    <meta name="description" content="Interactive 3D models of instruments designed by Bharat Singh Rawat: an octagonal ring-cusp ion source, a Faraday cup array and a magnetic retarding potential analyser. Turn them, take them apart and inspect every part.">
+    <meta name="description" content="Interactive 3D models of instruments designed by Bharat Singh Rawat: an octagonal ring-cusp ion source, a Faraday cup array and a magnetic retarding potential analyser. Scroll to take them apart and inspect every part.">
     <meta property="og:title" content="Hardware in 3D — Bharat Singh Rawat">
-    <meta property="og:description" content="Turn them, take them apart, inspect every part.">
+    <meta property="og:description" content="Scroll to take them apart, inspect every part.">
     <meta property="og:image" content="https://bharat-singh-rawat.github.io/CV/v2/img/og-card.jpg">
     <script>
         (function () {
@@ -18,7 +18,7 @@
             document.documentElement.dataset.theme = dark ? 'dark' : 'light';
         })();
     </script>
-    <link rel="stylesheet" href="/CV/cad/cad.css?v=20261119f">
+    <link rel="stylesheet" href="/CV/cad/cad.css?v=20261120m">
     <script type="importmap">
         { "imports": {
             "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
@@ -36,65 +36,94 @@
         <header class="hero">
             <p class="eyebrow">Hardware</p>
             <h1>Take it apart.</h1>
-            <p class="sub">Instruments I designed, straight from the CAD. Turn them, pull them apart, and tap any part to see what it does.</p>
+            <p class="sub">Instruments I designed, straight from the CAD. Scroll, and each one comes apart piece by piece. Drag to turn it, tap any part to see what it does.</p>
+            <p class="cue" aria-hidden="true"><span>Scroll</span><i></i></p>
         </header>
 
-        <div class="models" id="models" role="tablist" aria-label="Choose an assembly"></div>
+        <!-- scroll story: the stage stays pinned while one chapter per model scrolls past -->
+        <section class="scrolly" id="scrolly" aria-label="3D models">
+            <div class="stage" id="stage">
+                <canvas id="view" aria-label="Interactive 3D model. Scroll to zoom and take it apart, drag to rotate, click a part for details."></canvas>
 
-        <section class="stage" id="stage" aria-label="3D model viewer">
-            <canvas id="view" aria-label="Interactive 3D model. Drag to rotate, scroll to zoom."></canvas>
-            <div class="caption" id="caption"><h2 id="m-name"></h2><p id="m-blurb"></p></div>
-            <div class="loading" id="loading"><span class="spin" aria-hidden="true"></span><span>Loading model</span></div>
-            <div class="labels" id="labels" aria-hidden="true"></div>
-            <button type="button" class="sys-back" id="sys-back" hidden>‹ All systems</button>
-            <div class="tip" id="tip" role="tooltip"></div>
+                <div class="chapters-nav" id="chapters" role="tablist" aria-label="Jump to a model"></div>
 
-            <aside class="info" id="info" aria-live="polite" hidden>
-                <button class="x" id="info-x" type="button" aria-label="Close">✕</button>
-                <p class="i-mat" id="i-mat"></p>
-                <h3 id="i-name"></h3>
-                <p class="i-blurb" id="i-blurb"></p>
-                <dl>
-                    <div><dt id="i-qty-t">Quantity</dt><dd id="i-qty"></dd></div>
-                    <div><dt id="i-size-t">Envelope</dt><dd id="i-size"></dd></div>
-                </dl>
-                <div class="i-act">
-                    <button type="button" id="i-solo" class="pill-btn">Show only this</button>
-                    <button type="button" id="i-zoom" class="pill-btn">Zoom to it</button>
+                <div class="caption" id="cap-intro"><p class="c-eyebrow" id="c-num"></p><h2 id="m-name"></h2><p id="m-blurb"></p></div>
+                <div class="caption small" id="cap-explode"><p class="c-eyebrow">Exploded view</p><p id="c-hint">Tap a label to look closer.</p></div>
+
+                <div class="loading" id="loading"><span class="spin" aria-hidden="true"></span><span>Loading model</span></div>
+                <div class="labels" id="labels" aria-hidden="true"></div>
+                <button type="button" class="sys-back" id="sys-back" hidden>‹ All systems</button>
+                <div class="tip" id="tip" role="tooltip"></div>
+
+                <!-- lab photo, wiped in from the right over the live model -->
+                <div class="compare" id="compare" hidden>
+                    <img id="cmp-bg" class="bg" alt="" aria-hidden="true"><img id="cmp-img" alt="">
+                    <div class="cmp-bar" id="cmp-bar" role="slider" aria-label="Compare the 3D model with the lab photo" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0"><i></i></div>
+                    <span class="cmp-tag l">3D model</span><span class="cmp-tag r">Lab photo</span>
                 </div>
-            </aside>
+                <div class="legend" id="legend" hidden><span class="lg-t">|B|</span><span class="lg-scale"><span class="lg-bar" aria-hidden="true"></span><span class="lg-ticks"><i>20 G</i><i>200 G</i><i>2.5 kG</i></span></span><span class="lg-note">Magnets 2500 G at the surface · dashes flow N → S</span></div>
+                <div class="ar-pop" id="ar-pop" hidden>
+                    <button class="x" id="ar-x" type="button" aria-label="Close">✕</button>
+                    <div class="qr" id="ar-qr" aria-hidden="true"></div>
+                    <p><b>See it on your desk.</b> Scan with your phone, then tap <b>AR</b> to place the model at real size.</p>
+                </div>
 
-            <div class="dock" id="dock">
-                <label class="explode">
-                    <span>Assembled</span>
-                    <input type="range" id="explode" min="0" max="1" step="0.001" value="0" aria-label="Explode the assembly">
-                    <span>Exploded</span>
-                </label>
-                <span class="sep" aria-hidden="true"></span>
-                <button type="button" class="tool" id="t-cut" aria-pressed="false" title="Cut-away">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5z" opacity=".45"/><path d="M12 3 4 7.5v9L12 21" fill="currentColor" fill-opacity=".18"/></svg>
-                    <span>Cut</span>
-                </button>
-                <button type="button" class="tool" id="t-spin" aria-pressed="false" title="Turntable">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 4 0 1 1-4.5-3.6"/><path d="m14.5 5.5 1.2 3-3 1"/></svg>
-                    <span>Spin</span>
-                </button>
-                <button type="button" class="tool" id="t-reset" title="Reset view">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/></svg>
-                    <span>Reset</span>
-                </button>
+                <aside class="info" id="info" aria-live="polite" hidden>
+                    <button class="x" id="info-x" type="button" aria-label="Close">✕</button>
+                    <p class="i-mat" id="i-mat"></p>
+                    <h3 id="i-name"></h3>
+                    <p class="i-blurb" id="i-blurb"></p>
+                    <dl>
+                        <div><dt id="i-qty-t">Quantity</dt><dd id="i-qty"></dd></div>
+                        <div><dt id="i-size-t">Envelope</dt><dd id="i-size"></dd></div>
+                    </dl>
+                    <div class="i-act">
+                        <button type="button" id="i-solo" class="pill-btn">Show only this</button>
+                    </div>
+                </aside>
+
+                <div class="dock" id="dock">
+                    <span class="d-hint">Scroll to explore · drag to turn</span>
+                    <span class="sep" aria-hidden="true"></span>
+                    <button type="button" class="tool" id="t-beam" aria-pressed="false" title="Beam on" hidden>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>
+                        <span>Beam</span>
+                    </button>
+                    <button type="button" class="tool" id="t-field" aria-pressed="false" title="Magnetic field lines" hidden>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12c-4-6-9-6-9 0s5 6 9 0 9-6 9 0-5 6-9 0"/></svg>
+                        <span>Field</span>
+                    </button>
+                    <button type="button" class="tool" id="t-photo" aria-pressed="false" title="Compare with the lab photo">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3 16 5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/></svg>
+                        <span>Photo</span>
+                    </button>
+                    <button type="button" class="tool" id="t-ar" title="View in AR">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 7.5v9L12 21l8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg>
+                        <span>AR</span>
+                    </button>
+                    <span class="sep" aria-hidden="true"></span>
+                    <button type="button" class="tool" id="t-cut" aria-pressed="false" title="Cut-away">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5z" opacity=".45"/><path d="M12 3 4 7.5v9L12 21" fill="currentColor" fill-opacity=".18"/></svg>
+                        <span>Cut</span>
+                    </button>
+                    <button type="button" class="tool" id="t-reset" title="Reset view">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/></svg>
+                        <span>Reset</span>
+                    </button>
+                </div>
             </div>
+            <div class="chapters" id="chapter-track"></div>
         </section>
-        <p class="hint" id="hint">Drag to turn · scroll or pinch to zoom · right-drag or two fingers to move</p>
 
         <section class="box" aria-labelledby="box-h">
             <h2 id="box-h">In the box.</h2>
+            <div class="models" id="models" role="tablist" aria-label="Parts list for"></div>
             <ul class="parts" id="parts"></ul>
         </section>
         <p class="end">Models are exported from the original CAD assemblies. <a href="/CV/#contact">Ask me about the designs</a>.</p>
     </main>
 
     <script src="/CV/v2/sfx.js?v=20261117z"></script>
-    <script type="module" src="/CV/cad/cad.js?v=20261119f"></script>
+    <script type="module" src="/CV/cad/cad.js?v=20261120m"></script>
 </body>
 </html>
