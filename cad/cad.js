@@ -10,12 +10,12 @@ import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { penningData, PenningEvents, DetectorPlots, STAGES } from './penning.js?v=20261120f';
-import { hpfcData, CoolingFlow } from './hpfc.js?v=20261120b';
+import { hpfcData, CoolingFlow } from './hpfc.js?v=20261121e';
 
 const MODELS = [
     { key: 'oris', short: 'Ion source', photo: '/CV/v2/img/oris.webp', beam: true },
     { key: 'fc-array', short: 'Faraday cups', photo: '/CV/v2/img/fc-array.webp', profile: true, deskAz: 1.25 },
-    { key: 'hp-cup', short: '10 kW cup', photo: '/CV/v2/img/hp-faraday-cup.webp', procedural: 'hpfc', water: true, noAR: true },
+    { key: 'hp-cup', short: '10 kW cup', photo: '/CV/v2/img/hp-fc-assembly.webp', procedural: 'hpfc', water: true, noAR: true, az0: -0.64, sweep: 0.3 },
     { key: 'magnetic-rpa', short: 'Magnetic RPA', photo: '/CV/v2/img/magnet-rpa.webp' },
     { key: 'penning', short: 'Penning trap', photo: '/CV/v2/img/at-aegis.webp', procedural: true, noAR: true }
 ];
@@ -55,10 +55,11 @@ const STORY = {
     ]
 };
 STORY['hp-cup'] = [
-    { parts: ['Cup body'], title: 'Ten kilowatts on copper', text: 'The ion beam stops on the floor of a solid copper cup. At full current that is around 10 kW of heat, in a block you can hold in one hand.', fx: 'heat', az: 1.2 },
-    { parts: ['Suppressor ring', 'Ceramic isolator', 'Ceramic bushes'], title: 'Keeping the electrons in', text: 'Ions hitting copper knock out secondary electrons. A suppressor ring at the front, biased negative and isolated from the cup by ceramic, turns them back, so the measured current stays honest.', fx: 'suppress', az: 1.0 },
-    { parts: ['Cooling pipe'], title: 'Water takes the heat', text: 'A copper pipe runs in a U-shaped groove cut into the back of the cup. Cold water flows in through one slot, picks up the heat and leaves warm through the other.', fx: 'water' },
-    { parts: ['Back plate', 'Cap screws'], title: 'Clamped in place', text: 'A copper back plate screws over the groove and presses the pipe into it, so the heat flows straight from the cup into the water.', fx: 'water' }
+    { parts: ['Cup body'], title: 'Ten kilowatts on copper', text: 'The ion beam stops on the floor of a solid copper cup. At full current that is around 10 kW of heat, in a block you can hold in one hand.', fx: 'heat', az: 0 },
+    { parts: ['Suppressor ring', 'Ceramic isolator', 'Ceramic bushes'], title: 'Keeping the electrons in', text: 'Ions hitting copper knock out secondary electrons. A suppressor ring at the front, biased negative and isolated from the cup by ceramic, turns them back, so the measured current stays honest.', fx: 'suppress', az: 0 },
+    { parts: ['Cooling coil'], title: 'Water takes the heat', text: 'A copper tube is brazed round the cup in five turns. Cold water comes in along the arm, winds round the cup and leaves warm.', fx: 'water', az: 0 },
+    { parts: ['Ceramic standoffs', 'Cup bracket', 'Arm and shaft'], title: 'Hanging on ceramic', text: 'The cup hangs from a steel arm on ceramic standoffs, so the only way its charge can leave is through the signal lead.', fx: 'water', az: 0 },
+    { parts: ['Pneumatic cylinder', 'Edge-welded bellows', 'Bellows flanges', 'Piston rod', 'Tie rods', 'Actuator plate', 'Air fittings', 'Mounting flange'], title: 'Into the beam', text: 'A pneumatic cylinder pushes the arm through two edge-welded bellows, which keep the vacuum sealed. The cup goes into the beam to measure, and comes back out to let the beam through.', fx: 'drive', az: 0 }
 ];
 STORY['penning'] = [
     { parts: ['Degrader foil'], title: 'Slowing the antiprotons', text: 'Antiprotons from CERN\'s decelerator pass a thin foil that slows them enough to be caught.' },
@@ -81,6 +82,8 @@ const FINISH = {
     ceramic:  { color: 0xf6f4ef, metalness: 0, roughness: 0.32, clearcoat: 0.9, clearcoatRoughness: 0.12, label: 'Ceramic' },
     ptfe:     { color: 0xf2f2ee, metalness: 0, roughness: 0.6, sheen: 0.4, sheenRoughness: 0.8, label: 'PTFE' },
     magnet:   { color: 0x5b5e64, metalness: 1, roughness: 0.26, label: 'Magnet' },
+    bellows:  { color: 0x6e7176, metalness: 1, roughness: 0.42, label: 'Steel' },
+    fitting:  { color: 0x2f6fd6, metalness: 0.2, roughness: 0.4, label: '' },
     filament: { color: 0x9d968c, metalness: 1, roughness: 0.38, label: '' },
     gold:     { color: 0xe8c47c, metalness: 1, roughness: 0.2, label: 'Gold' },
     coil:     { color: 0x9aa3b5, metalness: 0.6, roughness: 0.35, opacity: 0.16, label: '' },
@@ -167,7 +170,7 @@ scene.add(new THREE.HemisphereLight(0xffffff, 0x888888, 0.35));
 
 // floor: soft cast shadow + a contact shadow blob, both follow the lowest part
 const floor = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShadowMaterial({ opacity: 0.16 }));
-floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; floor.material.depthWrite = false; scene.add(floor);   // no depth: a beam can rise through it
 const blob = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: blobTexture(), transparent: true, depthWrite: false, opacity: 0.55 }));
 blob.rotation.x = -Math.PI / 2; blob.renderOrder = -1; scene.add(blob);
 function blobTexture() {
@@ -200,7 +203,8 @@ let gTarget = 0, gSmooth = 0, pending = null, plotLift = 0;
 const followC = new THREE.Vector3();
 let beamOn = false, fieldOn = false, photoOn = false, beamVis = 0, fieldVis = 0;
 let profileOn = false, profVis = 0, storyOn = false;
-const storyFx = { field: 0, beam: 0, profile: 0, water: 0, heat: 0, suppress: 0 };
+const storyFx = { field: 0, beam: 0, profile: 0, water: 0, heat: 0, suppress: 0, drive: 0 };
+let driveOut = false, driveX = 0, driveShown = 0;
 let waterOn = false, waterVis = 0, heatVis = 0, supVis = 0, beatAz = 0, beatAzS = 0;
 
 // ---------- loading ----------
@@ -304,7 +308,7 @@ function build(data) {
             .multiply(new THREE.Matrix4().makeTranslation(-gc.x, -gc.y, -gc.z));
         const e = data.explode[i] || 0;
         mesh.userData.ex = Array.isArray(e) ? new THREE.Vector3(...e) : new THREE.Vector3(0, 0, e);
-        mesh.userData.g = inst.g;
+        mesh.userData.g = inst.g; mesh.userData.drive = inst.drive;
         mesh.castShadow = mesh.receiveShadow = true;
         const bb = data.geo[inst.geo].boundingBox.clone().applyMatrix4(mesh.userData.base);
         mesh.userData.zmin = bb.min.z; mesh.userData.bb = bb; mesh.userData.c = bb.getCenter(new THREE.Vector3());
@@ -356,6 +360,7 @@ function activate(i) {
     // per-model extras
     $('t-beam').hidden = !(MODELS[i].beam || (desk && MODELS[i].profile)); $('t-field').hidden = !POLES[MODELS[i].key];
     $('t-water').hidden = !MODELS[i].water; $('t-water').setAttribute('aria-pressed', 'false');
+    $('t-drive').hidden = !MODELS[i].water; $('t-drive').setAttribute('aria-pressed', 'false'); driveOut = false; driveX = 0; driveShown = 0;
     beamOn = fieldOn = profileOn = waterOn = false; beamVis = fieldVis = profVis = waterVis = heatVis = supVis = 0;
     if (MODELS[i].water && !model.cooling) model.cooling = new CoolingFlow(model, model.holder);
     if (hasStory(i) && !model.story) {          // desktop story: beats, plus whatever they show
@@ -384,12 +389,20 @@ function activate(i) {
     $('loading').classList.add('done');
 }
 
+const _bs = new THREE.Matrix4();
 function applyExplode(force) {
     if (!model) return;
     const t = explodeT;
     let zmin = Infinity;
     model.meshes.forEach(m => {
-        m.matrix.copy(m.userData.base);
+        const d = m.userData.drive;
+        if (d && d.bel) {          // a bellows stretches between its two (moving) ends
+            const [[xa, ka], [xb, kb]] = d.bel, a = xa + ka * driveX, b = xb + kb * driveX;
+            m.matrix.makeTranslation(a, 0, 0).multiply(_bs.makeScale(b - a, 1, 1));
+        } else {
+            m.matrix.copy(m.userData.base);
+            if (d && d.move) m.matrix.elements[12] += d.move * driveX;
+        }
         m.matrix.elements[12] += m.userData.ex.x * t; m.matrix.elements[13] += m.userData.ex.y * t; m.matrix.elements[14] += m.userData.ex.z * t;
         m.matrixWorldNeedsUpdate = true;
         if (m.visible) zmin = Math.min(zmin, m.userData.zmin + m.userData.ex.z * t);
@@ -464,7 +477,7 @@ function stepMaterials(dt) {
     const k = 1 - Math.exp(-dt * 12);
     model.groups.forEach(g => {
         const m = g.mat;
-        const goal = (g.goalFade ?? 1) * (g.label === 'Cooling pipe' && model.cooling ? 1 - 0.62 * waterVis : 1);
+        const goal = (g.goalFade ?? 1) * (g.label === 'Cooling coil' && model.cooling ? 1 - 0.62 * waterVis : 1);
         const f = m.userData.fade + (goal - m.userData.fade) * k;
         m.userData.fade = f;
         const baseOp = m.userData.baseOpacity || 1, transparent = f < 0.995 || baseOp < 1;
@@ -920,9 +933,20 @@ function stepExtras(dt, time) {
     $('legend').hidden = !(fieldVis > 0.3);
     if (model.cooling) {        // 10 kW cup: water through the pipe, the beam's heat on the cup floor
         waterVis += (Math.max(waterOn ? 1 : 0, storyFx.water) * away - waterVis) * (1 - Math.exp(-dt * 4));
-        heatVis += (Math.max(waterOn ? 1 : 0, storyFx.heat, storyFx.suppress, storyFx.water * 0.6) * away - heatVis) * (1 - Math.exp(-dt * 4));
+        heatVis += (Math.max(waterOn || driveOut ? 1 : 0, storyFx.heat, storyFx.suppress, storyFx.drive, storyFx.water * 0.6) * away - heatVis) * (1 - Math.exp(-dt * 4));
         supVis += (storyFx.suppress * away - supVis) * (1 - Math.exp(-dt * 4));
-        model.cooling.step(waterVis, heatVis, time, pxScale, supVis);
+        // the drive: parked or in the beam (button), or cycling in and out during its story beat
+        const S = model.data.drive.stroke;
+        let goal = driveOut ? -S : 0;
+        if (storyFx.drive > 0.5 && away > 0.5) goal = (time % 7) < 3.5 ? -S : 0;
+        if (away < 0.5) goal = 0;
+        const nx = driveX + (goal - driveX) * (1 - Math.exp(-dt * 2.6));
+        if (Math.abs(nx - driveX) > 0.005) { driveX = Math.abs(goal - nx) < 0.02 ? goal : nx; applyExplode(); }
+        model.cooling.step(waterVis, heatVis, time, pxScale, supVis, driveX);
+        driveShown = (storyFx.drive > 0.3 || driveOut || driveX < -1) && away > 0.6 ? 1 : 0;
+        const chip = $('phase'), parked = driveX < -S * 0.45;
+        chip.hidden = !driveShown;
+        if (driveShown && chip.dataset.s !== (parked ? 'p' : 'i')) { chip.dataset.s = parked ? 'p' : 'i'; chip.querySelector('span').textContent = parked ? 'Parked: the beam goes past' : 'In the beam: measuring'; chip.classList.remove('tick'); void chip.offsetWidth; chip.classList.add('tick'); }
     }
     $('legend-w').hidden = !(model.cooling && waterVis > 0.3);
     if (model.events) {
@@ -944,6 +968,10 @@ $('t-beam').addEventListener('click', e => {
     }
     if (!model.beam) model.beam = buildBeam(model);
     beamOn = !beamOn; e.currentTarget.setAttribute('aria-pressed', String(beamOn)); sound('toggle');
+});
+$('t-drive').addEventListener('click', e => {
+    if (!model || !model.data.drive) return;
+    driveOut = !driveOut; e.currentTarget.setAttribute('aria-pressed', String(driveOut)); sound('toggle');
 });
 $('t-water').addEventListener('click', e => {
     if (!model || !model.cooling) return;
@@ -1201,7 +1229,7 @@ function loop(now) {
     const exCap = (story ? smooth(0.74, 0.79, p) * (1 - smooth(0.88, 0.92, p)) : smooth(0.52, 0.6, p) * (1 - smooth(0.84, 0.9, p))) * (focus < 0 && selected < 0 ? 1 : 0);
     // the story: which beat, its caption, what it shows, what fades back
     let st = null;
-    storyFx.field = storyFx.beam = storyFx.profile = storyFx.water = storyFx.heat = storyFx.suppress = 0;
+    storyFx.field = storyFx.beam = storyFx.profile = storyFx.water = storyFx.heat = storyFx.suppress = storyFx.drive = 0;
     if (story) {
         st = storyAt(p, story.length);
         const beat = story[st.dom], capS = $('cap-story');
@@ -1242,7 +1270,8 @@ function loop(now) {
         beatAz = (tw(st.from) + (tw(st.to) - tw(st.from)) * st.b);
     } else beatAz = 0;
     beatAzS += (beatAz - beatAzS) * (1 - Math.exp(-dt * 5));
-    const az = AZ0 + (desk && MODELS[ci].deskAz || 0) + (p - 0.45) * 1.9 + userAz + beatAzS, pol = POL0 + userPol - 0.1 * Math.sin(Math.PI * p);
+    // long models keep a side view: their own offset and a smaller turn over the chapter
+    const az = AZ0 + (desk && MODELS[ci].deskAz || 0) + (MODELS[ci].az0 || 0) + (p - 0.45) * 1.9 * (MODELS[ci].sweep ?? 1) + userAz + beatAzS, pol = POL0 + userPol - 0.1 * Math.sin(Math.PI * p);
     _c.copy(sph.center);
     camera.position.set(_c.x + dist * Math.sin(pol) * Math.sin(az), _c.y + dist * Math.cos(pol), _c.z + dist * Math.sin(pol) * Math.cos(az));
     camera.lookAt(_c);
