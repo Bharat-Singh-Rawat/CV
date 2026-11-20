@@ -195,6 +195,21 @@
     audio.addEventListener('play', () => { $('mp-play').innerHTML = ICON.pause; $('mp-play').setAttribute('aria-label', 'Pause'); mp.classList.add('playing'); beatStart(); notify(); });
     audio.addEventListener('pause', () => { $('mp-play').innerHTML = ICON.play; $('mp-play').setAttribute('aria-label', 'Play'); mp.classList.remove('playing'); beatStop(); notify(); });
     audio.addEventListener('ended', () => load(nextIndex(1), true));
+    // while a song plays, quietly fetch the start of the one Next will play (about the first half minute), so it begins at once;
+    // the browser keeps it in its cache. Skipped when the visitor has asked to save data.
+    const saveData = !!(navigator.connection && navigator.connection.saveData);
+    const ahead = new Set();
+    let aheadTimer = 0;
+    audio.addEventListener('playing', () => {
+        clearTimeout(aheadTimer);
+        if (saveData) return;
+        aheadTimer = setTimeout(() => {
+            const n = nextIndex(1), url = TRACKS[n] && TRACKS[n].file;
+            if (!url || ahead.has(url) || n === idx) return;
+            ahead.add(url);
+            fetch(url, { headers: { Range: 'bytes=0-786431' }, priority: 'low' }).then(r => r.arrayBuffer()).catch(() => ahead.delete(url));
+        }, 4000);
+    });
     audio.addEventListener('loadedmetadata', () => { $('mp-dur').textContent = fmt(audio.duration); });
     audio.addEventListener('timeupdate', () => {
         if (seeking || !audio.duration) return;
