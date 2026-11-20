@@ -7,7 +7,7 @@
     <link rel="icon" href="/CV/v2/icons/favicon.ico" sizes="any">
     <link rel="apple-touch-icon" href="/CV/v2/icons/apple-touch-icon.png">
     <title>Hardware in 3D — Bharat Singh Rawat</title>
-    <meta name="description" content="Interactive 3D models of instruments designed by Bharat Singh Rawat: an octagonal ring-cusp ion source, a Faraday cup array, a magnetic retarding potential analyser and the AEgIS Penning trap with antiproton annihilations. Scroll to take them apart and inspect every part.">
+    <meta name="description" content="Interactive 3D models of instruments designed by Bharat Singh Rawat: an octagonal ring-cusp ion source, a Faraday cup array, a water-cooled 10 kW Faraday cup, a magnetic retarding potential analyser and the AEgIS Penning trap with antiproton annihilations. Scroll to take them apart and inspect every part.">
     <meta property="og:title" content="Hardware in 3D — Bharat Singh Rawat">
     <meta property="og:description" content="Scroll to take them apart, inspect every part.">
     <meta property="og:image" content="https://bharat-singh-rawat.github.io/CV/v2/img/og-card.jpg">
@@ -18,7 +18,7 @@
             document.documentElement.dataset.theme = dark ? 'dark' : 'light';
         })();
     </script>
-    <link rel="stylesheet" href="/CV/cad/cad.css?v=20261120y">
+    <link rel="stylesheet" href="/CV/cad/cad.css?v=20261120z">
     <script type="importmap">
         { "imports": {
             "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
@@ -65,6 +65,7 @@
                 <aside class="plots" id="plots" aria-label="Detector plots" hidden></aside>
                 <div class="phase" id="phase" aria-live="polite" hidden><i aria-hidden="true"></i><span></span></div>
                 <div class="legend" id="legend" hidden><span class="lg-t">|B|</span><span class="lg-scale"><span class="lg-bar" aria-hidden="true"></span><span class="lg-ticks"><i>20 G</i><i>200 G</i><i>2.5 kG</i></span></span><span class="lg-note">Magnets 2500 G at the surface · dashes flow N → S</span></div>
+                <div class="legend" id="legend-w" hidden><span class="lg-t">Water</span><span class="lg-scale"><span class="lg-bar w" aria-hidden="true"></span><span class="lg-ticks"><i>Cold in</i><i>Warm out</i></span></span><span class="lg-note">Beam heat on the cup floor, carried off by the water</span></div>
                 <div class="ar-pop" id="ar-pop" hidden>
                     <button class="x" id="ar-x" type="button" aria-label="Close">✕</button>
                     <div class="qr" id="ar-qr" aria-hidden="true"></div>
@@ -91,6 +92,10 @@
                     <button type="button" class="tool" id="t-beam" aria-pressed="false" title="Beam on" hidden>
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>
                         <span>Beam</span>
+                    </button>
+                    <button type="button" class="tool" id="t-water" aria-pressed="false" title="Cooling water" hidden>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c3.5 4.2 6 7.6 6 10.8A6 6 0 0 1 6 13.8C6 10.6 8.5 7.2 12 3z"/></svg>
+                        <span>Water</span>
                     </button>
                     <button type="button" class="tool" id="t-field" aria-pressed="false" title="Magnetic field lines" hidden>
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12c-4-6-9-6-9 0s5 6 9 0 9-6 9 0-5 6-9 0"/></svg>
@@ -129,6 +134,6 @@
     </main>
 
     <script src="/CV/v2/sfx.js?v=20261117z"></script>
-    <script type="module" src="/CV/cad/cad.js?v=20261120y"></script>
+    <script type="module" src="/CV/cad/cad.js?v=20261121a"></script>
 </body>
 </html>

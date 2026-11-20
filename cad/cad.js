@@ -10,10 +10,12 @@ import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { penningData, PenningEvents, DetectorPlots, STAGES } from './penning.js?v=20261120f';
+import { hpfcData, CoolingFlow } from './hpfc.js?v=20261120b';
 
 const MODELS = [
     { key: 'oris', short: 'Ion source', photo: '/CV/v2/img/oris.webp', beam: true },
     { key: 'fc-array', short: 'Faraday cups', photo: '/CV/v2/img/fc-array.webp', profile: true, deskAz: 1.25 },
+    { key: 'hp-cup', short: '10 kW cup', photo: '/CV/v2/img/hp-faraday-cup.webp', procedural: 'hpfc', water: true, noAR: true },
     { key: 'magnetic-rpa', short: 'Magnetic RPA', photo: '/CV/v2/img/magnet-rpa.webp' },
     { key: 'penning', short: 'Penning trap', photo: '/CV/v2/img/at-aegis.webp', procedural: true, noAR: true }
 ];
@@ -52,6 +54,12 @@ const STORY = {
         { parts: ['Copper collector'], title: 'Counting what passes', text: 'The copper collector measures the ions that get past the retarding potential.' }
     ]
 };
+STORY['hp-cup'] = [
+    { parts: ['Cup body'], title: 'Ten kilowatts on copper', text: 'The ion beam stops on the floor of a solid copper cup. At full current that is around 10 kW of heat, in a block you can hold in one hand.', fx: 'heat', az: 1.2 },
+    { parts: ['Suppressor ring', 'Ceramic isolator', 'Ceramic bushes'], title: 'Keeping the electrons in', text: 'Ions hitting copper knock out secondary electrons. A suppressor ring at the front, biased negative and isolated from the cup by ceramic, turns them back, so the measured current stays honest.', fx: 'suppress', az: 1.0 },
+    { parts: ['Cooling pipe'], title: 'Water takes the heat', text: 'A copper pipe runs in a U-shaped groove cut into the back of the cup. Cold water flows in through one slot, picks up the heat and leaves warm through the other.', fx: 'water' },
+    { parts: ['Back plate', 'Cap screws'], title: 'Clamped in place', text: 'A copper back plate screws over the groove and presses the pipe into it, so the heat flows straight from the cup into the water.', fx: 'water' }
+];
 STORY['penning'] = [
     { parts: ['Degrader foil'], title: 'Slowing the antiprotons', text: 'Antiprotons from CERN\'s decelerator pass a thin foil that slows them enough to be caught.' },
     { parts: ['Catching electrodes (C)', 'High-voltage electrodes', '5 T solenoid'], title: 'Caught in 5 tesla', text: 'High voltage on the gold electrodes and a 5 tesla field hold the antiprotons in a Penning–Malmberg trap.' },
@@ -192,7 +200,8 @@ let gTarget = 0, gSmooth = 0, pending = null, plotLift = 0;
 const followC = new THREE.Vector3();
 let beamOn = false, fieldOn = false, photoOn = false, beamVis = 0, fieldVis = 0;
 let profileOn = false, profVis = 0, storyOn = false;
-const storyFx = { field: 0, beam: 0, profile: 0 };
+const storyFx = { field: 0, beam: 0, profile: 0, water: 0, heat: 0, suppress: 0 };
+let waterOn = false, waterVis = 0, heatVis = 0, supVis = 0, beatAz = 0, beatAzS = 0;
 
 // ---------- loading ----------
 async function fetchModel(k) {
@@ -340,9 +349,15 @@ function activate(i) {
     applyExplode(true);
     paint();
     document.querySelectorAll('#chapters button').forEach((b, k) => b.setAttribute('aria-selected', String(k === i)));
+    {   // narrow screens: the tab row scrolls, keep the current model's tab in view
+        const nav = $('chapters'), tb = nav.children[i];
+        if (tb && nav.scrollWidth > nav.clientWidth) nav.scrollTo({ left: tb.offsetLeft - (nav.clientWidth - tb.offsetWidth) / 2, behavior: reduce ? 'auto' : 'smooth' });
+    }
     // per-model extras
     $('t-beam').hidden = !(MODELS[i].beam || (desk && MODELS[i].profile)); $('t-field').hidden = !POLES[MODELS[i].key];
-    beamOn = fieldOn = profileOn = false; beamVis = fieldVis = profVis = 0;
+    $('t-water').hidden = !MODELS[i].water; $('t-water').setAttribute('aria-pressed', 'false');
+    beamOn = fieldOn = profileOn = waterOn = false; beamVis = fieldVis = profVis = waterVis = heatVis = supVis = 0;
+    if (MODELS[i].water && !model.cooling) model.cooling = new CoolingFlow(model, model.holder);
     if (hasStory(i) && !model.story) {          // desktop story: beats, plus whatever they show
         model.story = buildStory(model, MODELS[i].key);
         model.story.forEach(b => {
@@ -449,7 +464,8 @@ function stepMaterials(dt) {
     const k = 1 - Math.exp(-dt * 12);
     model.groups.forEach(g => {
         const m = g.mat;
-        const f = m.userData.fade + ((g.goalFade ?? 1) - m.userData.fade) * k;
+        const goal = (g.goalFade ?? 1) * (g.label === 'Cooling pipe' && model.cooling ? 1 - 0.62 * waterVis : 1);
+        const f = m.userData.fade + (goal - m.userData.fade) * k;
         m.userData.fade = f;
         const baseOp = m.userData.baseOpacity || 1, transparent = f < 0.995 || baseOp < 1;
         if (m.transparent !== transparent) { m.transparent = transparent; m.depthWrite = !transparent; m.needsUpdate = true; }
@@ -902,6 +918,13 @@ function stepExtras(dt, time) {
         model.field.visible = fieldVis > 0.01;
     }
     $('legend').hidden = !(fieldVis > 0.3);
+    if (model.cooling) {        // 10 kW cup: water through the pipe, the beam's heat on the cup floor
+        waterVis += (Math.max(waterOn ? 1 : 0, storyFx.water) * away - waterVis) * (1 - Math.exp(-dt * 4));
+        heatVis += (Math.max(waterOn ? 1 : 0, storyFx.heat, storyFx.suppress, storyFx.water * 0.6) * away - heatVis) * (1 - Math.exp(-dt * 4));
+        supVis += (storyFx.suppress * away - supVis) * (1 - Math.exp(-dt * 4));
+        model.cooling.step(waterVis, heatVis, time, pxScale, supVis);
+    }
+    $('legend-w').hidden = !(model.cooling && waterVis > 0.3);
     if (model.events) {
         model.events.step(dt, away, pxScale);
         const chip = $('phase'), si = model.events.stage();
@@ -921,6 +944,10 @@ $('t-beam').addEventListener('click', e => {
     }
     if (!model.beam) model.beam = buildBeam(model);
     beamOn = !beamOn; e.currentTarget.setAttribute('aria-pressed', String(beamOn)); sound('toggle');
+});
+$('t-water').addEventListener('click', e => {
+    if (!model || !model.cooling) return;
+    waterOn = !waterOn; e.currentTarget.setAttribute('aria-pressed', String(waterOn)); sound('toggle');
 });
 $('t-field').addEventListener('click', e => {
     if (!model) return;
@@ -1174,7 +1201,7 @@ function loop(now) {
     const exCap = (story ? smooth(0.74, 0.79, p) * (1 - smooth(0.88, 0.92, p)) : smooth(0.52, 0.6, p) * (1 - smooth(0.84, 0.9, p))) * (focus < 0 && selected < 0 ? 1 : 0);
     // the story: which beat, its caption, what it shows, what fades back
     let st = null;
-    storyFx.field = storyFx.beam = storyFx.profile = 0;
+    storyFx.field = storyFx.beam = storyFx.profile = storyFx.water = storyFx.heat = storyFx.suppress = 0;
     if (story) {
         st = storyAt(p, story.length);
         const beat = story[st.dom], capS = $('cap-story');
@@ -1210,8 +1237,12 @@ function loop(now) {
         const anchor = i => i < 0 ? { c: sph.center, d: dist } : { c: story[i].sph.center, d: clamp(story[i].sph.radius * fitK * 1.75, dist * 0.38, dist * 1.05) };
         const A = anchor(st.from), B2 = anchor(st.to);
         sph.center = A.c.clone().lerp(B2.c, st.b); dist = A.d + (B2.d - A.d) * st.b;
-    }
-    const az = AZ0 + (desk && MODELS[ci].deskAz || 0) + (p - 0.45) * 1.9 + userAz, pol = POL0 + userPol - 0.1 * Math.sin(Math.PI * p);
+        // a beat may also turn the model (e.g. to look into the 10 kW cup, or at its back)
+        const tw = i => i < 0 ? 0 : story[i].az || 0;
+        beatAz = (tw(st.from) + (tw(st.to) - tw(st.from)) * st.b);
+    } else beatAz = 0;
+    beatAzS += (beatAz - beatAzS) * (1 - Math.exp(-dt * 5));
+    const az = AZ0 + (desk && MODELS[ci].deskAz || 0) + (p - 0.45) * 1.9 + userAz + beatAzS, pol = POL0 + userPol - 0.1 * Math.sin(Math.PI * p);
     _c.copy(sph.center);
     camera.position.set(_c.x + dist * Math.sin(pol) * Math.sin(az), _c.y + dist * Math.cos(pol), _c.z + dist * Math.sin(pol) * Math.cos(az));
     camera.lookAt(_c);
@@ -1240,7 +1271,7 @@ function loop(now) {
 (async () => {
     try {
         for (let i = 0; i < MODELS.length; i++) {
-            const data = MODELS[i].procedural ? await penningData(BASE) : await fetchModel(MODELS[i].key);
+            const data = MODELS[i].procedural === 'hpfc' ? hpfcData() : MODELS[i].procedural ? await penningData(BASE) : await fetchModel(MODELS[i].key);
             built[i] = build(data);
             if (i === listIdx) renderParts();
             if (i === 0) {
