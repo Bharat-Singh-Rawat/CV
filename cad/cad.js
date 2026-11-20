@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
 import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
 const MODELS = [
     { key: 'oris', short: 'Ion source', photo: '/CV/v2/img/oris.webp', beam: true },
@@ -53,6 +54,8 @@ const KEYS = [
 const AZ0 = 0.64, POL0 = 1.15;            // three-quarter view from slightly above
 
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// phones: lighter textures, shadows and pixel ratio so the page loads and runs smoothly
+const phone = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 820;
 const $ = id => document.getElementById(id);
 const dark = () => document.documentElement.dataset.theme === 'dark';
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
@@ -66,7 +69,7 @@ const tick = () => { const n = performance.now(); if (n - lastTick > 70) { lastT
 // ---------- renderer, scene, camera ----------
 const canvas = $('view'), stage = $('stage'), scrolly = $('scrolly');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(devicePixelRatio, phone ? 1.5 : 2));
 renderer.toneMapping = THREE.NeutralToneMapping;
 renderer.toneMappingExposure = 1.0;
 renderer.shadowMap.enabled = true;
@@ -106,7 +109,7 @@ const camera = new THREE.PerspectiveCamera(30, 1, 1, 20000);
 
 const key = new THREE.DirectionalLight(0xffffff, 2.2);
 key.castShadow = true;
-key.shadow.mapSize.set(2048, 2048);
+key.shadow.mapSize.set(phone ? 1024 : 2048, phone ? 1024 : 2048);
 key.shadow.radius = 14;
 key.shadow.blurSamples = 20;
 key.shadow.bias = -0.0004;
@@ -151,6 +154,26 @@ let beamOn = false, fieldOn = false, photoOn = false, beamVis = 0, fieldVis = 0;
 async function fetchModel(k) {
     const data = await (await fetch(BASE + k + '.json')).json();
     const buf = await (await fetch(BASE + data.bin)).arrayBuffer();
+    if (data.codec === 'meshopt') {      // compressed: 16-bit positions, 8-bit normals, meshopt-coded streams
+        await MeshoptDecoder.ready;
+        const u8 = new Uint8Array(buf), part = r => u8.subarray(r[0], r[0] + r[1]);
+        data.geo = data.geoms.map(g => {
+            const q = new Int16Array(g.n * 4), nn = new Int8Array(g.n * 4), ib = new Uint32Array(g.ni);
+            MeshoptDecoder.decodeVertexBuffer(new Uint8Array(q.buffer), g.n, 8, part(g.pos));
+            MeshoptDecoder.decodeVertexBuffer(new Uint8Array(nn.buffer), g.n, 4, part(g.nrm));
+            MeshoptDecoder.decodeIndexBuffer(new Uint8Array(ib.buffer), g.ni, 4, part(g.idx));
+            const P = new Float32Array(g.n * 3), N = new Int8Array(g.n * 3), o = g.q.o, sc = g.q.s;
+            for (let i = 0; i < g.n; i++) for (let k = 0; k < 3; k++) { P[3 * i + k] = o[k] + (q[4 * i + k] + 32767) * sc; N[3 * i + k] = nn[4 * i + k]; }
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(P, 3));
+            geo.setAttribute('normal', new THREE.BufferAttribute(N, 3, true));
+            geo.setIndex(new THREE.BufferAttribute(g.idxType === 'u16' ? Uint16Array.from(ib) : ib, 1));
+            geo.computeBoundingBox(); geo.computeBoundingSphere();
+            if (g.apertures) geo.userData.mask = perforate(geo, g.apertures, g.bbox);
+            return geo;
+        });
+        return data;
+    }
     data.geo = data.geoms.map(g => {
         const geo = new THREE.BufferGeometry();
         geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(buf, g.pos[0], g.pos[1]), 3));
@@ -169,7 +192,7 @@ function perforate(geo, ap, bb) {
     const pos = geo.attributes.position, uv = new Float32Array(pos.count * 2);
     for (let i = 0; i < pos.count; i++) { uv[2 * i] = (pos.getX(i) - x0) / w; uv[2 * i + 1] = (pos.getY(i) - y0) / h; }
     geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
-    const N = 4096, c = document.createElement('canvas'); c.width = c.height = N;
+    const N = phone ? 2048 : 4096, c = document.createElement('canvas'); c.width = c.height = N;
     const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, N, N); g.fillStyle = '#000';
     const rx = ap.r / w * N, ry = ap.r / h * N;
     g.beginPath();
