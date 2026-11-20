@@ -867,7 +867,7 @@ $('t-ar').addEventListener('click', () => {
         return;
     }
     const pop = $('ar-pop'); pop.hidden = !pop.hidden; sound('toggle');
-    if (!pop.hidden) qrInto($('ar-qr'), location.href.split('#')[0] + '#' + k);
+    if (!pop.hidden) qrInto($('ar-qr'), new URL(`/CV/cad/ar/?m=${k}`, location.href).href);   // the code opens AR directly
 });
 $('ar-x').addEventListener('click', () => { $('ar-pop').hidden = true; });
 // on iPhone / iPad the AR button is the native Quick Look link itself: Safari opens it on tap, no script in between

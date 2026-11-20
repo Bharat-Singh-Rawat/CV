@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="color-scheme" content="light dark">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/CV/v2/icons/favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="/CV/v2/icons/apple-touch-icon.png">
+    <title>View in AR — Bharat Singh Rawat</title>
+    <meta name="robots" content="noindex">
+    <style>
+        :root { --bg: #fff; --card: #f5f5f7; --text: #1d1d1f; --muted: #6e6e73; --accent: #0071e3; --warm: #bf4800;
+            --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        @media (prefers-color-scheme: dark) { :root { --bg: #000; --card: #1c1c1e; --text: #f5f5f7; --muted: #a1a1a6; --accent: #0a84ff; --warm: #ff9f0a; } }
+        * { box-sizing: border-box; }
+        body { margin: 0; min-height: 100vh; min-height: 100svh; display: grid; place-items: center; padding: 24px 16px; background: var(--bg); color: var(--text);
+            font-family: var(--font); -webkit-font-smoothing: antialiased; text-align: center; }
+        main { width: min(420px, 100%); }
+        .eyebrow { margin: 0 0 8px; color: var(--warm); font-weight: 600; font-size: 0.95rem; }
+        h1 { margin: 0; font-size: clamp(2rem, 8vw, 2.6rem); letter-spacing: -0.04em; line-height: 1.05; }
+        p.sub { margin: 14px auto 0; max-width: 26em; color: var(--muted); font-size: 1.02rem; line-height: 1.45; }
+        .go { display: inline-flex; align-items: center; gap: 10px; margin-top: 30px; padding: 15px 28px; border-radius: 980px; background: var(--accent); color: #fff;
+            font-size: 1.05rem; font-weight: 600; text-decoration: none; }
+        .go img, .go svg { width: 22px; height: 22px; }
+        .go:active { transform: scale(0.97); }
+        .back { display: block; margin-top: 22px; color: var(--accent); text-decoration: none; font-size: 0.95rem; }
+        .note { margin-top: 26px; font-size: 0.82rem; color: var(--muted); }
+    </style>
+</head>
+<body>
+    <main>
+        <p class="eyebrow">View in AR</p>
+        <h1 id="name">3D model</h1>
+        <p class="sub">Place it on your desk at real size. It takes itself apart and goes back together.</p>
+        <div id="cta"></div>
+        <a class="back" id="back" href="/CV/cad/">Open the 3D page</a>
+        <p class="note" id="note" hidden>AR needs an iPhone, iPad or an Android phone with Google Play Services for AR.</p>
+    </main>
+    <script>
+        (function () {
+            // the QR code on the 3D page points here: /CV/cad/ar/?m=<model>
+            var NAMES = { 'oris': 'Octagonal ring-cusp ion source', 'fc-array': 'Faraday cup array', 'magnetic-rpa': 'Magnetic RPA' };
+            var m = new URLSearchParams(location.search).get('m');
+            if (!NAMES[m]) m = 'oris';
+            document.getElementById('name').textContent = NAMES[m];
+            document.title = 'View in AR — ' + NAMES[m];
+            document.getElementById('back').href = '/CV/cad/#' + m;
+            var ua = navigator.userAgent;
+            var ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            var android = /Android/i.test(ua);
+            var quickLook = false; try { quickLook = document.createElement('a').relList.supports('ar'); } catch (e) {}
+            var usdz = '/CV/cad/ar/' + m + '.usdz';
+            var glb = new URL('/CV/cad/ar/' + m + '.glb', location.href).href;
+            var icon = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3 4 7.5v9L12 21l8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg>';
+            var cta = document.getElementById('cta');
+            if (ios) {
+                // Safari opens AR Quick Look from an <a rel="ar"> that wraps an image; it also opens a .usdz link directly
+                var img = 'data:image/svg+xml,' + encodeURIComponent(icon.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" '));
+                cta.innerHTML = '<a class="go" rel="ar" href="' + usdz + '"><img src="' + img + '" alt="">View in AR</a>';
+                if (!quickLook) cta.firstChild.removeAttribute('rel');
+                setTimeout(function () { location.href = usdz; }, 350);   // straight into AR after scanning
+            } else if (android) {
+                var back = location.origin + '/CV/cad/#' + m;
+                var intent = 'intent://arvr.google.com/scene-viewer/1.0?file=' + encodeURIComponent(glb) + '&mode=ar_preferred&title=' + encodeURIComponent(NAMES[m]) +
+                    '#Intent;scheme=https;package=com.google.android.googlequicksearchbox;action=android.intent.action.VIEW;S.browser_fallback_url=' + encodeURIComponent(back) + ';end;';
+                cta.innerHTML = '<a class="go" href="' + intent + '">' + icon + 'View in AR</a>';
+            } else {
+                document.getElementById('note').hidden = false;
+            }
+        })();
+    </script>
+</body>
+</html>
