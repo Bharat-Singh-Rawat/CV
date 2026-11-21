@@ -18,7 +18,7 @@
             document.documentElement.dataset.theme = dark ? 'dark' : 'light';
         })();
     </script>
-    <link rel="stylesheet" href="/CV/cad/cad.css?v=20261121c">
+    <link rel="stylesheet" href="/CV/cad/cad.css?v=20261121d">
     <script type="importmap">
         { "imports": {
             "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
@@ -72,6 +72,7 @@
                 <div class="phase" id="phase" aria-live="polite" hidden><i aria-hidden="true"></i><span></span></div>
                 <div class="legend" id="legend" hidden><span class="lg-t">|B|</span><span class="lg-scale"><span class="lg-bar" aria-hidden="true"></span><span class="lg-ticks"><i>20 G</i><i>200 G</i><i>2.5 kG</i></span></span><span class="lg-note">Magnets 2500 G at the surface · dashes flow N → S</span></div>
                 <div class="legend" id="legend-w" hidden><span class="lg-t">Water</span><span class="lg-scale"><span class="lg-bar w" aria-hidden="true"></span><span class="lg-ticks"><i>Cold in</i><i>Warm out</i></span></span><span class="lg-note">Beam heat on the cup floor, carried off by the water</span></div>
+                <div class="legend" id="legend-t" hidden><span class="lg-t">Heat</span><span class="lg-scale"><span class="lg-bar t" aria-hidden="true"></span><span class="lg-ticks"><i>Cool</i><i>Hot</i></span></span><span class="lg-note">Switch the water off and watch the copper warm up</span></div>
                 <div class="ar-pop" id="ar-pop" hidden>
                     <button class="x" id="ar-x" type="button" aria-label="Close">✕</button>
                     <div class="qr" id="ar-qr" aria-hidden="true"></div>
@@ -106,6 +107,10 @@
                     <button type="button" class="tool" id="t-water" aria-pressed="false" title="Cooling water" hidden>
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c3.5 4.2 6 7.6 6 10.8A6 6 0 0 1 6 13.8C6 10.6 8.5 7.2 12 3z"/></svg>
                         <span>Water</span>
+                    </button>
+                    <button type="button" class="tool" id="t-heat" aria-pressed="false" title="Heat map" hidden>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4.5a2 2 0 0 1 4 0v9.3a4 4 0 1 1-4 0z"/><path d="M12 10v6"/></svg>
+                        <span>Heat</span>
                     </button>
                     <button type="button" class="tool" id="t-field" aria-pressed="false" title="Magnetic field lines" hidden>
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12c-4-6-9-6-9 0s5 6 9 0 9-6 9 0-5 6-9 0"/></svg>
@@ -144,7 +149,7 @@
     </main>
 
     <script src="/CV/v2/sfx.js?v=20261117z"></script>
-    <script src="/CV/cad/i18n.js?v=20261121c"></script>
-    <script type="module" src="/CV/cad/cad.js?v=20261121c"></script>
+    <script src="/CV/cad/i18n.js?v=20261121d"></script>
+    <script type="module" src="/CV/cad/cad.js?v=20261121d"></script>
 </body>
 </html>

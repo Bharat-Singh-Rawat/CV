@@ -190,6 +190,7 @@ h1 { margin: 0; font-size: clamp(2.6rem, 7vw, 4.4rem); line-height: 1.04; letter
 .lg-t { font-size: 0.78rem; font-weight: 700; padding-top: 1px; }
 .lg-scale { display: flex; flex-direction: column; gap: 3px; }
 .lg-bar { width: 150px; height: 5px; border-radius: 4px; background: linear-gradient(90deg, #5e5ce6 0%, #bf5af2 40%, #ff375f 72%, #ffd60a 100%); }
+.lg-bar.t { background: linear-gradient(90deg, #0a0530 0%, #4a0f8c 20%, #b5247a 40%, #f0592a 60%, #fab51c 80%, #fff7cc 100%); }
 .lg-bar.w { background: linear-gradient(90deg, #0a84ff 0%, #64d2ff 30%, #ff9f0a 75%, #ff6b2c 100%); }
 .lg-ticks { display: flex; justify-content: space-between; width: 150px; font-size: 0.66rem; font-weight: 600; color: var(--muted); }
 .lg-ticks i { font-style: normal; }

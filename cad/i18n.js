@@ -22,6 +22,7 @@
     const UI = {
         es: {
             pageTitle: n => `Equipos en 3D — ${n}`, labPhoto: n => `Foto del laboratorio: ${n}`, loadingPct: p => `Cargando el modelo · ${p}%`,
+            'Heat': 'Calor', 'Heat map': 'Mapa de calor', 'Cool': 'Frío', 'Hot': 'Caliente', 'Switch the water off and watch the copper warm up': 'Apaga el agua y verás cómo se calienta el cobre',
             'Hardware in 3D': 'Equipos en 3D', 'Contact': 'Contacto', 'Hardware': 'Equipos', 'Take it apart.': 'Desmóntalo.',
             'Instruments I designed, straight from the CAD. Scroll, and each one comes apart piece by piece. Drag to turn it, tap any part to see what it does.':
                 'Instrumentos que diseñé, directamente del CAD. Desplázate y cada uno se desmonta pieza a pieza. Arrastra para girarlo y toca cualquier pieza para ver qué hace.',
@@ -51,6 +52,7 @@
         },
         fr: {
             pageTitle: n => `Matériel en 3D — ${n}`, labPhoto: n => `Photo du labo : ${n}`, loadingPct: p => `Chargement du modèle · ${p} %`,
+            'Heat': 'Chaleur', 'Heat map': 'Carte thermique', 'Cool': 'Froid', 'Hot': 'Chaud', 'Switch the water off and watch the copper warm up': 'Coupez l’eau et regardez le cuivre chauffer',
             'Hardware in 3D': 'Matériel en 3D', 'Contact': 'Contact', 'Hardware': 'Matériel', 'Take it apart.': 'Démontez-le.',
             'Instruments I designed, straight from the CAD. Scroll, and each one comes apart piece by piece. Drag to turn it, tap any part to see what it does.':
                 'Des instruments que j’ai conçus, tout droit sortis de la CAO. Faites défiler : chacun se démonte pièce par pièce. Faites-le tourner en le glissant, touchez une pièce pour voir à quoi elle sert.',
@@ -80,6 +82,7 @@
         },
         ru: {
             pageTitle: n => `Оборудование в 3D — ${n}`, labPhoto: n => `Фото из лаборатории: ${n}`, loadingPct: p => `Загрузка модели · ${p}%`,
+            'Heat': 'Нагрев', 'Heat map': 'Тепловая карта', 'Cool': 'Холодно', 'Hot': 'Горячо', 'Switch the water off and watch the copper warm up': 'Выключите воду — и медь начнёт нагреваться',
             'Hardware in 3D': 'Оборудование в 3D', 'Contact': 'Контакты', 'Hardware': 'Оборудование', 'Take it apart.': 'Разберите его.',
             'Instruments I designed, straight from the CAD. Scroll, and each one comes apart piece by piece. Drag to turn it, tap any part to see what it does.':
                 'Приборы, которые я спроектировал, прямо из CAD. Прокрутите — и каждый разберётся по деталям. Потяните, чтобы повернуть, нажмите на деталь, чтобы узнать, что она делает.',
@@ -109,6 +112,7 @@
         },
         gu: {
             pageTitle: n => `3Dમાં હાર્ડવેર — ${n}`, labPhoto: n => `લેબનો ફોટો: ${n}`, loadingPct: p => `મોડેલ લોડ થઈ રહ્યું છે · ${p}%`,
+            'Heat': 'ગરમી', 'Heat map': 'હીટ મૅપ', 'Cool': 'ઠંડું', 'Hot': 'ગરમ', 'Switch the water off and watch the copper warm up': 'પાણી બંધ કરો અને તાંબું ગરમ થતું જુઓ',
             'Hardware in 3D': '3Dમાં હાર્ડવેર', 'Contact': 'સંપર્ક', 'Hardware': 'હાર્ડવેર', 'Take it apart.': 'તેને ખોલીને જુઓ.',
             'Instruments I designed, straight from the CAD. Scroll, and each one comes apart piece by piece. Drag to turn it, tap any part to see what it does.':
                 'મેં ડિઝાઇન કરેલાં સાધનો, સીધાં CADમાંથી. સ્ક્રોલ કરો, અને દરેક સાધન એક-એક ભાગમાં ખૂલે છે. ફેરવવા માટે ખેંચો, કોઈ પણ ભાગ શું કરે છે તે જોવા તેના પર ટૅપ કરો.',

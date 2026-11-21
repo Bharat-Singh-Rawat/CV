@@ -10,7 +10,7 @@ import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { penningData, PenningEvents, DetectorPlots, STAGES } from './penning.js?v=20261120f';
-import { hpfcData, CoolingFlow } from './hpfc.js?v=20261121e';
+import { hpfcData, CoolingFlow, ThermalView } from './hpfc.js?v=20261121i';
 import { Reflector } from 'three/addons/objects/Reflector.js';
 
 // languages (cad/i18n.js, same choice as the CV): UI strings, model names, subsystems, story beats, Penning stages
@@ -21,7 +21,7 @@ const STAGES_L = L10N.stages || STAGES;
 const MODELS = [
     { key: 'oris', short: 'Ion source', photo: '/CV/v2/img/oris.webp', beam: true },
     { key: 'fc-array', short: 'Faraday cups', photo: '/CV/v2/img/fc-array.webp', profile: true, deskAz: 1.25 },
-    { key: 'hp-cup', short: '10 kW cup', photo: '/CV/v2/img/hp-fc-assembly.webp', procedural: 'hpfc', water: true, noAR: true, az0: -0.64, sweep: 0.3 },
+    { key: 'hp-cup', short: '10 kW cup', photo: '/CV/v2/img/hp-fc-assembly.webp', procedural: 'hpfc', water: true, noAR: true, az0: -0.64, sweep: 0.3, cutZ: 29 },   // cut through the cup's own axis (it hangs below the drive's)
     { key: 'magnetic-rpa', short: 'Magnetic RPA', photo: '/CV/v2/img/magnet-rpa.webp' },
     { key: 'penning', short: 'Penning trap', photo: '/CV/v2/img/at-aegis.webp', procedural: true, noAR: true }
 ];
@@ -237,6 +237,7 @@ let beamOn = false, fieldOn = false, photoOn = false, beamVis = 0, fieldVis = 0;
 let profileOn = false, profVis = 0, storyOn = false;
 const storyFx = { field: 0, beam: 0, profile: 0, water: 0, heat: 0, suppress: 0, drive: 0 };
 let driveOut = false, driveX = 0, driveShown = 0;
+let heatOn = false, thermVis = 0;
 let waterOn = false, waterVis = 0, heatVis = 0, supVis = 0, beatAz = 0, beatAzS = 0;
 
 // ---------- loading ----------
@@ -408,6 +409,7 @@ function activate(i) {
     if (model) model.holder.visible = false;
     active = i; model = built[i]; model.holder.visible = true;
     selected = hovered = focus = hoverSys = -1; solo = false; closeInfo();
+    cutPlane.constant = MODELS[i].cutZ || 0;
     applyCut();
     const r = model.radius;
     Object.assign(key.shadow.camera, { left: -r, right: r, top: r, bottom: -r, near: 1, far: r * 8 });
@@ -427,6 +429,8 @@ function activate(i) {
     // per-model extras
     $('t-beam').hidden = !(MODELS[i].beam || MODELS[i].profile); $('t-field').hidden = !POLES[MODELS[i].key];
     $('t-water').hidden = !MODELS[i].water; $('t-water').setAttribute('aria-pressed', 'false');
+    $('t-heat').hidden = !MODELS[i].water; $('t-heat').setAttribute('aria-pressed', 'false'); heatOn = false; thermVis = 0;
+    if (MODELS[i].water && !model.thermal) model.thermal = new ThermalView(model);
     $('t-drive').hidden = !MODELS[i].water; $('t-drive').setAttribute('aria-pressed', 'false'); driveOut = false; driveX = 0; driveShown = 0;
     beamOn = fieldOn = profileOn = waterOn = false; beamVis = fieldVis = profVis = waterVis = heatVis = supVis = 0;
     if (MODELS[i].water && !model.cooling) model.cooling = new CoolingFlow(model, model.holder);
@@ -693,7 +697,7 @@ function placeLabels() {
         c.groups.forEach(gi => model.groups[gi].meshes.forEach(m => {
             if (!m.visible) return;
             _v.copy(m.userData.ex).multiplyScalar(t).add(m.userData.c).applyMatrix4(root.matrixWorld);
-            if (cut && _v.z > 0) return;
+            if (cut && _v.z > cutPlane.constant) return;
             const d = _v.distanceToSquared(camera.position);
             if (d < bd) { bd = d; best = _v.clone(); }
         }));
@@ -745,7 +749,7 @@ function pick(x, y) {
     ray.setFromCamera(ndc, camera);
     const hits = ray.intersectObjects(model.meshes.filter(m => m.visible && m.material.userData.fade > 0.5), false);
     for (const h of hits) {
-        if (cut && h.point.z > 0.01) continue;   // ignore the cut-away half
+        if (cut && h.point.z > cutPlane.constant + 0.01) continue;   // ignore the cut-away half
         lastPick = h.object;
         return h.object.userData.g;
     }
@@ -1029,7 +1033,7 @@ function stepExtras(dt, time) {
     $('legend').hidden = !(fieldVis > 0.3) || (small && storyCard);     // phones: the story card sits where the legend goes
     if (model.cooling) {        // 10 kW cup: water through the pipe, the beam's heat on the cup floor
         waterVis += (Math.max(waterOn ? 1 : 0, storyFx.water) * away - waterVis) * (1 - Math.exp(-dt * 4));
-        heatVis += (Math.max(waterOn || driveOut ? 1 : 0, storyFx.heat, storyFx.suppress, storyFx.drive, storyFx.water * 0.6) * away - heatVis) * (1 - Math.exp(-dt * 4));
+        heatVis += (Math.max(waterOn || driveOut || heatOn ? 1 : 0, storyFx.heat, storyFx.suppress, storyFx.drive, storyFx.water * 0.6) * away - heatVis) * (1 - Math.exp(-dt * 4));
         supVis += (storyFx.suppress * away - supVis) * (1 - Math.exp(-dt * 4));
         // the drive: parked or in the beam (button), or cycling in and out during its story beat
         const S = model.data.drive.stroke;
@@ -1039,12 +1043,19 @@ function stepExtras(dt, time) {
         const nx = driveX + (goal - driveX) * (1 - Math.exp(-dt * 2.6));
         if (Math.abs(nx - driveX) > 0.005) { driveX = Math.abs(goal - nx) < 0.02 ? goal : nx; applyExplode(); }
         model.cooling.step(waterVis, heatVis, time, pxScale, supVis, driveX);
+        if (model.thermal) {     // live heat map: on with the button, and while the story talks about the water
+            thermVis += (Math.max(heatOn ? 1 : 0, storyFx.water) * away - thermVis) * (1 - Math.exp(-dt * 4));
+            const inBeam = 1 - clamp((-driveX - 20) / 45);
+            model.thermal.step(dt, thermVis, heatVis > 0.5 ? inBeam : 0, waterVis > 0.5 ? 1 : 0, cut ? cutPlane.constant : null);
+        }
         driveShown = (storyFx.drive > 0.3 || driveOut || driveX < -1) && away > 0.6 ? 1 : 0;
         const chip = $('phase'), parked = driveX < -S * 0.45;
         chip.hidden = !driveShown;
         if (driveShown && chip.dataset.s !== (parked ? 'p' : 'i')) { chip.dataset.s = parked ? 'p' : 'i'; chip.querySelector('span').textContent = T(parked ? 'Parked: the beam goes past' : 'In the beam: measuring'); chip.classList.remove('tick'); void chip.offsetWidth; chip.classList.add('tick'); }
     }
-    $('legend-w').hidden = !(model.cooling && waterVis > 0.3) || (small && storyCard);
+    const thermLegend = !!model.thermal && thermVis > 0.3;
+    $('legend-t').hidden = !thermLegend || (small && storyCard);
+    $('legend-w').hidden = !(model.cooling && waterVis > 0.3) || thermLegend || (small && storyCard);
     if (model.events) {
         if (reduce && !model.events.warm) { model.events.warm = true; for (let k = 0; k < 200; k++) model.events.step(1 / 60, 1, pxScale); }   // one still frame, a few tracks in it
         model.events.step(reduce ? 0 : dt, away, pxScale);
@@ -1069,6 +1080,11 @@ $('t-beam').addEventListener('click', e => {
 $('t-drive').addEventListener('click', e => {
     if (!model || !model.data.drive) return;
     driveOut = !driveOut; e.currentTarget.setAttribute('aria-pressed', String(driveOut)); sound('toggle');
+});
+$('t-heat').addEventListener('click', e => {
+    if (!model || !model.thermal) return;
+    heatOn = !heatOn; e.currentTarget.setAttribute('aria-pressed', String(heatOn)); sound('toggle');
+    if (heatOn && !waterOn) { waterOn = true; $('t-water').setAttribute('aria-pressed', 'true'); }   // start cooled; switch the water off to watch it heat
 });
 $('t-water').addEventListener('click', e => {
     if (!model || !model.cooling) return;

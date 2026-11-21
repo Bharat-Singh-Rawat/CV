@@ -402,3 +402,63 @@ export class CoolingFlow {
         this.holder.visible = water > 0.01 || heat > 0.01 || sup > 0.01;
     }
 }
+
+// ---------- live heat map: a thermal-camera view of the copper ----------
+// Painted over the cup body and back plate. Their geometry is in cup coordinates turned to CAD (x = axis w, r = |y, z|),
+// so the shader reads the temperature straight off the vertex position. Two numbers drive it:
+//  spot: the hot patch where the beam lands on the cup floor (w = TB, r = 0), spreading through the copper;
+//  bulk: the whole cup warming up. With water the coil on the outside keeps the bulk low and pulls the rim down;
+//  without it the bulk climbs slowly until the whole cup glows. Parked out of the beam, it cools again.
+// An illustration of how the heat moves, not a solved thermal model, so the legend has no numbers.
+export class ThermalView {
+    constructor(M) {
+        this.u = { uVis: { value: 0 }, uBulk: { value: 0 }, uSpot: { value: 0 }, uWater: { value: 0 }, uCut: { value: 0 }, uCutZ: { value: 0 }, uFade: { value: 1 } };
+        this.mat = new THREE.ShaderMaterial({
+            uniforms: this.u, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+            polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2,
+            vertexShader: `varying vec3 vP, vW, vN, vV;
+                void main() { vP = position; vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz;
+                    vec4 mv = viewMatrix * w; vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }`,
+            fragmentShader: `uniform float uVis, uBulk, uSpot, uWater, uCut, uCutZ, uFade; varying vec3 vP, vW, vN, vV;
+                vec3 ironbow(float t) {
+                    vec3 c0 = vec3(0.04, 0.02, 0.19), c1 = vec3(0.29, 0.06, 0.55), c2 = vec3(0.71, 0.14, 0.48), c3 = vec3(0.94, 0.35, 0.16), c4 = vec3(0.98, 0.71, 0.11), c5 = vec3(1.0, 0.97, 0.80);
+                    if (t < 0.2) return mix(c0, c1, t / 0.2); if (t < 0.4) return mix(c1, c2, (t - 0.2) / 0.2);
+                    if (t < 0.6) return mix(c2, c3, (t - 0.4) / 0.2); if (t < 0.8) return mix(c3, c4, (t - 0.6) / 0.2); return mix(c4, c5, (t - 0.8) / 0.2); }
+                void main() {
+                    if (uCut > 0.5 && vW.z > uCutZ) discard;
+                    float w = vP.x, r = length(vP.yz);
+                    float d = length(vec2(max(${TB.toFixed(1)} - w, 0.0) + max(w - ${TB.toFixed(1)}, 0.0) * 0.55, r));   // copper conducts both ways; the bore side reaches the floor faster
+                    float rim = smoothstep(${(R - 16).toFixed(1)}, ${R.toFixed(1)}, r) * uWater;                         // the coil cools the outside
+                    float t = uBulk * (1.0 - 0.45 * rim) + uSpot * exp(-d / 17.0) * (1.0 - 0.5 * rim);
+                    vec3 c = ironbow(clamp(t, 0.0, 1.0));
+                    float facing = abs(dot(normalize(vN), normalize(vV)));
+                    c *= 0.7 + 0.3 * facing;
+                    gl_FragColor = vec4(c, uVis * uFade * 0.94);
+                }`
+        });
+        this.pairs = [];
+        ['Cup body', 'Back plate'].forEach(label => {
+            const g = M.groups.find(x => x.label === label); if (!g) return;
+            g.meshes.forEach(src => {
+                const m = new THREE.Mesh(src.geometry, this.mat);
+                m.matrixAutoUpdate = false; m.renderOrder = 2; m.visible = false;
+                M.holder.add(m); this.pairs.push([src, m, g]);
+            });
+        });
+        this.bulk = 0; this.spot = 0;
+    }
+    // vis: how visible; power: 1 while the beam lands on the cup; water: 1 while the water flows; cutZ: the cut plane (world z), or null
+    step(dt, vis, power, water, cutZ) {
+        const ease = (v, goal, rate) => v + (goal - v) * (1 - Math.exp(-dt * rate));
+        this.spot = ease(this.spot, 0.6 * power, power > this.spot ? 2.2 : (water ? 1.6 : 0.35));
+        const bulkGoal = power * (water ? 0.14 : 0.9);
+        this.bulk = ease(this.bulk, bulkGoal, bulkGoal > this.bulk ? (water ? 0.9 : 0.09) : (water ? 0.7 : 0.08));
+        const u = this.u;
+        u.uVis.value = vis; u.uBulk.value = this.bulk; u.uSpot.value = this.spot; u.uWater.value = ease(u.uWater.value, water, 2); u.uCut.value = cutZ == null ? 0 : 1; u.uCutZ.value = cutZ || 0;
+        this.pairs.forEach(([src, m, g]) => {
+            m.matrix.copy(src.matrix); m.matrixWorldNeedsUpdate = true;
+            m.visible = vis > 0.01 && src.visible;
+            u.uFade.value = g.mat.userData.fade;       // both groups fade together in the story
+        });
+    }
+}
