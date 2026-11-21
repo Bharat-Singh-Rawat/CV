@@ -18,7 +18,7 @@
             document.documentElement.dataset.theme = dark ? 'dark' : 'light';
         })();
     </script>
-    <link rel="stylesheet" href="/CV/cad/cad.css?v=20261120z">
+    <link rel="stylesheet" href="/CV/cad/cad.css?v=20261121c">
     <script type="importmap">
         { "imports": {
             "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
@@ -43,7 +43,13 @@
         <!-- scroll story: the stage stays pinned while one chapter per model scrolls past -->
         <section class="scrolly" id="scrolly" aria-label="3D models">
             <div class="stage" id="stage">
-                <canvas id="view" aria-label="Interactive 3D model. Scroll to zoom and take it apart, drag to rotate, click a part for details."></canvas>
+                <img class="poster" id="poster" alt="" aria-hidden="true" decoding="async">
+                <script>   // the still for the model in the link shows while three.js and the mesh download
+                    (function () { var k = location.hash.slice(1), p = document.getElementById('poster');
+                        if (['oris', 'fc-array', 'hp-cup', 'magnetic-rpa', 'penning'].indexOf(k) < 0) k = 'oris';
+                        p.onload = function () { p.classList.add('on'); }; p.src = '/CV/cad/posters/' + k + '.webp'; })();
+                </script>
+                <canvas id="view" tabindex="0" aria-label="Interactive 3D model. Scroll to take it apart, drag or use the arrow keys to turn it, click a part for details."></canvas>
 
                 <div class="chapters-nav" id="chapters" role="tablist" aria-label="Jump to a model"></div>
 
@@ -51,7 +57,7 @@
                 <div class="caption story" id="cap-story"><p class="c-eyebrow" id="s-step"></p><h2 id="s-title"></h2><p id="s-text"></p></div>
                 <div class="caption small" id="cap-explode"><p class="c-eyebrow">Exploded view</p><p id="c-hint">Tap a label to look closer.</p></div>
 
-                <div class="loading" id="loading"><span class="spin" aria-hidden="true"></span><span>Loading model</span></div>
+                <div class="loading" id="loading" role="status"><span class="spin" aria-hidden="true"></span><span id="load-txt">Loading model</span></div>
                 <div class="labels" id="labels" aria-hidden="true"></div>
                 <button type="button" class="sys-back" id="sys-back" hidden>‹ All systems</button>
                 <div class="tip" id="tip" role="tooltip"></div>
@@ -138,6 +144,7 @@
     </main>
 
     <script src="/CV/v2/sfx.js?v=20261117z"></script>
-    <script type="module" src="/CV/cad/cad.js?v=20261121b"></script>
+    <script src="/CV/cad/i18n.js?v=20261121c"></script>
+    <script type="module" src="/CV/cad/cad.js?v=20261121c"></script>
 </body>
 </html>

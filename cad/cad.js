@@ -11,6 +11,12 @@ import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { penningData, PenningEvents, DetectorPlots, STAGES } from './penning.js?v=20261120f';
 import { hpfcData, CoolingFlow } from './hpfc.js?v=20261121e';
+import { Reflector } from 'three/addons/objects/Reflector.js';
+
+// languages (cad/i18n.js, same choice as the CV): UI strings, model names, subsystems, story beats, Penning stages
+const T = window.CT || (s => s);
+const L10N = window.CAD_I18N || {};
+const STAGES_L = L10N.stages || STAGES;
 
 const MODELS = [
     { key: 'oris', short: 'Ion source', photo: '/CV/v2/img/oris.webp', beam: true },
@@ -19,6 +25,7 @@ const MODELS = [
     { key: 'magnetic-rpa', short: 'Magnetic RPA', photo: '/CV/v2/img/magnet-rpa.webp' },
     { key: 'penning', short: 'Penning trap', photo: '/CV/v2/img/at-aegis.webp', procedural: true, noAR: true }
 ];
+MODELS.forEach(m => { const t = L10N.models && L10N.models[m.key]; if (t) m.short = t[0]; });
 // magnet polarity per model (not in the CAD): returns the magnetisation direction (S to N inside the magnet), CAD axes.
 //  ORIS: ring-cusp, each ring one pole towards the plasma, neighbouring rings alternate (front N in, rear S in, back N in).
 //  Magnetic RPA: the two stacks face N to S across the collector (transverse filter field).
@@ -33,7 +40,7 @@ const POLES = {
 // field-line seeding per model: seeds per pole face (odd), how far lines may wander, and seeds across a filter gap
 // surface field of the permanent magnets (both models): the model is calibrated so the pole faces read this
 const SURFACE_GAUSS = 2500, G_MIN = 20;
-// guided story (desktop): beats shown in the assembled view before it comes apart; each frames one subsystem or set of parts
+// guided story (every screen): beats shown in the assembled view before it comes apart; each frames one subsystem or set of parts
 const STORY = {
     'oris': [
         { sys: 'Filament & feedthroughs', title: 'Electrons first', text: 'A hot filament boils off electrons. Vacuum feedthroughs carry its current in through the back flange.' },
@@ -72,17 +79,18 @@ const FIELD = { 'oris': { seeds: 3, reach: 0.62, box: true }, 'magnetic-rpa': { 
 const BASE = '/CV/cad/models/';
 
 // studio materials: one finish per kind of part
+// brush: strength of the fine machining grain (roughness streaks along the part's own x axis, a touch of tone)
 const FINISH = {
-    steel:    { color: 0xc6c9ce, metalness: 1, roughness: 0.30, label: '' },
-    grid:     { color: 0xbcc0c6, metalness: 1, roughness: 0.17, label: '' },
-    fastener: { color: 0x8f949b, metalness: 1, roughness: 0.34, label: 'Steel' },
-    brass:    { color: 0xdcb462, metalness: 1, roughness: 0.22, label: 'Brass' },
-    copper:   { color: 0xe39066, metalness: 1, roughness: 0.22, label: 'Copper' },
-    alu:      { color: 0xd4d7db, metalness: 1, roughness: 0.42, label: 'Aluminium' },
-    ceramic:  { color: 0xf6f4ef, metalness: 0, roughness: 0.32, clearcoat: 0.9, clearcoatRoughness: 0.12, label: 'Ceramic' },
+    steel:    { color: 0xc6c9ce, metalness: 1, roughness: 0.30, brush: 1, label: '' },
+    grid:     { color: 0xbcc0c6, metalness: 1, roughness: 0.17, brush: 0.5, label: '' },
+    fastener: { color: 0x8f949b, metalness: 1, roughness: 0.34, brush: 0.6, label: 'Steel' },
+    brass:    { color: 0xdcb462, metalness: 1, roughness: 0.22, brush: 0.8, label: 'Brass' },
+    copper:   { color: 0xe08a5e, metalness: 1, roughness: 0.2, clearcoat: 0.35, clearcoatRoughness: 0.18, brush: 0.9, label: 'Copper' },
+    alu:      { color: 0xcfd3d8, metalness: 0.88, roughness: 0.5, sheen: 0.35, sheenRoughness: 0.6, sheenColor: 0xe8ecf2, brush: 0.35, label: 'Aluminium' },     // anodised: soft, satin
+    ceramic:  { color: 0xf6f4ef, metalness: 0, roughness: 0.34, clearcoat: 1, clearcoatRoughness: 0.07, sheen: 0.25, sheenRoughness: 0.5, sheenColor: 0xffffff, label: 'Ceramic' },   // glazed
     ptfe:     { color: 0xf2f2ee, metalness: 0, roughness: 0.6, sheen: 0.4, sheenRoughness: 0.8, label: 'PTFE' },
-    magnet:   { color: 0x5b5e64, metalness: 1, roughness: 0.26, label: 'Magnet' },
-    bellows:  { color: 0x6e7176, metalness: 1, roughness: 0.42, label: 'Steel' },
+    magnet:   { color: 0x63666c, metalness: 1, roughness: 0.24, clearcoat: 0.2, clearcoatRoughness: 0.3, label: 'Magnet' },   // nickel-plated
+    bellows:  { color: 0x6e7176, metalness: 1, roughness: 0.42, brush: 0.5, label: 'Steel' },
     fitting:  { color: 0x2f6fd6, metalness: 0.2, roughness: 0.4, label: '' },
     filament: { color: 0x9d968c, metalness: 1, roughness: 0.38, label: '' },
     gold:     { color: 0xe8c47c, metalness: 1, roughness: 0.2, label: 'Gold' },
@@ -92,7 +100,7 @@ const FINISH = {
 };
 
 // one chapter of scroll: [progress, distance (× fit), explode]; eased between keys
-// desktop chapters with a story: the beats run in the assembled view, then it comes apart
+// chapters with a story: the beats run in the assembled view, then it comes apart
 const KEYS_STORY = [
     [0.00, 2.5, 0], [0.08, 1.0, 0], [0.64, 1.0, 0], [0.70, 0.85, 0.18],
     [0.78, 1.14, 1], [0.88, 1.14, 1], [0.95, 1.35, 0], [1.00, 2.5, 0]
@@ -106,7 +114,7 @@ const AZ0 = 0.64, POL0 = 1.15;            // three-quarter view from slightly ab
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // phones: lighter textures, shadows and pixel ratio so the page loads and runs smoothly
 const phone = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 820;
-// desktop only: the guided story, electrons in the cusp field, the beam on the Faraday cups (phones keep the simple version)
+// desktop only: electrons in the cusp field, detector plots, the floor reflection (phones keep the lighter version)
 const desk = !phone && innerWidth >= 900;
 const $ = id => document.getElementById(id);
 const dark = () => document.documentElement.dataset.theme === 'dark';
@@ -180,10 +188,34 @@ function blobTexture() {
     g.fillStyle = r; g.fillRect(0, 0, 256, 256);
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
+// soft floor reflection (desktop): a half-resolution mirror, blurred and faded out from the model, a few percent strong
+let mirror = null;
+if (!phone) {
+    mirror = new Reflector(new THREE.PlaneGeometry(1, 1), {
+        textureWidth: 1024, textureHeight: 1024, clipBias: 0.003,
+        shader: {
+            name: 'SoftFloorReflection',
+            uniforms: { color: { value: null }, tDiffuse: { value: null }, textureMatrix: { value: null }, uStrength: { value: 0.1 }, uTexel: { value: new THREE.Vector2(1 / 1024, 1 / 1024) } },
+            vertexShader: `uniform mat4 textureMatrix; varying vec4 vUv; varying vec2 vLoc;
+                void main() { vUv = textureMatrix * modelMatrix * vec4(position, 1.0); vLoc = uv - 0.5; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+            fragmentShader: `uniform sampler2D tDiffuse; uniform float uStrength; uniform vec2 uTexel; varying vec4 vUv; varying vec2 vLoc;
+                void main() {
+                    vec2 uv = vUv.xy / vUv.w; vec4 c = vec4(0.0);
+                    for (int x = -2; x <= 2; x++) for (int y = -2; y <= 2; y++) c += texture2D(tDiffuse, uv + vec2(float(x), float(y)) * uTexel * 2.2);
+                    c /= 25.0;
+                    float fade = smoothstep(0.5, 0.06, length(vLoc));
+                    gl_FragColor = vec4(c.rgb, c.a * fade * uStrength);
+                }`
+        }
+    });
+    mirror.material.transparent = true; mirror.material.depthWrite = false;
+    mirror.rotation.x = -Math.PI / 2; mirror.renderOrder = -2; scene.add(mirror);
+}
 const applyTheme = () => {
     floor.material.opacity = dark() ? 0.42 : 0.16;
     blob.material.opacity = dark() ? 0.85 : 0.5;
     scene.environmentIntensity = dark() ? 0.9 : 1.05;
+    if (mirror) mirror.material.uniforms.uStrength.value = dark() ? 0.16 : 0.09;
 };
 applyTheme();
 new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
@@ -208,9 +240,26 @@ let driveOut = false, driveX = 0, driveShown = 0;
 let waterOn = false, waterVis = 0, heatVis = 0, supVis = 0, beatAz = 0, beatAzS = 0;
 
 // ---------- loading ----------
-async function fetchModel(k) {
+// a download with progress (percent of Content-Length; silent when the server does not say, or sends it compressed)
+async function fetchBuf(url, onProg) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(url + ': ' + res.status);
+    const total = +res.headers.get('Content-Length') || 0, enc = res.headers.get('Content-Encoding');
+    if (!res.body || !total || (enc && enc !== 'identity')) return res.arrayBuffer();
+    const reader = res.body.getReader(), out = new Uint8Array(total);
+    let got = 0;
+    for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (got + value.length > total) return (await new Response(new Blob([out.subarray(0, got), value])).arrayBuffer());   // length was wrong: fall back
+        out.set(value, got); got += value.length;
+        onProg && onProg(Math.min(99, Math.round(got / total * 100)));
+    }
+    return out.buffer.slice(0, got);
+}
+async function fetchModel(k, onProg) {
     const data = await (await fetch(BASE + k + '.json')).json();
-    const buf = await (await fetch(BASE + data.bin)).arrayBuffer();
+    const buf = await fetchBuf(BASE + data.bin, onProg);
     if (data.codec === 'meshopt') {      // compressed: 16-bit positions, 8-bit normals, meshopt-coded streams
         await MeshoptDecoder.ready;
         const u8 = new Uint8Array(buf), part = r => u8.subarray(r[0], r[0] + r[1]);
@@ -264,7 +313,7 @@ function makeMaterial(kind) {
     const m = new THREE.MeshPhysicalMaterial({
         color: f.color, metalness: f.metalness, roughness: f.roughness,
         clearcoat: f.clearcoat || 0, clearcoatRoughness: f.clearcoatRoughness || 0,
-        sheen: f.sheen || 0, sheenRoughness: f.sheenRoughness || 1,
+        sheen: f.sheen || 0, sheenRoughness: f.sheenRoughness || 1, sheenColor: new THREE.Color(f.sheenColor ?? 0xffffff),
         envMapIntensity: 1, clipShadows: true
     });
     m.emissive = new THREE.Color(0x0071e3); m.emissiveIntensity = 0;
@@ -272,8 +321,23 @@ function makeMaterial(kind) {
     // the cut-away shows inner faces as a darker "section" tone
     const cap = new THREE.Color(f.color).multiplyScalar(f.metalness ? 0.42 : 0.7);
     m.userData.capOn = { value: 0 };
+    const brush = phone ? 0 : (f.brush || 0);
     m.onBeforeCompile = s => {
-        s.uniforms.capColor = { value: cap }; s.uniforms.capOn = m.userData.capOn;
+        s.uniforms.capColor = { value: cap }; s.uniforms.capOn = m.userData.capOn; s.uniforms.uBrush = { value: brush };
+        // brushed grain: value noise in the part's own coordinates (mm), stretched along x, nudges roughness and tone a little
+        s.vertexShader = 'varying vec3 vObj;\n' + s.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vObj = position;');
+        s.fragmentShader = 'uniform float uBrush;\nvarying vec3 vObj;\n' +
+            'float bh(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }\n' +
+            'float bn(vec3 p) { vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);\n' +
+            ' return mix(mix(mix(bh(i), bh(i + vec3(1,0,0)), f.x), mix(bh(i + vec3(0,1,0)), bh(i + vec3(1,1,0)), f.x), f.y),\n' +
+            '            mix(mix(bh(i + vec3(0,0,1)), bh(i + vec3(1,0,1)), f.x), mix(bh(i + vec3(0,1,1)), bh(i + vec3(1,1,1)), f.x), f.y), f.z); }\n' +
+            s.fragmentShader
+                .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n' +
+                    ' if (uBrush > 0.0) { vec3 q = vObj * vec3(0.04, 0.7, 0.7); float g = bn(q) * 0.65 + bn(q * 2.1 + 7.0) * 0.35;\n' +
+                    // fade the grain out where it would be finer than a pixel (no moiré from far away)
+                    '  float aa = uBrush * (1.0 - smoothstep(0.25, 0.8, length(fwidth(q))));\n' +
+                    '  roughnessFactor = clamp(roughnessFactor * (1.0 + aa * 0.24 * (g - 0.5)), 0.04, 1.0);\n' +
+                    '  diffuseColor.rgb *= 1.0 + aa * 0.03 * (g - 0.5); }');
         s.fragmentShader = 'uniform vec3 capColor;\nuniform float capOn;\n' + s.fragmentShader.replace('#include <dithering_fragment>',
             '#include <dithering_fragment>\n' +
             // a face is "inside" when its own normal points away from the camera (winding from CAD exports is not reliable).
@@ -316,7 +380,10 @@ function build(data) {
         g.meshes.push(mesh); holder.add(mesh);
         return mesh;
     });
-    const M = { data, groups, meshes, holder, systems: (data.systems || []).map(x => ({ ...x, set: new Set(x.groups), count: x.groups.reduce((n, i) => n + data.groups[i].count, 0) })) };
+    const M = { data, groups, meshes, holder, systems: (data.systems || []).map(x => {
+        const t = L10N.systems && L10N.systems[x.label];   // label stays the English key (the story refers to it)
+        return { ...x, name: t ? t[0] : x.label, note: t ? t[1] : x.blurb, set: new Set(x.groups), count: x.groups.reduce((n, i) => n + data.groups[i].count, 0) };
+    }) };
     M.fit0 = boundsOf(M, 0).getBoundingSphere(new THREE.Sphere());
     M.fit1 = boundsOf(M, 1).getBoundingSphere(new THREE.Sphere());
     const all = boundsOf(M, 0).union(boundsOf(M, 1)), s = all.getSize(new THREE.Vector3());
@@ -348,7 +415,7 @@ function activate(i) {
     $('c-num').textContent = String(i + 1).padStart(2, '0') + ' / ' + String(MODELS.length).padStart(2, '0');
     $('m-name').textContent = model.data.name;
     $('m-blurb').textContent = model.data.blurb || '';
-    $('c-hint').textContent = model.systems.length ? 'Tap a system to look closer.' : 'Tap any part to look closer.';
+    $('c-hint').textContent = T(model.systems.length ? 'Tap a system to look closer.' : 'Tap any part to look closer.');
     buildLabels();
     applyExplode(true);
     paint();
@@ -358,12 +425,12 @@ function activate(i) {
         if (tb && nav.scrollWidth > nav.clientWidth) nav.scrollTo({ left: tb.offsetLeft - (nav.clientWidth - tb.offsetWidth) / 2, behavior: reduce ? 'auto' : 'smooth' });
     }
     // per-model extras
-    $('t-beam').hidden = !(MODELS[i].beam || (desk && MODELS[i].profile)); $('t-field').hidden = !POLES[MODELS[i].key];
+    $('t-beam').hidden = !(MODELS[i].beam || MODELS[i].profile); $('t-field').hidden = !POLES[MODELS[i].key];
     $('t-water').hidden = !MODELS[i].water; $('t-water').setAttribute('aria-pressed', 'false');
     $('t-drive').hidden = !MODELS[i].water; $('t-drive').setAttribute('aria-pressed', 'false'); driveOut = false; driveX = 0; driveShown = 0;
     beamOn = fieldOn = profileOn = waterOn = false; beamVis = fieldVis = profVis = waterVis = heatVis = supVis = 0;
     if (MODELS[i].water && !model.cooling) model.cooling = new CoolingFlow(model, model.holder);
-    if (hasStory(i) && !model.story) {          // desktop story: beats, plus whatever they show
+    if (hasStory(i) && !model.story) {          // the story: beats, plus whatever they show
         model.story = buildStory(model, MODELS[i].key);
         model.story.forEach(b => {
             if (b.fx === 'field' && !model.field) model.field = buildField(model);
@@ -375,18 +442,19 @@ function activate(i) {
     if (desk && model.field && !model.electrons) model.electrons = buildElectrons(model);
     $('cap-story').style.opacity = 0; storyDom = -1;
     $('t-beam').setAttribute('aria-pressed', 'false'); $('t-field').setAttribute('aria-pressed', 'false'); $('legend').hidden = true;
-    $('cmp-img').src = $('cmp-bg').src = MODELS[i].photo; $('cmp-img').alt = 'Lab photo of the ' + model.data.name;
+    $('cmp-img').src = $('cmp-bg').src = MODELS[i].photo; $('cmp-img').alt = T('labPhoto', model.data.name);
     $('ar-pop').hidden = true;
     $('t-ar-ios').href = `/CV/cad/ar/${MODELS[i].key}.usdz`;
     const noAR = !!MODELS[i].noAR;
     $('t-ar').hidden = noAR || (isIOS && quickLook); $('t-ar-ios').hidden = noAR || !(isIOS && quickLook);
     stage.classList.toggle('night', MODELS[i].key === 'penning');
+    if (mirror) mirror.visible = MODELS[i].key !== 'penning';     // the trap floats in its dark event display
     if (MODELS[i].key === 'penning' && !model.events) {
         model.events = new PenningEvents(model, model.holder, det => { if (model.plots) model.plots.hit(det); });
         if (desk) model.plots = new DetectorPlots($('plots'), model.events);
     }
     $('plots').hidden = true; $('phase').hidden = true;
-    $('loading').classList.add('done');
+    showLoading(i, false);
 }
 
 const _bs = new THREE.Matrix4();
@@ -413,6 +481,7 @@ function applyExplode(force) {
     const w = Math.max(s.x, s.z);
     floor.scale.set(w * 6, w * 6, 1); floor.position.x = c.x; floor.position.z = c.z;
     blob.scale.set(s.x * 1.35, s.z * 1.35, 1); blob.position.x = c.x; blob.position.z = c.z;
+    if (mirror) { const k = Math.max(s.x, s.z) * 2.4; mirror.scale.set(k, k, 1); mirror.position.set(c.x, y + 0.02, c.z); }
     const R = model.radius;
     key.position.set(c.x + R * 0.6, y + R * 2.4, c.z + R * 0.9); key.target.position.set(c.x, y, c.z);
     if (force) root.updateMatrixWorld(true);
@@ -420,9 +489,10 @@ function applyExplode(force) {
 
 // ---------- scroll: which chapter, how far into it ----------
 const track = $('chapter-track');
-// chapters with a story are longer on desktop (one extra stretch of scroll per beat)
-const hasStory = i => desk && !!STORY[MODELS[i].key];
-track.innerHTML = MODELS.map((m, i) => hasStory(i) ? `<div style="height:${320 + 150 * STORY[m.key].length}vh"></div>` : '<div></div>').join('');
+// chapters with a story are longer (one extra stretch of scroll per beat; a little shorter on small screens)
+const hasStory = i => !!STORY[MODELS[i].key];
+const small = innerWidth < 900;
+track.innerHTML = MODELS.map((m, i) => hasStory(i) ? `<div style="height:${small ? 260 + 115 * STORY[m.key].length : 320 + 150 * STORY[m.key].length}vh"></div>` : '<div></div>').join('');
 const chapterSpans = () => { let t = 0; return [...track.children].map(el => { const a = t; t += el.offsetHeight; return [a, el.offsetHeight]; }); };
 function scrollG() {
     const s = -scrolly.getBoundingClientRect().top, spans = chapterSpans();
@@ -439,7 +509,10 @@ function keyAt(p, story) {
     const K = story ? KEYS_STORY : KEYS;
     let k = 0; while (k < K.length - 2 && p > K[k + 1][0]) k++;
     const [p0, m0, e0] = K[k], [p1, m1, e1] = K[k + 1], s = smooth(p0, p1, p);
-    return { m: m0 + (m1 - m0) * s, e: e0 + (e1 - e0) * s };
+    const e = e0 + (e1 - e0) * s;
+    // reduced motion: no fly-in, no zoom, no gradual take-apart; the view cuts between assembled and exploded
+    if (reduce) return e > 0.5 ? { m: 1.14, e: 1 } : { m: 1.0, e: 0 };
+    return { m: m0 + (m1 - m0) * s, e };
 }
 
 $('chapters').innerHTML = MODELS.map((m, i) => `<button type="button" role="tab" data-i="${i}" aria-selected="false">${esc(m.short)}<i></i></button>`).join('');
@@ -483,7 +556,7 @@ function stepMaterials(dt) {
         const baseOp = m.userData.baseOpacity || 1, transparent = f < 0.995 || baseOp < 1;
         if (m.transparent !== transparent) { m.transparent = transparent; m.depthWrite = !transparent; m.needsUpdate = true; }
         m.opacity = transparent ? f * baseOp : 1;
-        const hot = g.label === 'Filament' ? beamVis * 2.4 * (0.92 + 0.08 * Math.sin(performance.now() / 45)) : 0;
+        const hot = g.label === 'Filament' ? beamVis * 2.4 * (reduce ? 1 : 0.92 + 0.08 * Math.sin(performance.now() / 45)) : 0;
         if (hot > 0.02) m.emissive.setHex(0xff6a1a); else if (m.emissiveIntensity < 0.3) m.emissive.setHex(0x0071e3);
         m.emissiveIntensity += (Math.max(g.goalGlow || 0, hot) - m.emissiveIntensity) * k;
         g.meshes.forEach(me => { me.castShadow = f > 0.5 && baseOp >= 1; });
@@ -499,10 +572,10 @@ function select(i) {
     const geo = d.geo[d.instances.find(x => x.g === selected).geo];
     const s = geo.boundingBox.getSize(new THREE.Vector3());
     const dims = [s.x, s.y, s.z].sort((a, b) => b - a).map(v => v >= 10 ? Math.round(v) : Math.round(v * 10) / 10);
-    $('i-mat').textContent = g.material || (FINISH[g.kind] || FINISH.steel).label;
+    $('i-mat').textContent = T(g.material || (FINISH[g.kind] || FINISH.steel).label);
     $('i-name').textContent = g.label;
     $('i-blurb').textContent = g.blurb || '';
-    $('i-qty-t').textContent = 'Quantity'; $('i-size-t').textContent = 'Envelope';
+    $('i-qty-t').textContent = T('Quantity'); $('i-size-t').textContent = T('Envelope');
     $('i-qty').textContent = '× ' + g.count;
     $('i-size').textContent = dims.join(' × ') + ' mm';
     $('info').hidden = false;
@@ -510,10 +583,10 @@ function select(i) {
 function closeInfo() { $('info').hidden = true; }
 function showSystemCard() {
     const sy = model.systems[focus];
-    $('i-mat').textContent = 'Subsystem';
-    $('i-name').textContent = sy.label;
-    $('i-blurb').textContent = sy.blurb || '';
-    $('i-qty-t').textContent = 'Parts'; $('i-size-t').textContent = 'Part types';
+    $('i-mat').textContent = T('Subsystem');
+    $('i-name').textContent = sy.name;
+    $('i-blurb').textContent = sy.note || '';
+    $('i-qty-t').textContent = T('Parts'); $('i-size-t').textContent = T('Part types');
     $('i-qty').textContent = sy.count; $('i-size').textContent = sy.groups.length;
     $('info').hidden = false;
 }
@@ -548,10 +621,10 @@ function renderParts() {
     if (!M) { ul.innerHTML = ''; return; }
     const part = i => { const g = M.groups[i]; return `<li><button type="button" class="part" data-i="${i}" aria-pressed="false">
         <span class="sw" style="${swatch(g.kind)}" aria-hidden="true"></span>
-        <span><span class="p-name">${esc(g.label)}</span><span class="p-mat">${esc(g.material || (FINISH[g.kind] || FINISH.steel).label)}</span></span>
+        <span><span class="p-name">${esc(g.label)}</span><span class="p-mat">${esc(T(g.material || (FINISH[g.kind] || FINISH.steel).label))}</span></span>
         <span class="p-qty">× ${g.count}</span></button></li>`; };
     ul.innerHTML = M.systems.length
-        ? M.systems.map((sy, s) => `<li class="sys-h"><button type="button" class="sys-btn" data-s="${s}" aria-pressed="false"><b>${esc(sy.label)}</b><span>${esc(sy.blurb)}</span></button></li>` + sy.groups.map(part).join('')).join('')
+        ? M.systems.map((sy, s) => `<li class="sys-h"><button type="button" class="sys-btn" data-s="${s}" aria-pressed="false"><b>${esc(sy.name)}</b><span>${esc(sy.note)}</span></button></li>` + sy.groups.map(part).join('')).join('')
         : M.groups.map((g, i) => part(i)).join('');
     const here = () => listIdx === active;
     ul.querySelectorAll('.part').forEach(b => {
@@ -585,6 +658,8 @@ function buildLabels() {
         labelsEl.appendChild(el);
         const leader = svg.appendChild(document.createElementNS(SVGNS, 'path'));
         const dot = svg.appendChild(document.createElementNS(SVGNS, 'circle')); dot.setAttribute('r', kind === 's' ? '4.5' : '3.5');
+        el.addEventListener('focus', () => { if (kind === 's') hoverSys = idx; else hovered = idx; paint(); tick(); });
+        el.addEventListener('blur', () => { hoverSys = hovered = -1; paint(); });
         if (kind === 's') {
             el.addEventListener('click', () => focusSystem(idx));
             el.addEventListener('pointerenter', () => { hoverSys = idx; paint(); tick(); });
@@ -598,14 +673,14 @@ function buildLabels() {
     };
     callouts = [];
     model.groups.forEach((g, i) => mk('g', i, [i], `<span>${esc(g.label)}</span>`));
-    model.systems.forEach((sy, s) => mk('s', s, sy.groups, `<span>${esc(sy.label)}<em>${sy.count}</em></span>`));
+    model.systems.forEach((sy, s) => mk('s', s, sy.groups, `<span>${esc(sy.name)}<em>${sy.count}</em></span>`));
 }
 const _v = new THREE.Vector3(), _w = new THREE.Vector3();
-const hide = c => { c.el.classList.remove('vis'); c.leader.style.opacity = c.dot.style.opacity = 0; };
+const hide = c => { if (c.el.classList.contains('vis')) { c.el.classList.remove('vis'); c.el.tabIndex = -1; } c.leader.style.opacity = c.dot.style.opacity = 0; };
 function placeLabels() {
     const t = explodeT, on = !!model && t > 0.55;
     labelsEl.classList.toggle('on', on);
-    if (!on) return;
+    if (!on) { if (callouts.some(c => c.el.tabIndex === 0)) callouts.forEach(hide); return; }
     const W = stage.clientWidth, H = stage.clientHeight, small = W < 640;
     const top = small ? 156 : 190, bottom = H - (small ? 84 : 96), gap = small ? 21 : 27;
     const sys = model.systems.length > 0;
@@ -647,7 +722,7 @@ function placeLabels() {
         col.forEach(it => {
             const c = it.c, lx = side < 0 ? colL - it.w : colR;
             c.el.style.transform = `translate(${lx}px, ${it.ly - 12}px)`;
-            c.el.classList.add('vis');
+            if (!c.el.classList.contains('vis')) { c.el.classList.add('vis'); c.el.tabIndex = 0; }
             c.el.classList.toggle('dim', isDim(c));
             const ex = side < 0 ? colL + 4 : colR - 4, knee = ex - side * 14;
             c.leader.setAttribute('d', `M${it.x.toFixed(1)},${it.y.toFixed(1)} L${knee.toFixed(1)},${it.ly.toFixed(1)} L${ex.toFixed(1)},${it.ly.toFixed(1)}`);
@@ -727,6 +802,27 @@ $('t-reset').addEventListener('click', () => {
     cut = false; applyCut();
     userAz = userPol = velAz = velPol = 0;
 });
+// ---------- keyboard: arrows turn the model, Tab walks the labels, Esc closes, 1-5 jump to a model ----------
+canvas.addEventListener('keydown', e => {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    const k = e.key, step = e.shiftKey ? 0.3 : 0.12;
+    if (k === 'ArrowLeft' || k === 'ArrowRight') { velAz = 0; userAz += (k === 'ArrowLeft' ? 1 : -1) * step; }
+    else if (k === 'ArrowUp' || k === 'ArrowDown') { velPol = 0; userPol = clamp(userPol + (k === 'ArrowUp' ? 1 : -1) * step * 0.6, -0.75, 0.5); }
+    else if (k === 'Home') { userAz = userPol = velAz = velPol = 0; }
+    else return;
+    e.preventDefault();
+});
+document.addEventListener('keydown', e => {
+    if (e.altKey || e.ctrlKey || e.metaKey || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+    if (e.key === 'Escape') {
+        if (!$('ar-pop').hidden) { $('ar-pop').hidden = true; return; }
+        if (selected >= 0 && focus >= 0) focusSystem(focus, false); else if (selected >= 0 || focus >= 0) clearAll();
+        return;
+    }
+    const n = +e.key;
+    if (n >= 1 && n <= MODELS.length && (e.target === canvas || stage.contains(e.target))) { scrollToChapter(n - 1, 0.17); e.preventDefault(); }
+});
+
 document.addEventListener('pointerover', e => {
     const el = e.target.closest('#models button, #chapters button, .tool, .pill-btn, .info .x, .sys-back');
     if (el && !el.contains(e.relatedTarget)) tick();
@@ -916,7 +1012,7 @@ function stepExtras(dt, time) {
     }
     if (model.electrons) {
         const E = model.electrons; E.uniforms.uOn.value = fieldVis; E.uniforms.uScale.value = pxScale;
-        E.pts.visible = fieldVis > 0.01; if (E.pts.visible) E.step(Math.min(dt, 0.033));
+        E.pts.visible = fieldVis > 0.01; if (E.pts.visible) E.step(reduce ? 0 : Math.min(dt, 0.033));
     }
     if (model.beam) {
         const u = model.beam.uniforms; u.uOn.value = beamVis; u.uTime.value = time;
@@ -927,10 +1023,10 @@ function stepExtras(dt, time) {
     } else plasmaLight.intensity = 0;
     if (model.field) {
         model.field.material.opacity = fieldVis * 0.95; model.field.ghost.opacity = fieldVis * 0.28;
-        model.field.material.dashOffset -= dt * model.radius * 0.06; model.field.ghost.dashOffset = model.field.material.dashOffset;
+        if (!reduce) model.field.material.dashOffset -= dt * model.radius * 0.06; model.field.ghost.dashOffset = model.field.material.dashOffset;
         model.field.visible = fieldVis > 0.01;
     }
-    $('legend').hidden = !(fieldVis > 0.3);
+    $('legend').hidden = !(fieldVis > 0.3) || (small && storyCard);     // phones: the story card sits where the legend goes
     if (model.cooling) {        // 10 kW cup: water through the pipe, the beam's heat on the cup floor
         waterVis += (Math.max(waterOn ? 1 : 0, storyFx.water) * away - waterVis) * (1 - Math.exp(-dt * 4));
         heatVis += (Math.max(waterOn || driveOut ? 1 : 0, storyFx.heat, storyFx.suppress, storyFx.drive, storyFx.water * 0.6) * away - heatVis) * (1 - Math.exp(-dt * 4));
@@ -946,14 +1042,15 @@ function stepExtras(dt, time) {
         driveShown = (storyFx.drive > 0.3 || driveOut || driveX < -1) && away > 0.6 ? 1 : 0;
         const chip = $('phase'), parked = driveX < -S * 0.45;
         chip.hidden = !driveShown;
-        if (driveShown && chip.dataset.s !== (parked ? 'p' : 'i')) { chip.dataset.s = parked ? 'p' : 'i'; chip.querySelector('span').textContent = parked ? 'Parked: the beam goes past' : 'In the beam: measuring'; chip.classList.remove('tick'); void chip.offsetWidth; chip.classList.add('tick'); }
+        if (driveShown && chip.dataset.s !== (parked ? 'p' : 'i')) { chip.dataset.s = parked ? 'p' : 'i'; chip.querySelector('span').textContent = T(parked ? 'Parked: the beam goes past' : 'In the beam: measuring'); chip.classList.remove('tick'); void chip.offsetWidth; chip.classList.add('tick'); }
     }
-    $('legend-w').hidden = !(model.cooling && waterVis > 0.3);
+    $('legend-w').hidden = !(model.cooling && waterVis > 0.3) || (small && storyCard);
     if (model.events) {
-        model.events.step(dt, away, pxScale);
+        if (reduce && !model.events.warm) { model.events.warm = true; for (let k = 0; k < 200; k++) model.events.step(1 / 60, 1, pxScale); }   // one still frame, a few tracks in it
+        model.events.step(reduce ? 0 : dt, away, pxScale);
         const chip = $('phase'), si = model.events.stage();
         chip.hidden = away < 0.6;
-        if (chip.dataset.s !== String(si)) { chip.dataset.s = si; chip.querySelector('span').textContent = STAGES[si]; chip.classList.remove('tick'); void chip.offsetWidth; chip.classList.add('tick'); }
+        if (chip.dataset.s !== String(si)) { chip.dataset.s = si; chip.querySelector('span').textContent = STAGES_L[si] || STAGES[si]; chip.classList.remove('tick'); void chip.offsetWidth; chip.classList.add('tick'); }
         const showPlots = !!model.plots && away > 0.6 && $('info').hidden;
         $('plots').hidden = !showPlots;
         if (showPlots) model.plots.step(dt);
@@ -986,10 +1083,12 @@ $('t-field').addEventListener('click', e => {
 });
 
 
-// --- story (desktop): beats that frame one subsystem at a time ---
-let storyDom = -1;
+// --- story: beats that frame one subsystem at a time ---
+let storyDom = -1, storyCard = false;
 function buildStory(M, key) {
-    return (STORY[key] || []).map(b => {
+    const tr = L10N.story && L10N.story[key];
+    return (STORY[key] || []).map((b, k) => {
+        if (tr && tr[k]) b = { ...b, title: tr[k][0], text: tr[k][1] };
         let set = null;
         if (b.sys) { const sy = M.systems.find(x => x.label === b.sys); set = sy && sy.set; }
         else set = new Set(M.groups.map((g, i) => b.parts.includes(g.label) ? i : -1).filter(i => i >= 0));
@@ -1066,7 +1165,7 @@ function buildElectrons(M) {
     };
 }
 
-// --- beam on the Faraday cups (desktop): a beam comes in, each cup glows, a live profile rises above the array ---
+// --- beam on the Faraday cups: a beam comes in, each cup glows, a live profile rises above the array ---
 function buildProfile(M) {
     const cg = M.groups.find(g => g.label === 'Faraday cup'), eg = M.groups.find(g => g.label === 'Earth electrode and base'), sg = M.groups.find(g => g.label === 'Suppressor electrode');
     if (!cg || !eg || !sg) return null;
@@ -1215,7 +1314,7 @@ function loop(now) {
     const ci = Math.min(MODELS.length - 1, Math.floor(gSmooth)), p = gSmooth - ci;
     activate(ci);
     document.querySelectorAll('#chapters button i').forEach((el, k) => el.style.setProperty('--p', k === ci ? p.toFixed(3) : 0));
-    if (!model || active !== ci) { $('loading').classList.remove('done'); return; }
+    if (!model || active !== ci) { showLoading(ci, true); return; }
 
     // scroll keyframes: distance, explode; the turntable follows the scroll
     const story = hasStory(ci) && model.story && model.story.length ? model.story : null;
@@ -1229,6 +1328,7 @@ function loop(now) {
     const exCap = (story ? smooth(0.74, 0.79, p) * (1 - smooth(0.88, 0.92, p)) : smooth(0.52, 0.6, p) * (1 - smooth(0.84, 0.9, p))) * (focus < 0 && selected < 0 ? 1 : 0);
     // the story: which beat, its caption, what it shows, what fades back
     let st = null;
+    storyCard = false;
     storyFx.field = storyFx.beam = storyFx.profile = storyFx.water = storyFx.heat = storyFx.suppress = storyFx.drive = 0;
     if (story) {
         st = storyAt(p, story.length);
@@ -1238,7 +1338,8 @@ function loop(now) {
             $('s-step').textContent = `${st.dom + 1} / ${story.length}`; $('s-title').textContent = beat.title; $('s-text').textContent = beat.text;
         }
         const tOp = st.w * st.text * (focus < 0 && selected < 0 ? 1 : 0);
-        capS.style.opacity = tOp.toFixed(3); capS.style.transform = `translateY(calc(-50% + ${(14 * (1 - st.text)).toFixed(1)}px))`;
+        storyCard = tOp > 0.05;
+        capS.style.opacity = tOp.toFixed(3); capS.style.setProperty('--ty', (reduce ? 0 : 14 * (1 - st.text)).toFixed(1) + 'px');
         if (beat.fx) storyFx[beat.fx] = st.w * st.text;
         if (selected < 0 && focus < 0 && st.w > 0.001) {
             model.groups.forEach((g, i) => { g.goalFade = beat.set.has(i) ? 1 : 1 - 0.86 * st.w; });
@@ -1262,16 +1363,17 @@ function loop(now) {
         sph.center.lerp(followC, fw * 0.85); dist *= 1 - 0.42 * fw;
     }
     if (st && st.w > 0) {        // move the camera to the beat's subsystem (and between beats)
-        const anchor = i => i < 0 ? { c: sph.center, d: dist } : { c: story[i].sph.center, d: clamp(story[i].sph.radius * fitK * 1.75, dist * 0.38, dist * 1.05) };
-        const A = anchor(st.from), B2 = anchor(st.to);
-        sph.center = A.c.clone().lerp(B2.c, st.b); dist = A.d + (B2.d - A.d) * st.b;
+        const room = camera.aspect < 1 ? 1.22 : 1;      // portrait phones: the card covers the bottom, keep some margin round the beat
+        const anchor = i => i < 0 ? { c: sph.center, d: dist } : { c: story[i].sph.center, d: clamp(story[i].sph.radius * fitK * 1.75 * room, dist * 0.38, dist * 1.05 * room) };
+        const A = anchor(st.from), B2 = anchor(st.to), sb = reduce ? (st.b < 0.5 ? 0 : 1) : st.b;
+        sph.center = A.c.clone().lerp(B2.c, sb); dist = A.d + (B2.d - A.d) * sb;
         // a beat may also turn the model (e.g. to look into the 10 kW cup, or at its back)
         const tw = i => i < 0 ? 0 : story[i].az || 0;
-        beatAz = (tw(st.from) + (tw(st.to) - tw(st.from)) * st.b);
+        beatAz = (tw(st.from) + (tw(st.to) - tw(st.from)) * sb);
     } else beatAz = 0;
-    beatAzS += (beatAz - beatAzS) * (1 - Math.exp(-dt * 5));
+    beatAzS = reduce ? beatAz : beatAzS + (beatAz - beatAzS) * (1 - Math.exp(-dt * 5));
     // long models keep a side view: their own offset and a smaller turn over the chapter
-    const az = AZ0 + (desk && MODELS[ci].deskAz || 0) + (MODELS[ci].az0 || 0) + (p - 0.45) * 1.9 * (MODELS[ci].sweep ?? 1) + userAz + beatAzS, pol = POL0 + userPol - 0.1 * Math.sin(Math.PI * p);
+    const az = AZ0 + (desk && MODELS[ci].deskAz || 0) + (MODELS[ci].az0 || 0) + (reduce ? 0 : (p - 0.45) * 1.9 * (MODELS[ci].sweep ?? 1)) + userAz + beatAzS, pol = POL0 + userPol - (reduce ? 0 : 0.1 * Math.sin(Math.PI * p));
     _c.copy(sph.center);
     camera.position.set(_c.x + dist * Math.sin(pol) * Math.sin(az), _c.y + dist * Math.cos(pol), _c.z + dist * Math.sin(pol) * Math.cos(az));
     camera.lookAt(_c);
@@ -1280,7 +1382,8 @@ function loop(now) {
     // while the title shows on the left, slide the model to the right of it
     const W = stage.clientWidth, H = stage.clientHeight;
     const shift = W > 900 ? Math.max(intro, st ? st.w * st.text : 0) * W * 0.16 : 0;
-    plotLift += ((!$('plots').hidden ? H * 0.1 : 0) - plotLift) * (1 - Math.exp(-dt * 4));
+    const liftGoal = !$('plots').hidden ? H * 0.1 : (W <= 900 && st ? st.w * st.text * H * 0.13 : 0);
+    plotLift = reduce ? liftGoal : plotLift + (liftGoal - plotLift) * (1 - Math.exp(-dt * 4));
     if (shift > 0.5 || plotLift > 0.5) camera.setViewOffset(W, H, -shift, plotLift, W, H); else camera.clearViewOffset();
 
     // a list click waits until the scroll has arrived
@@ -1289,27 +1392,54 @@ function loop(now) {
         pending = null;
     }
 
-    stepExtras(dt, now / 1000);
+    stepExtras(dt, reduce ? 5 : now / 1000);     // reduced motion: effects hold still (a frozen frame of the beam, the water, the drive in the beam)
     stepMaterials(dt);
     hoverStep();
     placeLabels();
     renderer.render(scene, camera);
 }
 
-// ---------- start: the first model first, the others in the background ----------
+// ---------- start: the model in the link (or the first one) first, the others in the background ----------
+// While a model is still on its way the stage shows a blurred still of it (posters/<key>.webp, rendered from this page).
+const loadPct = [];
+let posterFor = -1;
+function setLoadText(ci) { const p = loadPct[ci]; $('load-txt').textContent = p > 0 && p < 100 ? T('loadingPct', p) : T('Loading model'); }
+function showLoading(ci, on) {
+    $('loading').classList.toggle('done', !on);
+    const P = $('poster');
+    if (!on) { P.classList.remove('on'); posterFor = -1; return; }
+    if (posterFor === ci) return;
+    posterFor = ci; setLoadText(ci);
+    const src = `/CV/cad/posters/${MODELS[ci].key}.webp`;
+    if (P.getAttribute('src') === src && P.complete) { P.classList.add('on'); return; }
+    P.classList.remove('on');
+    P.onload = () => { if (posterFor === ci) P.classList.add('on'); };
+    P.src = src;
+}
+function localize(data, key) {
+    const t = L10N.models && L10N.models[key];
+    if (t) { data.name = t[1]; data.blurb = t[2]; }
+    return data;
+}
 (async () => {
     try {
-        for (let i = 0; i < MODELS.length; i++) {
-            const data = MODELS[i].procedural === 'hpfc' ? hpfcData() : MODELS[i].procedural ? await penningData(BASE) : await fetchModel(MODELS[i].key);
-            built[i] = build(data);
+        const h = MODELS.findIndex(m => m.key === location.hash.slice(1));
+        const order = MODELS.map((m, i) => i);
+        if (h > 0) { order.splice(h, 1); order.unshift(h); }
+        let first = true;
+        for (const i of order) {
+            const key = MODELS[i].key, prog = p => { loadPct[i] = p; if (posterFor === i) setLoadText(i); };
+            const data = MODELS[i].procedural === 'hpfc' ? hpfcData() : MODELS[i].procedural ? await penningData(BASE) : await fetchModel(key, prog);
+            loadPct[i] = 100;
+            built[i] = build(localize(data, key));
             if (i === listIdx) renderParts();
-            if (i === 0) {
+            if (first) {
+                first = false;
                 requestAnimationFrame(loop);
-                const h = MODELS.findIndex(m => m.key === location.hash.slice(1));
                 if (h >= 0) setTimeout(() => scrollToChapter(h, 0.17, true), 50);
             }
         }
     } catch (err) {
-        $('loading').innerHTML = '<span>Could not load the model.</span>'; console.error(err);
+        $('loading').innerHTML = `<span>${esc(T('Could not load the model.'))}</span>`; console.error(err);
     }
 })();
