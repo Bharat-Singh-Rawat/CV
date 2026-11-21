@@ -267,6 +267,7 @@ h1 { margin: 0; font-size: clamp(2.6rem, 7vw, 4.4rem); line-height: 1.04; letter
 .end { margin-top: 56px; border-top: 1px solid var(--line); padding-top: 26px; color: var(--muted); font-size: 0.9rem; }
 .end a { color: var(--link); text-decoration: none; }
 .end a:hover { text-decoration: underline; }
+.copy { margin: 10px 0 0; color: var(--faint); font-size: 0.78rem; }
 
 @media (max-width: 640px) {
     main { padding: 0 16px 90px; }

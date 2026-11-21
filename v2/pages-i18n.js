@@ -34,6 +34,7 @@
 
     const UI = {
         es: {
+            'All rights reserved.': 'Todos los derechos reservados.',
             // library
             'The Library': 'La biblioteca', 'The Library.': 'La biblioteca.', 'New': 'Nuevo',
             'Books on plasmas, ion sources and beams.': 'Libros sobre plasmas, fuentes de iones y haces.',
@@ -66,6 +67,7 @@
             'Outreach': 'Divulgación', 'Talk': 'Charla', 'Interview': 'Entrevista', newsTitle: n => `En los medios — ${n}`
         },
         ru: {
+            'All rights reserved.': 'Все права защищены.',
             'The Library': 'Библиотека', 'The Library.': 'Библиотека.', 'New': 'Новое',
             'Books on plasmas, ion sources and beams.': 'Книги о плазме, ионных источниках и пучках.',
             'Step inside': 'Войти', 'Ask the librarian…': 'Спросите библиотекаря…', 'Find a book': 'Найти книгу',
@@ -96,6 +98,7 @@
             'Outreach': 'Популяризация', 'Talk': 'Доклад', 'Interview': 'Интервью', newsTitle: n => `В новостях — ${n}`
         },
         fr: {
+            'All rights reserved.': 'Tous droits réservés.',
             'The Library': 'La bibliothèque', 'The Library.': 'La bibliothèque.', 'New': 'Nouveau',
             'Books on plasmas, ion sources and beams.': 'Des livres sur les plasmas, les sources d’ions et les faisceaux.',
             'Step inside': 'Entrer', 'Ask the librarian…': 'Demandez au bibliothécaire…', 'Find a book': 'Chercher un livre',
@@ -126,6 +129,7 @@
             'Outreach': 'Vulgarisation', 'Talk': 'Exposé', 'Interview': 'Interview', newsTitle: n => `Dans la presse — ${n}`
         },
         gu: {
+            'All rights reserved.': 'સર્વહક્ક સ્વાધીન.',
             'The Library': 'પુસ્તકાલય', 'The Library.': 'પુસ્તકાલય.', 'New': 'નવું',
             'Books on plasmas, ion sources and beams.': 'પ્લાઝ્મા, આયન સ્રોતો અને બીમ વિશેનાં પુસ્તકો.',
             'Step inside': 'અંદર આવો', 'Ask the librarian…': 'ગ્રંથપાલને પૂછો…', 'Find a book': 'પુસ્તક શોધો',
