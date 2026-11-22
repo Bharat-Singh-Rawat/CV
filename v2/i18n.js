@@ -147,7 +147,7 @@
             expertise: 'Diseño de fuentes de iones, optimización de la extracción y el transporte de haces, neutralización de la carga espacial, diagnóstico avanzado de haces y gemelos digitales para trampas de partículas cargadas.',
             about: 'Trabajo con fuentes de electrones e iones y con los diagnósticos que miden sus haces. Desde copas de Faraday y sondas de Langmuir hasta gemelos digitales de trampas de antimateria, construyo las herramientas que crean, dirigen y miden haces de partículas cargadas.',
             experience: [
-                { role: 'Físico de aceleradores', bullets: [
+                { role: 'Físico de aceleradores', org: 'Basilisk Industries, Vancouver, Canadá (en remoto)', bullets: [
                     'Responsable del <b>diseño del inyector de electrones</b> y del análisis y la optimización de la óptica electrónica.',
                     'Desarrollo de diagnósticos de plasma y de haces, como <b>sondas B-dot</b>, <b>copas de Faraday</b>, <b>sondas de Langmuir</b> y monitores de corriente.'] },
                 { role: 'I+D independiente y consultoría científica', org: 'PY-BEMCS · consultoría para start-ups y laboratorios', bullets: [
@@ -229,7 +229,7 @@
             expertise: 'Проектирование ионных источников, оптимизация извлечения и транспортировки пучков, нейтрализация пространственного заряда, современная диагностика пучков, цифровые двойники ловушек заряженных частиц.',
             about: 'Я работаю с электронными и ионными источниками частиц, а также провожу диагностику их пучков. От цилиндров Фарадея и зондов Ленгмюра до цифровых двойников ловушек антиматерии: я создаю инструменты, которые формируют, направляют и измеряют пучки заряженных частиц.',
             experience: [
-                { role: 'Физик-ускорительщик', bullets: [
+                { role: 'Физик-ускорительщик', org: 'Basilisk Industries, Ванкувер, Канада (удалённо)', bullets: [
                     'Отвечаю за <b>проектирование электронного инжектора</b>, анализ и оптимизацию электронной оптики.',
                     'Разработка диагностики плазмы и пучков: <b>B-dot зонды</b>, <b>цилиндры Фарадея</b>, <b>зонды Ленгмюра</b> и мониторы тока.'] },
                 { role: 'Независимые исследования и научный консалтинг', org: 'PY-BEMCS · консалтинг для стартапов и лабораторий', bullets: [
@@ -311,7 +311,7 @@
             expertise: 'Conception de sources d’ions, optimisation de l’extraction et du transport des faisceaux, neutralisation de la charge d’espace, diagnostic avancé des faisceaux et jumeaux numériques pour les pièges à particules chargées.',
             about: 'Je travaille avec des sources d’électrons et d’ions et avec les diagnostics qui mesurent leurs faisceaux. Des cages de Faraday et sondes de Langmuir aux jumeaux numériques de pièges à antimatière, je construis les outils qui créent, guident et mesurent les faisceaux de particules chargées.',
             experience: [
-                { role: 'Physicien des accélérateurs', bullets: [
+                { role: 'Physicien des accélérateurs', org: 'Basilisk Industries, Vancouver, Canada (à distance)', bullets: [
                     'Responsable de la <b>conception de l’injecteur d’électrons</b>, ainsi que de l’analyse et de l’optimisation de l’optique électronique.',
                     'Développement de diagnostics de plasma et de faisceaux tels que des <b>sondes B-dot</b>, des <b>cages de Faraday</b>, des <b>sondes de Langmuir</b> et des moniteurs de courant.'] },
                 { role: 'R&D indépendante et conseil scientifique', org: 'PY-BEMCS · conseil pour start-ups et laboratoires', bullets: [
@@ -393,7 +393,7 @@
             expertise: 'આયન સ્રોત ડિઝાઇન, બીમ એક્સટ્રેક્શન અને ટ્રાન્સપોર્ટનું ઑપ્ટિમાઇઝેશન, સ્પેસ-ચાર્જ ન્યુટ્રલાઇઝેશન, અદ્યતન બીમ ડાયગ્નોસ્ટિક્સ અને ચાર્જ્ડ-પાર્ટિકલ ટ્રેપ માટે ડિજિટલ ટ્વિન.',
             about: 'હું ઇલેક્ટ્રોન અને આયન સ્રોતો તથા તેમના બીમ માપતાં ડાયગ્નોસ્ટિક્સ સાથે કામ કરું છું. ફેરાડે કપ અને લેંગમ્યુર પ્રોબથી લઈને પ્રતિદ્રવ્ય (એન્ટિમેટર) ટ્રેપના ડિજિટલ ટ્વિન સુધી, હું એવાં સાધનો બનાવું છું જે ચાર્જ્ડ-પાર્ટિકલ બીમ ઉત્પન્ન કરે છે, દિશા આપે છે અને માપે છે.',
             experience: [
-                { role: 'એક્સિલરેટર ભૌતિકશાસ્ત્રી', bullets: [
+                { role: 'એક્સિલરેટર ભૌતિકશાસ્ત્રી', org: 'Basilisk Industries, વાનકુવર, કેનેડા (રિમોટ)', bullets: [
                     '<b>ઇલેક્ટ્રોન ઇન્જેક્ટર ડિઝાઇન</b>, ઇલેક્ટ્રોન ઑપ્ટિક્સ વિશ્લેષણ અને ઑપ્ટિમાઇઝેશન માટે જવાબદાર.',
                     '<b>B-dot પ્રોબ</b>, <b>ફેરાડે કપ</b>, <b>લેંગમ્યુર પ્રોબ</b> અને કરંટ મોનિટર જેવાં પ્લાઝ્મા અને બીમ ડાયગ્નોસ્ટિક્સ વિકસાવી રહ્યો છું.'] },
                 { role: 'સ્વતંત્ર સંશોધન-વિકાસ અને વૈજ્ઞાનિક કન્સલ્ટિંગ', org: 'PY-BEMCS · સ્ટાર્ટ-અપ્સ અને પ્રયોગશાળાઓ માટે કન્સલ્ટિંગ', bullets: [
