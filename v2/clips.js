@@ -11,7 +11,7 @@
    less data, a small play button appears instead and one tap starts the clip.
    ===================================================================== */
 (function () {
-    const CST = '/CV/assets/video/IonSource.mp4', BEMCS = '/CV/assets/video/PY-BEMCS.mp4';
+    const CST = '/CV/assets/video/IonSource.mp4', BEMCS = '/CV/assets/video/PY-BEMCS.mp4', TWIN = '/CV/assets/video/AEgIS-Twin.mp4';
     // panel rectangles in video pixels (CST video 1920×1080, PY-BEMCS video 854×529).
     // fit: 'cover' crops, 'contain' shows all and extends the panel's own background by stretching
     // its edge pixels. fx/fy = focus point for cover.
@@ -20,7 +20,8 @@
         faraday: { src: CST,   x: 1270, y: 20,  w: 635,  h: 600, fit: 'contain' },
         penning: { src: CST,   x: 0,    y: 640, w: 1253, h: 436, fit: 'contain' },
         wall:    { src: CST,   x: 1280, y: 628, w: 610,  h: 440, fit: 'contain' },
-        bemcs:   { src: BEMCS, x: 50,   y: 27,  w: 502,  h: 235, fit: 'cover', fx: 0.15, fy: 0.5 }
+        bemcs:   { src: BEMCS, x: 50,   y: 27,  w: 502,  h: 235, fit: 'cover', fx: 0.15, fy: 0.5 },
+        twin:    { src: TWIN,  x: 0,    y: 0,   w: 960,  h: 540, fit: 'cover', fx: 0.5, fy: 0.5 }   // story mode of the G4beamline digital twin
     };
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const saveData = navigator.connection && navigator.connection.saveData;
