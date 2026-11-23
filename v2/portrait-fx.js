@@ -56,7 +56,7 @@
                 let sumA = 0, moving = false;
                 for (const p of dots) {
                     const tgt = !hov ? 1 : tc < 4.5 ? 1 - ease((tc - 0.3 - p.d * 1.2) / 2.2) : ease((tc - 4.5 - p.d * 1.2) / 2.4);
-                    p.a += (tgt - p.a) * (hov ? 0.35 : 0.05);
+                    p.a += (tgt - p.a) * (1 - Math.exp(-dt / (hov ? 0.05 : 0.3)));   // frame-rate independent; leaving: dots glide home
                     sumA += p.a;
                     if (mouse.in) { const dx = p.x + p.ox - mouse.x, dy = p.y + p.oy - mouse.y, d2 = dx * dx + dy * dy; if (d2 < 2500) { const f = 40 / (d2 + 80); p.vx += dx * f; p.vy += dy * f; } }
                     p.vx = (p.vx - p.ox * 0.04) * 0.9; p.vy = (p.vy - p.oy * 0.04) * 0.9; p.ox += p.vx; p.oy += p.vy;
@@ -71,11 +71,13 @@
                     const r = 1.3 + 0.6 * p.w; ctx.fillRect(x, y, r, r);
                 }
                 // photo fades out at once on approach, and back in only once the dots are home
-                const settled = sumA / dots.length > 0.985 && !moving;
-                photoA = clamp(photoA + (hov ? -dt / 0.35 : settled ? dt / 0.6 : 0));
-                photo.style.opacity = ease(photoA).toFixed(3);
-                cv.style.opacity = photoA >= 1 ? 0 : 1;
-                raf = (hov || photoA < 1 || moving) ? requestAnimationFrame(frame) : 0;
+                // the photo comes back *while* the dots arrive (no wait-then-pop): it follows how assembled they are
+                const avg = sumA / dots.length, want = hov ? 0 : ease(clamp((avg - 0.62) / 0.36));
+                photoA = want < photoA ? Math.max(want, photoA - dt / 0.35) : want;
+                if (!hov && avg > 0.995) photoA = 1;
+                photo.style.opacity = photoA.toFixed(3);
+                cv.style.opacity = (1 - photoA * photoA).toFixed(3);       // dots melt away under the returning photo
+                raf = (hov || photoA < 1) ? requestAnimationFrame(frame) : 0;
                 if (!raf) last = 0;
             };
             const wake = () => { if (!raf) raf = requestAnimationFrame(frame); };
