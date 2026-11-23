@@ -587,7 +587,9 @@
     //            ions gyrate around them and bounce between the mirrors. Projected by hand onto a 2D canvas. ----------
     const cvs = $('field'), ctx = cvs.getContext('2d'), hero = document.querySelector('.hero');
     let W = 0, H = 0, visible = true, mxN = 0, myN = 0, txN = 0, tyN = 0, t0 = performance.now(), lines = [], ions = [];
-    const small = () => window.innerWidth < 760;
+    let isSmall = window.innerWidth < 760;
+    const small = () => isSmall;                                           // cached: read once per resize, not many times a frame
+    let lastDraw = 0;
     const L = 1, R = 0.42;                                                  // bottle half-length and waist radius (scene units)
     const radius = x => R * (0.42 + 0.58 * Math.cos(Math.PI * x / (2 * L)) ** 2);   // pinched ends = strong field (the mirrors)
     function build() {
@@ -605,6 +607,7 @@
         }));
     }
     function size() {
+        isSmall = window.innerWidth < 760;
         const dpr = Math.min(small() ? 1.25 : 1.5, window.devicePixelRatio || 1);
         W = hero.clientWidth; H = hero.clientHeight;
         cvs.width = W * dpr; cvs.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -627,6 +630,8 @@
     }
     const depthAlpha = z => 0.35 + 0.65 * Math.min(1, Math.max(0, (0.9 - z) / 1.8));   // nearer = darker
     function draw(now) {
+        if (now && isSmall && !reduceMotion && now - lastDraw < 30) { if (visible) requestAnimationFrame(draw); return; }   // phones: 30 fps is plenty here
+        lastDraw = now || performance.now();
         const t = ((now || performance.now()) - t0) / 1000;
         mxN += (txN - mxN) * 0.05; myN += (tyN - myN) * 0.05;
         setCam(t);

@@ -6,7 +6,9 @@
    ===================================================================== */
 (function () {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const small = () => window.innerWidth < 760;
+    let isSmall = window.innerWidth < 760;
+    const small = () => isSmall;
+    window.addEventListener('resize', () => { isSmall = window.innerWidth < 760; });
     const INK = a => `rgba(${window.cvInkRGB || '29, 29, 31'}, ${Math.max(0, a).toFixed(3)})`;
     const rng = seed => () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };   // deterministic events
     const scenes = [];
@@ -47,6 +49,7 @@
 
     function loop(S, now) {
         if (!S.visible) { S.running = false; return; }
+        if (isSmall && S.last && now - S.last < 30) { requestAnimationFrame(n => loop(S, n)); return; }   // phones: 30 fps
         const dt = S.last ? Math.min(0.05, (now - S.last) / 1000) : 0.016;
         S.last = now;
         S.ctx.clearRect(0, 0, S.W, S.H);

@@ -79,18 +79,18 @@ html[data-theme="dark"] { --brand-dot: #2997ff; }
 
 /* BSR intro: the beam flies into the cup, then the page fades in */
 .bsr-intro { position: fixed; inset: 0; z-index: 10000; display: grid; place-items: center; background: var(--bg); color: var(--text); cursor: pointer;
-    transition: opacity 0.6s var(--ease), visibility 0.6s; }
+    transition: opacity 0.45s var(--ease), visibility 0.45s; }
 html[data-theme="dark"] .bsr-intro { background: #000; }
 .bsr-intro.out { opacity: 0; visibility: hidden; }
 .bi-lock { display: flex; align-items: center; gap: 0.32em; font-size: clamp(56px, 11vw, 112px); transition: transform 0.6s var(--ease); }
 .bsr-intro.out .bi-lock { transform: scale(0.94); }
 .bi-mark { height: 1.1em; width: auto; overflow: visible; }
-.bi-cup { fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: square; stroke-dasharray: 1; stroke-dashoffset: 1; animation: bi-draw 0.7s var(--ease) 0.1s forwards; }
-.bi-p, .bi-dot { opacity: 0; animation: bi-fly 0.75s var(--ease) forwards; }
+.bi-cup { fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: square; stroke-dasharray: 1; stroke-dashoffset: 1; animation: bi-draw 0.5s var(--ease) 0.05s forwards; }
+.bi-p, .bi-dot { opacity: 0; animation: bi-fly 0.55s var(--ease) forwards; }
 .bi-p { fill: currentColor; }
-.bi-p1 { animation-delay: 0.45s; } .bi-p1 { --o: 0.3; }
-.bi-p2 { animation-delay: 0.38s; } .bi-p2 { --o: 0.6; }
-.bi-dot { fill: var(--brand-dot); --o: 1; animation-delay: 0.3s; }
+.bi-p1 { animation-delay: 0.3s; } .bi-p1 { --o: 0.3; }
+.bi-p2 { animation-delay: 0.25s; } .bi-p2 { --o: 0.6; }
+.bi-dot { fill: var(--brand-dot); --o: 1; animation-delay: 0.2s; }
 @keyframes bi-draw { to { stroke-dashoffset: 0; } }
 @keyframes bi-fly { from { opacity: 0; transform: translateX(-22px); } to { opacity: var(--o); transform: none; } }
 
