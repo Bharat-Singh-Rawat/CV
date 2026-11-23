@@ -454,13 +454,13 @@
     draw();
     let tk = 0;
     // phones / narrow screens: once the globe scrolls away it docks as a mini globe top-right and keeps following the timeline
-    const narrow = matchMedia('(max-width: 1199px)'), career = document.getElementById('career');
+    const narrow = matchMedia('(max-width: 1199px)'), phone = matchMedia('(max-width: 600px)'), career = document.getElementById('career');   // phones: no docking, the mini globe would cover the timeline text
     const ph = document.createElement('div'); ph.className = 'globe-ph'; head.insertBefore(ph, box);
     let boxH = 0;
     addEventListener('resize', () => { boxH = 0; });
     function checkMini() {
         let want = false;
-        if (narrow.matches && career) {
+        if (narrow.matches && !phone.matches && career) {
             const top = ph.getBoundingClientRect().top, h = mini ? ph.offsetHeight : (boxH || (boxH = box.offsetHeight)), c = career.getBoundingClientRect();
             want = top + h * 0.6 < 60 && c.bottom > window.innerHeight * 0.55;
         }

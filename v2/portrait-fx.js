@@ -102,6 +102,19 @@
                 touchOn = on; near = on; mouse.in = false; wake();
             }, { passive: true });
             new IntersectionObserver(es => { if (touchOn && !es[0].isIntersecting) { touchOn = near = false; wake(); } }).observe(zoom);
+            // phones / tablets have no hover: show it once by itself when the photo is well on screen (dissolve, then gather back)
+            if (matchMedia('(hover: none)').matches) {
+                const once = new IntersectionObserver(es => {
+                    if (es[0].intersectionRatio < 0.7) return;
+                    once.disconnect();
+                    setTimeout(() => {
+                        if (near) return;                                      // the visitor already tapped
+                        touchOn = near = true; mouse.in = false; wake();
+                        setTimeout(() => { if (touchOn) { touchOn = near = false; wake(); } }, 3600);
+                    }, 600);
+                }, { threshold: [0.7] });
+                once.observe(zoom);
+            }
             let rw = 0; new ResizeObserver(() => { const w = zoom.getBoundingClientRect().width; if (w && Math.abs(w - rw) > 1) { rw = w; build(); } }).observe(zoom);
             build();
         }).catch(() => {});

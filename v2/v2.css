@@ -1297,10 +1297,9 @@ html[data-theme="dark"] .clip-play { background: rgba(28, 28, 30, 0.72); color: 
     .ln-tools .spot-btn svg { width: 18px; height: 18px; }
     .ln-tools #lang-pick { height: 40px; padding: 0 14px; border-radius: 980px; background: rgba(127, 127, 127, 0.14); }
 
-    /* career: one key line per role; "More" opens the rest. The docked mini globe would cover the text, so it stays put */
+    /* career: one key line per role; "More" opens the rest (the globe does not dock on phones: globe.js) */
     .station .extra1 { display: none; }
     .station.open .extra1 { display: list-item; }
-    .globe.mini { display: none; }
 
     /* music button: smaller, and slides out of the way while you scroll */
     .mp.collapsed { width: 44px; height: 44px; }
@@ -1310,6 +1309,9 @@ html[data-theme="dark"] .clip-play { background: rgba(28, 28, 30, 0.72); color: 
 
     /* publications: five newest + starred; the rest open with "All publications" */
     #publications:not(.all) .pub-x { display: none; }
+
+    /* research clips: a slower, softer crossfade from photo to simulation */
+    .project .zoom .clip { transition: opacity 0.9s var(--ease); }
 
     /* skills: tap a group to open it; the connection graph is too small to read on a phone */
     .sg { display: none; }

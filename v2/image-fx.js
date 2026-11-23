@@ -3,6 +3,7 @@
    (The lab gallery's focus pull is plain CSS in v2.css: .lab .tile.active img.) */
 (() => {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (matchMedia('(max-width: 600px)').matches) return;          // phones: the dot pattern shimmers while scrolling; cards just fade in
     const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
     const ease = x => 1 - Math.pow(1 - clamp(x), 3);
     const dark = () => document.documentElement.dataset.theme === 'dark';

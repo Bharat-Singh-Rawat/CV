@@ -21,7 +21,7 @@
         penning: { src: CST,   x: 0,    y: 640, w: 1253, h: 436, fit: 'contain' },
         wall:    { src: CST,   x: 1280, y: 628, w: 610,  h: 440, fit: 'contain' },
         bemcs:   { src: BEMCS, x: 50,   y: 27,  w: 502,  h: 235, fit: 'cover', fx: 0.15, fy: 0.5 },
-        twin:    { src: TWIN,  x: 0,    y: 0,   w: 960,  h: 540, fit: 'cover', fx: 0.5, fy: 0.5 }   // story mode of the G4beamline digital twin
+        twin:    { src: TWIN,  x: 0,    y: 0,   w: 960,  h: 540, fit: 'cover', fx: 0.5, fy: 0.5, t0: 4.7 }   // story mode of the G4beamline digital twin; the first 4.7 s (camera riding through the transfer-line quads) has transparency glitches, so it is skipped
     };
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const saveData = navigator.connection && navigator.connection.saveData;
@@ -77,13 +77,14 @@
 
     const users = src => [...active].filter(i => i.src === src);
 
+    const startAt = src => Math.max(0, ...Object.values(R).filter(r => r.src === src).map(r => r.t0 || 0));   // where a clip starts and loops back to
     function ensureVideo(src) {
         if (media[src]) return media[src];
         const v = document.createElement('video');
         Object.assign(v, { muted: true, loop: true, playsInline: true, preload: 'auto', src });
         v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
         v.className = 'clip-src'; v.setAttribute('aria-hidden', 'true');
-        return (media[src] = { v, loops: 0, lastT: 0, pauseTimer: 0 });
+        return (media[src] = { v, loops: 0, lastT: 0, pauseTimer: 0, t0: startAt(src) });
     }
     // Browsers pause muted videos they consider invisible, so each source video sits inside an
     // active card (behind the photo, fully covered) rather than hidden somewhere off-screen.
@@ -118,6 +119,10 @@
             const m = media[src], us = users(src);
             if (!us.length || m.v.readyState < 2) continue;
             const t = m.v.currentTime;
+            if (m.t0 && t < m.t0 - 0.05) {               // before the clip's start (first play, or the video looped): jump, paint nothing
+                if (!m.v.seeking) { try { m.v.currentTime = m.t0; } catch (e) { /* not seekable yet */ } }
+                continue;
+            }
             if (t + 0.5 < m.lastT) m.loops++;            // the video wrapped round
             m.lastT = t;
             if (scrolling) continue;
@@ -132,7 +137,7 @@
         if (active.has(it)) return;
         const m = ensureVideo(it.src);
         clearTimeout(m.pauseTimer);
-        if (!users(it.src).length) { try { m.v.currentTime = 0; } catch (e) { /* not loaded yet */ } m.lastT = 0; }
+        if (!users(it.src).length) { try { m.v.currentTime = m.t0; } catch (e) { /* not loaded yet */ } m.lastT = 0; }
         active.add(it);
         home(it.src);
         play(it.src);
@@ -174,9 +179,10 @@
     } else {
         const io = new IntersectionObserver(es => es.forEach(e => {
             const it = items.find(i => i.card === e.target);
+            // start when the card is mostly on screen, stop only once it has mostly left (no on/off flicker near the edge)
             if (e.isIntersecting && e.intersectionRatio >= 0.6) { if (!manual || it.wanted) start(it); }
-            else stop(it);
-        }), { threshold: [0, 0.6] });
+            else if (!e.isIntersecting || e.intersectionRatio < 0.25) stop(it);
+        }), { threshold: [0, 0.25, 0.6] });
         items.forEach(it => io.observe(it.card));
     }
     document.addEventListener('visibilitychange', () => {
