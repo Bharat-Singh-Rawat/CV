@@ -104,8 +104,10 @@
                     const x = p.x + p.ox + fl * W * (0.35 * p.dr + 0.06 * Math.sin(t * 0.7 + p.ph + p.y * 0.03));
                     const y = p.y + p.oy - fl * W * (0.22 * p.dr + 0.05 * Math.cos(t * 0.6 + p.ph + p.x * 0.025));
                     // grey -> colour following the scroll fade, then a little richer and theme-balanced
-                    const s2 = colour * sat, c = v => Math.round(clamp((p.L + (v - p.L) * s2) * k / 255) * 255);
-                    ctx.fillStyle = `rgba(${c(p.R)},${c(p.G)},${c(p.B)},${0.3 + 0.7 * p.a})`;
+                    const s2 = colour * sat, c = v => clamp((p.L + (v - p.L) * s2) * k / 255) * 255;
+                    let R = c(p.R), G = c(p.G), B = c(p.B);
+                    if (!dark) { const mx = Math.max(R, G, B); if (mx > 226) { const f = 226 / mx; R *= f; G *= f; B *= f; } }   // light mode: no dot brighter than the off-white page (no "glowing" specks)
+                    ctx.fillStyle = `rgba(${R | 0},${G | 0},${B | 0},${0.3 + 0.7 * p.a})`;
                     const r = 1.3 + 0.6 * p.w; ctx.fillRect(x, y, r, r);
                 }
                 // photo fades out at once on approach, and back in only once the dots are home

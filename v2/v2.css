@@ -2,8 +2,8 @@
    "The Beamline" — v2 CV, Apple-style light design
    ===================================================================== */
 :root {
-    --bg: #ffffff;
-    --card: #f5f5f7;
+    --bg: #f7f7f8;          /* light mode: a soft off-white, easier on the eyes than pure white */
+    --card: #ededef;
     --text: #1d1d1f;
     --body: #424245;
     --muted: #6e6e73;
@@ -23,12 +23,12 @@
     --shadow: 0 2px 6px rgba(0, 0, 0, 0.03), 0 12px 32px rgba(0, 0, 0, 0.06);
     --shadow-hover: 0 4px 10px rgba(0, 0, 0, 0.04), 0 24px 56px rgba(0, 0, 0, 0.12);
 }
-.alt { --bg: #f5f5f7; --card: #ffffff; }
+.alt { --bg: #eeeef0; --card: #fbfbfc; }
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 52px; }
 body {
-    margin: 0; background: #fff; color: var(--text);
+    margin: 0; background: #f7f7f8; color: var(--text);
     font: 400 17px/1.47 var(--sans); letter-spacing: -0.022em;
     -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
     overflow-x: hidden;
@@ -138,12 +138,10 @@ html[data-theme="dark"] .bsr-intro { background: #000; }
 .about-photo:hover { box-shadow: var(--shadow-hover); }
 .about-photo:hover img { transform: none; }   /* hover belongs to the dust effect (portrait-fx.js) */
 .about-photo img { filter: grayscale(calc(1 - var(--colour, 0))); }
-/* the photo is a cut-out: no tile, no shadow; it sits straight on the page colour and the shirt fades out at the bottom */
+html:not([data-theme="dark"]) .about-photo img { filter: grayscale(calc(1 - var(--colour, 0))) brightness(0.97); }   /* light mode: pure whites match the off-white page instead of glowing */
+/* the photo is a cut-out (head-and-shoulders crop): no tile, no shadow, no fades; it sits straight on the page colour */
 .about-photo, .about-photo:hover { box-shadow: none; }
-.about-photo .zoom, html[data-theme="dark"] .about-photo .zoom { background: transparent; border-radius: 0;
-    --fade-b: linear-gradient(to bottom, #000 82%, transparent 100%); --fade-x: linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%);
-    -webkit-mask-image: var(--fade-b), var(--fade-x); -webkit-mask-composite: source-in;
-    mask-image: var(--fade-b), var(--fade-x); mask-composite: intersect; }
+.about-photo .zoom, html[data-theme="dark"] .about-photo .zoom { background: transparent; border-radius: 0; }
 .about-title { font-size: clamp(2.4rem, 5vw, 3.6rem); letter-spacing: -0.04em; line-height: 1.05; margin: 0 0 22px; font-weight: 700; }
 .about-body { font-size: clamp(1.15rem, 1.7vw, 1.35rem); line-height: 1.5; color: var(--muted); margin: 0 0 28px; font-weight: 500; letter-spacing: -0.015em; }
 
@@ -397,7 +395,7 @@ a.title:hover { color: var(--link); text-decoration: underline; }
     .ln-toggle { display: grid; place-items: center; margin-right: auto; }
     .topnav {
         position: absolute; top: 52px; left: 0; right: 0; flex-direction: column; align-items: stretch; gap: 0;
-        padding: 6px 22px 18px; background: rgba(255, 255, 255, 0.96); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
+        padding: 6px 22px 18px; background: rgba(247, 247, 248, 0.96); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
         border-bottom: 1px solid rgba(0, 0, 0, 0.1);
         opacity: 0; visibility: hidden; transform: translateY(-8px); transition: opacity 0.35s var(--ease), transform 0.35s var(--ease), visibility 0.35s;
     }

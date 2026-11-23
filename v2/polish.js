@@ -86,7 +86,7 @@
         const dark = pref === 'dark' || (pref === 'auto' && mq.matches);
         root.dataset.theme = dark ? 'dark' : 'light'; root.dataset.themePref = pref;
         window.cvInkRGB = dark ? '245, 245, 247' : '29, 29, 31';
-        if (themeMeta) themeMeta.content = dark ? '#000000' : '#ffffff';
+        if (themeMeta) themeMeta.content = dark ? '#000000' : '#f7f7f8';
         document.querySelectorAll('.foot-theme button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.theme === pref)));
         window.dispatchEvent(new Event('resize'));          // canvas scenes redraw in the new ink
     }
