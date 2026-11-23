@@ -123,8 +123,9 @@
                 const on = fig.contains(e.target) ? !near : false;
                 if (on === near) return;
                 touchOn = on; near = on; mouse.in = false; wake();
-                if (on && e.pointerType === 'touch') enableTilt(true);
             }, { passive: true });
+            // iPhone only shows the motion prompt from a completed tap (finger lifted), not from the touch-down above
+            fig.addEventListener('click', () => enableTilt(true));
             new IntersectionObserver(es => { if (touchOn && !es[0].isIntersecting) { touchOn = near = false; wake(); } }).observe(zoom);
             // phones / tablets have no hover: show it once by itself when the photo is well on screen (dissolve, then gather back)
             if (!reduce && matchMedia('(hover: none)').matches) {
