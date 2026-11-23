@@ -115,8 +115,8 @@
                 </div>
                 <h3>${r.role}</h3>
                 <p class="org">${r.org}</p>
-                <ul>${r.bullets.map((b, k) => `<li${k >= 2 ? ' class="extra"' : ''}>${b}</li>`).join('')}</ul>
-                ${r.bullets.length > 2 ? `<button type="button" class="more-btn" aria-expanded="false">${T('More')}</button>` : ''}
+                <ul>${r.bullets.map((b, k) => `<li${k >= 2 ? ' class="extra"' : k === 1 ? ' class="extra1"' : ''}>${b}</li>`).join('')}</ul>
+                ${r.bullets.length > 1 ? `<button type="button" class="more-btn" aria-expanded="false">${T('More')}</button>` : ''}
             </div>
         </li>`;
     }).join('');
@@ -158,7 +158,7 @@
     const tiles = [...track.children];
     let labShift = 0, labX = 0, labTarget = 0, labRunning = false, labLast = 0, labInView = false;
     let geo = { centers: [], widths: [], step: 1 }, bestIdx = -1;
-    const labStatic = reduceMotion || !tiles.length;                        // reduced motion: natural swipe row
+    const labStatic = reduceMotion || !tiles.length || matchMedia('(max-width: 600px)').matches;   // reduced motion and phones: natural swipe row
     const pin = lab.querySelector('.lab-pin');
     // desktop: the photo under the mouse tilts towards it, with a soft glass shine
     const tilt = track.id === 'gallery' && !labStatic && !touchSmall && matchMedia('(hover: hover) and (pointer: fine)').matches;
