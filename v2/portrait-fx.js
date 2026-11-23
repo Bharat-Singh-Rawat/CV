@@ -2,7 +2,8 @@
    then it breaks into coloured dust that drifts off and gathers back; moving away settles it
    into the photo again. Dots follow the same black & white -> colour scroll fade (--colour). */
 (() => {
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    // Reduce Motion: nothing moves on its own (no hover trigger, no auto-play), but a tap / click still plays it
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const CUTOUT = '/CV/v2/img/profile-cutout.webp';   // profile.webp with the background removed, same framing
     const NEAR = 60;                                    // px around the photo that counts as "near"
     const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
@@ -91,19 +92,19 @@
                 mouse.x = px - r.left; mouse.y = py - r.top; mouse.in = !dx && !dy;
                 if (near || was) wake();
             };
-            addEventListener('pointermove', e => { if (e.pointerType === 'touch') return; touchOn = false; px = e.clientX; py = e.clientY; check(); }, { passive: true });
+            addEventListener('pointermove', e => { if (e.pointerType === 'touch' || reduce) return; touchOn = false; px = e.clientX; py = e.clientY; check(); }, { passive: true });
             addEventListener('scroll', check, { passive: true });          // the photo moves under a still mouse
             document.addEventListener('pointerleave', e => { if (e.pointerType === 'touch') return; px = py = -1e4; check(); });
             // phones: tap the photo to start the dust, tap again (or anywhere else) to settle it back
             addEventListener('pointerdown', e => {
-                if (e.pointerType !== 'touch') return;
+                if (e.pointerType !== 'touch' && !reduce) return;
                 const on = fig.contains(e.target) ? !near : false;
                 if (on === near) return;
                 touchOn = on; near = on; mouse.in = false; wake();
             }, { passive: true });
             new IntersectionObserver(es => { if (touchOn && !es[0].isIntersecting) { touchOn = near = false; wake(); } }).observe(zoom);
             // phones / tablets have no hover: show it once by itself when the photo is well on screen (dissolve, then gather back)
-            if (matchMedia('(hover: none)').matches) {
+            if (!reduce && matchMedia('(hover: none)').matches) {
                 const once = new IntersectionObserver(es => {
                     if (es[0].intersectionRatio < 0.7) return;
                     once.disconnect();
