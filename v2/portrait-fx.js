@@ -82,18 +82,26 @@
             };
             const wake = () => { if (!raf) raf = requestAnimationFrame(frame); };
 
-            let px = -1e4, py = -1e4;
+            let px = -1e4, py = -1e4, touchOn = false;
             const check = () => {
+                if (touchOn) return;                                           // touch mode: only taps decide
                 const r = zoom.getBoundingClientRect();
                 const dx = Math.max(r.left - px, 0, px - r.right), dy = Math.max(r.top - py, 0, py - r.bottom);
                 const was = near; near = Math.hypot(dx, dy) < NEAR;
                 mouse.x = px - r.left; mouse.y = py - r.top; mouse.in = !dx && !dy;
                 if (near || was) wake();
             };
-            addEventListener('pointermove', e => { if (e.pointerType === 'touch') return; px = e.clientX; py = e.clientY; check(); }, { passive: true });
-            addEventListener('scroll', check, { passive: true });          // the photo moves under a still pointer
-            document.addEventListener('pointerleave', () => { px = py = -1e4; check(); });
-            fig.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') { near = !near; wake(); } });
+            addEventListener('pointermove', e => { if (e.pointerType === 'touch') return; touchOn = false; px = e.clientX; py = e.clientY; check(); }, { passive: true });
+            addEventListener('scroll', check, { passive: true });          // the photo moves under a still mouse
+            document.addEventListener('pointerleave', e => { if (e.pointerType === 'touch') return; px = py = -1e4; check(); });
+            // phones: tap the photo to start the dust, tap again (or anywhere else) to settle it back
+            addEventListener('pointerdown', e => {
+                if (e.pointerType !== 'touch') return;
+                const on = fig.contains(e.target) ? !near : false;
+                if (on === near) return;
+                touchOn = on; near = on; mouse.in = false; wake();
+            }, { passive: true });
+            new IntersectionObserver(es => { if (touchOn && !es[0].isIntersecting) { touchOn = near = false; wake(); } }).observe(zoom);
             let rw = 0; new ResizeObserver(() => { const w = zoom.getBoundingClientRect().width; if (w && Math.abs(w - rw) > 1) { rw = w; build(); } }).observe(zoom);
             build();
         }).catch(() => {});
