@@ -35,13 +35,28 @@
                 tilt.tx = Math.sin(Math.max(-60, Math.min(60, x)) * rad);
                 tilt.ty = Math.sin(Math.max(-60, Math.min(60, y - tilt.base)) * rad);
             };
+            // iPhone needs permission, asked from a real button (the most reliable gesture for Safari's prompt)
+            const needsAsk = typeof (window.DeviceOrientationEvent && DeviceOrientationEvent.requestPermission) === 'function';
+            const pill = document.createElement('button');
+            pill.type = 'button'; pill.className = 'tilt-pill'; pill.hidden = true;
+            pill.textContent = 'Enable tilt';
+            if (getComputedStyle(fig).position === 'static') fig.style.position = 'relative';
+            fig.appendChild(pill);
+            let pillMsgT = 0;
+            const say = (msg, ms) => { pill.textContent = msg; pill.hidden = false; clearTimeout(pillMsgT); if (ms) pillMsgT = setTimeout(() => { pill.hidden = true; pillMsgT = 0; pill.textContent = 'Enable tilt'; }, ms); };
             const enableTilt = fromTap => {
-                if (tilt.on || !matchMedia('(hover: none)').matches || !('DeviceOrientationEvent' in window)) return;
+                if (tilt.on || tilt.asking || !matchMedia('(hover: none)').matches || !('DeviceOrientationEvent' in window)) return;
                 const go = () => { tilt.on = true; addEventListener('deviceorientation', onTilt); };
-                const ask = DeviceOrientationEvent.requestPermission;
-                if (typeof ask === 'function') { if (fromTap) ask.call(DeviceOrientationEvent).then(r => { if (r === 'granted') go(); }).catch(() => {}); }   // iPhone: asks once, needs a tap
-                else go();                                                     // Android: no prompt
+                if (!needsAsk) return go();                                    // Android: no prompt
+                if (!fromTap) return;
+                tilt.asking = true;
+                DeviceOrientationEvent.requestPermission().then(r => {
+                    tilt.asking = false;
+                    if (r === 'granted') { go(); say('Tilt your phone', 1800); }
+                    else { tilt.denied = true; say('Motion access is off for this site', 3000); }
+                }).catch(err => { tilt.asking = false; say('Tap “Enable tilt” again', 2500); });
             };
+            pill.addEventListener('click', e => { e.stopPropagation(); if (!tilt.on) enableTilt(true); });
 
             const build = () => {
                 const r = zoom.getBoundingClientRect(); if (!r.width) return;
@@ -99,6 +114,7 @@
                 photoA = want < photoA ? Math.max(want, photoA - dt / 0.35) : want;
                 if (!hov && avg > 0.995) photoA = 1;
                 photo.style.opacity = photoA.toFixed(3);
+                if (needsAsk && !tilt.on && !tilt.denied && !tilt.asking && !pillMsgT) pill.hidden = !(touchOn && hov && photoA < 0.05);
                 cv.style.opacity = (1 - photoA * photoA).toFixed(3);       // dots melt away under the returning photo
                 raf = (hov || photoA < 1) ? requestAnimationFrame(frame) : 0;
                 if (!raf) last = 0;
@@ -120,12 +136,11 @@
             // phones: tap the photo to start the dust, tap again (or anywhere else) to settle it back
             addEventListener('pointerdown', e => {
                 if (e.pointerType !== 'touch' && !reduce) return;
+                if (e.target.closest && e.target.closest('.tilt-pill')) return;
                 const on = fig.contains(e.target) ? !near : false;
                 if (on === near) return;
                 touchOn = on; near = on; mouse.in = false; wake();
             }, { passive: true });
-            // iPhone only shows the motion prompt from a completed tap (finger lifted), not from the touch-down above
-            fig.addEventListener('click', () => enableTilt(true));
             new IntersectionObserver(es => { if (touchOn && !es[0].isIntersecting) { touchOn = near = false; wake(); } }).observe(zoom);
             // phones / tablets have no hover: show it once by itself when the photo is well on screen (dissolve, then gather back)
             if (!reduce && matchMedia('(hover: none)').matches) {
