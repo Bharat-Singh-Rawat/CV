@@ -23,6 +23,25 @@
             const ctx = cv.getContext('2d');
             let W = 0, H = 0, dpr = 1, dots = [], near = false, hov = false, ht = 0, photoA = 1, last = 0, raf = 0;
             const mouse = { x: 0, y: 0, in: false };
+            // phones: tilting slides the dust like particles under gravity (only while it is dust; the photo never moves)
+            const tilt = { x: 0, y: 0, tx: 0, ty: 0, base: null, on: false };
+            const onTilt = e => {
+                if (e.beta == null || e.gamma == null) return;
+                const a = (screen.orientation && screen.orientation.angle) || window.orientation || 0;
+                let x = e.gamma, y = e.beta;                                     // portrait: left-right, front-back
+                if (a === 90) { x = e.beta; y = -e.gamma; } else if (a === -90 || a === 270) { x = -e.beta; y = e.gamma; }
+                if (tilt.base === null) tilt.base = y;                         // however the phone is held right now counts as level
+                const rad = Math.PI / 180;
+                tilt.tx = Math.sin(Math.max(-60, Math.min(60, x)) * rad);
+                tilt.ty = Math.sin(Math.max(-60, Math.min(60, y - tilt.base)) * rad);
+            };
+            const enableTilt = fromTap => {
+                if (tilt.on || !matchMedia('(hover: none)').matches || !('DeviceOrientationEvent' in window)) return;
+                const go = () => { tilt.on = true; addEventListener('deviceorientation', onTilt); };
+                const ask = DeviceOrientationEvent.requestPermission;
+                if (typeof ask === 'function') { if (fromTap) ask.call(DeviceOrientationEvent).then(r => { if (r === 'granted') go(); }).catch(() => {}); }   // iPhone: asks once, needs a tap
+                else go();                                                     // Android: no prompt
+            };
 
             const build = () => {
                 const r = zoom.getBoundingClientRect(); if (!r.width) return;
@@ -55,11 +74,14 @@
                 const dark = document.documentElement.dataset.theme === 'dark', k = dark ? 1.15 : 0.92, sat = 1.15;
                 ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
                 let sumA = 0, moving = false;
+                if (tilt.on) { tilt.x += (tilt.tx - tilt.x) * 0.12; tilt.y += (tilt.ty - tilt.y) * 0.12; }
+                if (!hov) tilt.base = null;                                    // re-level the next time the dust appears
                 for (const p of dots) {
                     const tgt = !hov ? 1 : tc < 4.5 ? 1 - ease((tc - 0.3 - p.d * 1.2) / 2.2) : ease((tc - 4.5 - p.d * 1.2) / 2.4);
                     p.a += (tgt - p.a) * (1 - Math.exp(-dt / (hov ? 0.05 : 0.3)));   // frame-rate independent; leaving: dots glide home
                     sumA += p.a;
                     if (mouse.in) { const dx = p.x + p.ox - mouse.x, dy = p.y + p.oy - mouse.y, d2 = dx * dx + dy * dy; if (d2 < 2500) { const f = 40 / (d2 + 80); p.vx += dx * f; p.vy += dy * f; } }
+                    if (tilt.on && hov) { const f = (1 - p.a) * 3.6 * (0.55 + p.dr); p.vx += tilt.x * f; p.vy += tilt.y * f; }
                     p.vx = (p.vx - p.ox * 0.04) * 0.9; p.vy = (p.vy - p.oy * 0.04) * 0.9; p.ox += p.vx; p.oy += p.vy;
                     if (Math.abs(p.ox) + Math.abs(p.oy) > 1) moving = true;
                     if (photoA >= 1) continue;
@@ -101,6 +123,7 @@
                 const on = fig.contains(e.target) ? !near : false;
                 if (on === near) return;
                 touchOn = on; near = on; mouse.in = false; wake();
+                if (on && e.pointerType === 'touch') enableTilt(true);
             }, { passive: true });
             new IntersectionObserver(es => { if (touchOn && !es[0].isIntersecting) { touchOn = near = false; wake(); } }).observe(zoom);
             // phones / tablets have no hover: show it once by itself when the photo is well on screen (dissolve, then gather back)
@@ -110,7 +133,7 @@
                     once.disconnect();
                     setTimeout(() => {
                         if (near) return;                                      // the visitor already tapped
-                        touchOn = near = true; mouse.in = false; wake();
+                        touchOn = near = true; mouse.in = false; wake(); enableTilt(false);
                         setTimeout(() => { if (touchOn) { touchOn = near = false; wake(); } }, 3600);
                     }, 600);
                 }, { threshold: [0.7] });

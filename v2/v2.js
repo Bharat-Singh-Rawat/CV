@@ -65,7 +65,16 @@
     $('hero-ctas').innerHTML =
         (mail ? `<a class="btn" href="${esc(mail.url)}">${T('Get in touch')}</a>` : '')
         + `<a class="link" href="${CV_PDF}" target="_blank" rel="noopener">${T('Download CV')}</a>`
-        + `<a class="link" href="#research">${T('See my work')}</a>`;
+        + `<a class="link" href="#research">${T('See my work')}</a>`
+        + (navigator.share && matchMedia('(hover: none)').matches ? `<button type="button" class="link share-cv" id="share-cv">${T('Share CV')}</button>` : '');
+    // phones: hand the CV to the phone's own share sheet (WhatsApp, Messages, Mail, AirDrop ...)
+    $('share-cv')?.addEventListener('click', () => {
+        navigator.share({
+            title: 'Bharat Singh Rawat, Ph.D. — Accelerator Physicist',
+            text: 'Accelerator physicist: ion sources, beam diagnostics and digital twins.',
+            url: 'https://bharat-singh-rawat.github.io/CV/' + (LANG !== 'en' ? '?lang=' + LANG : '')
+        }).catch(() => { /* closed the sheet */ });
+    });
 
     // ---------- about ----------
     const about = P.about || {};
