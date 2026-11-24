@@ -186,6 +186,7 @@
                 { name: 'Fuente de iones de cúspide anular', tag: 'Doctorado · propulsión espacial y fusión', text: 'Diseñé, construí y caractericé una fuente multicúspide con haces de Ar⁺ de 1–2 keV / hasta 100 mA y hasta un 100 % de neutralización de la carga espacial.' },
                 { name: 'Copa de Faraday de 10 kW', tag: 'Máster · diagnóstico de haces', text: 'Copa de Faraday refrigerada por agua para haces de 20–30 mA, 20 veces más potente que el sistema anterior de 1 kW, con supresión optimizada mediante SIMION y LORENTZ.' },
                 { name: 'Atlas de copas de Faraday', tag: 'Datos abiertos · diagnóstico de haces', text: 'Copas de Faraday publicadas por laboratorios de todo el mundo en un globo interactivo, con el haz, la energía, el material y el diseño que indica cada artículo, con filtros y enlace a cada artículo.' },
+                { name: 'Monitor IPM de cortina de gas, re-simulado', tag: 'Simulación · Elmer FEM + Geant4', text: 'Una re-simulación independiente y de código abierto de un monitor de perfil de haz con cortina de gas supersónica: campo de extracción en Elmer y un Monte Carlo completo en Geant4 con iones, electrones delta, gas residual y luz del gas, comparado con el diseño CST publicado.' },
                 { name: 'Calentador de cátodo por inducción', tag: 'Simulación · Elmer FEM', text: 'Modelo 3D acoplado electromagnético y térmico de un cátodo de LaB₆ calentado por inducción desde temperatura ambiente, hecho con el código abierto Elmer FEM y contrastado con un modelo 2D.' },
             ],
             gallery: [
@@ -269,6 +270,7 @@
                 { name: 'Ионный источник с кольцевым каспом', tag: 'PhD · космические двигатели и термоядерный синтез', text: 'Спроектировал, построил и исследовал многокаспный источник с пучками Ar⁺ 1–2 кэВ / до 100 мА и нейтрализацией пространственного заряда до 100%.' },
                 { name: 'Цилиндр Фарадея на 10 кВт', tag: 'Магистратура · диагностика пучков', text: 'Цилиндр Фарадея с водяным охлаждением для пучков 20–30 мА — в 20 раз мощнее прежней системы на 1 кВт, с подавлением, оптимизированным в SIMION и LORENTZ.' },
                 { name: 'Атлас цилиндров Фарадея', tag: 'Открытые данные · диагностика пучков', text: 'Опубликованные цилиндры Фарадея из лабораторий всего мира на одном интерактивном глобусе: пучок, энергия, материал и конструкция из каждой статьи, с фильтрами и ссылкой на каждую статью.' },
+                { name: 'IPM с газовой завесой: новая симуляция', tag: 'Моделирование · Elmer FEM + Geant4', text: 'Независимая симуляция на открытом ПО монитора профиля пучка со сверхзвуковой газовой завесой: поле экстракции в Elmer и полный Монте-Карло в Geant4 с ионами, дельта-электронами, остаточным газом и свечением газа, в сравнении с опубликованной моделью CST.' },
                 { name: 'Индукционный нагреватель катода', tag: 'Моделирование · Elmer FEM', text: 'Связанная трёхмерная электромагнитная и тепловая модель катода из LaB₆ с индукционным нагревом при прогреве от комнатной температуры, построенная в открытом пакете Elmer FEM и сверенная с двумерной моделью.' },
             ],
             gallery: [
@@ -352,6 +354,7 @@
                 { name: 'Source d’ions à cuspide annulaire', tag: 'Doctorat · propulsion spatiale et fusion', text: 'Conception, construction et caractérisation d’une source multicuspide produisant des faisceaux d’Ar⁺ de 1–2 keV / jusqu’à 100 mA, avec jusqu’à 100 % de neutralisation de la charge d’espace.' },
                 { name: 'Cage de Faraday de 10 kW', tag: 'Master · diagnostic de faisceaux', text: 'Cage de Faraday refroidie par eau pour des faisceaux de 20–30 mA, 20 fois plus puissante que l’ancien système de 1 kW, avec une suppression optimisée via SIMION et LORENTZ.' },
                 { name: 'Atlas des cages de Faraday', tag: 'Données ouvertes · diagnostic de faisceaux', text: 'Les cages de Faraday publiées par des laboratoires du monde entier sur un globe interactif, avec le faisceau, l’énergie, le matériau et la conception indiqués par chaque article, filtrables et liées à chaque article.' },
+                { name: 'IPM à rideau de gaz, re-simulé', tag: 'Simulation · Elmer FEM + Geant4', text: 'Une re-simulation indépendante et open source d’un moniteur de profil de faisceau à rideau de gaz supersonique : champ d’extraction dans Elmer et Monte-Carlo complet dans Geant4 avec ions, électrons delta, gaz résiduel et lumière du gaz, comparé au modèle CST publié.' },
                 { name: 'Chauffage de cathode par induction', tag: 'Simulation · Elmer FEM', text: 'Modèle 3D couplé électromagnétique et thermique d\u2019une cathode en LaB₆ chauffée par induction depuis la température ambiante, réalisé avec le code libre Elmer FEM et comparé à un modèle 2D.' },
             ],
             gallery: [
@@ -435,6 +438,7 @@
                 { name: 'રિંગ-કસ્પ આયન સ્રોત', tag: 'Ph.D. · અવકાશ પ્રોપલ્શન અને ફ્યુઝન', text: '1–2 keV / 100 mA સુધીના Ar⁺ બીમ અને 100% સુધી સ્પેસ-ચાર્જ ન્યુટ્રલાઇઝેશન ધરાવતો મલ્ટિકસ્પ સ્રોત ડિઝાઇન કર્યો, બનાવ્યો અને લાક્ષણિકૃત કર્યો.' },
                 { name: '10 kW ફેરાડે કપ', tag: 'M.Tech · બીમ ડાયગ્નોસ્ટિક્સ', text: '20–30 mA બીમ માટે પાણીથી ઠંડો થતો ફેરાડે કપ — જૂની 1 kW સિસ્ટમ કરતાં 20 ગણો સક્ષમ, SIMION અને LORENTZ વડે ઑપ્ટિમાઇઝ કરેલા સપ્રેશન સાથે.' },
                 { name: 'ફેરાડે કપ એટલાસ', tag: 'ઓપન ડેટા · બીમ ડાયગ્નોસ્ટિક્સ', text: 'વિશ્વભરની પ્રયોગશાળાઓના પ્રકાશિત ફેરાડે કપ એક ઇન્ટરેક્ટિવ ગ્લોબ પર, દરેક પેપરમાં જણાવેલ બીમ, ઊર્જા, કપનું મટીરિયલ અને ડિઝાઇન સાથે, ફિલ્ટર કરી શકાય તેવા અને દરેક પેપરની લિંક સાથે.' },
+                { name: 'ગેસ-કર્ટન IPM, ફરી સિમ્યુલેટ કરેલ', tag: 'સિમ્યુલેશન · Elmer FEM + Geant4', text: 'સુપરસોનિક ગેસ-કર્ટન બીમ-પ્રોફાઇલ મોનિટરનું સ્વતંત્ર ઓપન-સોર્સ રી-સિમ્યુલેશન: Elmer માં એક્સટ્રેક્શન ફીલ્ડ અને Geant4 માં સંપૂર્ણ મોન્ટે કાર્લો — આયન, ડેલ્ટા ઇલેક્ટ્રોન, બેકગ્રાઉન્ડ ગેસ અને ગેસના પ્રકાશ સાથે, પ્રકાશિત CST ડિઝાઇન સાથે સરખામણી.' },
                 { name: 'ઇન્ડક્શન કેથોડ હીટર', tag: 'સિમ્યુલેશન · Elmer FEM', text: 'ઓરડાના તાપમાનથી ગરમ થતા ઇન્ડક્શન-હીટેડ LaB₆ કેથોડનું 3D વિદ્યુતચુંબકીય અને થર્મલ સંયુક્ત મોડેલ, ઓપન-સોર્સ Elmer FEM માં બનાવેલું અને 2D મોડેલ સાથે ચકાસેલું.' },
             ],
             gallery: [

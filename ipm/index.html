@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gas-Curtain IPM Simulation</title>
+<meta name="description" content="Independent re-simulation of the supersonic gas-curtain ionisation profile monitor: Elmer FEM extraction field and a full Geant4 Monte Carlo, compared with the published CST results.">
+<link rel="canonical" href="https://bharat-singh-rawat.github.io/CV/ipm/">
+<script>
+  (function () { var t = null; try { t = localStorage.getItem('ipm-theme'); } catch (e) {} if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; })();
+</script>
+<style>
+:root {
+  --bg: #f5f5f7; --bg2: #ececf0; --card: rgba(255,255,255,.86); --card-solid: #fff;
+  --text: #1d1d1f; --muted: #6e6e73; --sep: rgba(0,0,0,.08); --sep2: rgba(0,0,0,.14);
+  --accent: #0071e3; --accent-soft: rgba(0,113,227,.12);
+  --green: #28cd41; --orange: #ff9f0a; --red: #ff3b30; --purple: #af52de; --teal: #30b0c7;
+  --side: rgba(236,236,240,.72); --input: rgba(0,0,0,.045);
+  --shadow: 0 1px 2px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.06); --radius: 14px;
+  --font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+  --mono: "SF Mono", ui-monospace, Menlo, "JetBrains Mono", monospace; color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #000; --bg2: #121214; --card: rgba(28,28,30,.86); --card-solid: #1c1c1e; --text: #f5f5f7; --muted: #98989d;
+  --sep: rgba(255,255,255,.08); --sep2: rgba(255,255,255,.16); --accent: #0a84ff; --accent-soft: rgba(10,132,255,.18);
+  --side: rgba(30,30,32,.72); --input: rgba(255,255,255,.07); --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 30px rgba(0,0,0,.35); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #000; --bg2: #121214; --card: rgba(28,28,30,.86); --card-solid: #1c1c1e; --text: #f5f5f7; --muted: #98989d;
+  --sep: rgba(255,255,255,.08); --sep2: rgba(255,255,255,.16); --accent: #0a84ff; --accent-soft: rgba(10,132,255,.18);
+  --side: rgba(30,30,32,.72); --input: rgba(255,255,255,.07); --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 30px rgba(0,0,0,.35); color-scheme: dark; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); font-size: 13.5px; -webkit-font-smoothing: antialiased; letter-spacing: -.005em;
+  background-image: radial-gradient(1200px 600px at 85% -10%, var(--accent-soft), transparent 60%); }
+.window { display: flex; height: 100vh; }
+.sidebar { width: 248px; flex: none; background: var(--side); backdrop-filter: saturate(180%) blur(24px); -webkit-backdrop-filter: saturate(180%) blur(24px);
+  border-right: 1px solid var(--sep); display: flex; flex-direction: column; padding: 14px 12px; gap: 4px; overflow: auto; }
+.traffic { display: flex; gap: 8px; padding: 2px 6px 14px; }
+.traffic span { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.15); }
+.traffic span:nth-child(2) { background: #febc2e; } .traffic span:nth-child(3) { background: #28c840; }
+.brand { display: flex; align-items: center; gap: 10px; padding: 2px 6px 14px; }
+.brand .logo { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 13px;
+  background: linear-gradient(135deg, #0a84ff, #5e5ce6); box-shadow: 0 2px 8px rgba(10,132,255,.35); }
+.brand b { display: block; font-size: 14px; } .brand small { color: var(--muted); font-size: 11.5px; }
+.group { margin: 10px 6px 4px; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .02em; }
+.seg { display: flex; background: var(--input); border-radius: 9px; padding: 2px; margin: 0 4px; }
+.seg button { flex: 1; border: 0; background: none; color: var(--text); font: inherit; font-size: 12.5px; padding: 5px 4px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--card-solid); box-shadow: 0 1px 3px rgba(0,0,0,.12); font-weight: 600; }
+.tog { display: flex; align-items: center; gap: 9px; padding: 6px 8px; border-radius: 8px; cursor: pointer; user-select: none; }
+.tog:hover { background: var(--input); }
+.tog i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.tog input { margin-left: auto; accent-color: var(--accent); }
+.side-foot { margin-top: auto; padding: 10px 6px 2px; color: var(--muted); font-size: 11px; line-height: 1.45; }
+.theme { display: flex; gap: 2px; background: var(--input); border-radius: 8px; padding: 2px; margin: 8px 4px 0; }
+.theme button { flex: 1; border: 0; background: none; color: var(--muted); font: inherit; font-size: 12px; padding: 4px; border-radius: 6px; cursor: pointer; }
+.theme button[aria-pressed="true"] { background: var(--card-solid); color: var(--text); }
+main { flex: 1; overflow: auto; padding: 22px 26px 40px; }
+h1 { margin: 0; font-size: 26px; letter-spacing: -.025em; }
+.sub { margin: 4px 0 18px; color: var(--muted); font-size: 13.5px; max-width: 80ch; }
+.grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 14px; }
+.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--sep); padding: 14px 16px; position: relative; backdrop-filter: blur(20px); }
+.card h3 { margin: 0 0 2px; font-size: 14px; } .card .note { margin: 0 0 8px; color: var(--muted); font-size: 12px; }
+#view { height: 560px; padding: 0; overflow: hidden; }
+#view canvas { display: block; width: 100%; height: 100%; border-radius: var(--radius); }
+.hud { position: absolute; left: 14px; top: 12px; right: 14px; display: flex; justify-content: space-between; pointer-events: none; }
+.hud b { font-size: 14px; } .hud span { color: var(--muted); font-size: 12px; }
+.ctrl { position: absolute; left: 12px; bottom: 12px; display: flex; gap: 8px; align-items: center; }
+.btn { border: 1px solid var(--sep2); background: var(--card-solid); color: var(--text); font: inherit; font-size: 12.5px; padding: 6px 12px; border-radius: 980px; cursor: pointer; }
+.btn:hover { border-color: var(--accent); }
+.legend { position: absolute; right: 12px; bottom: 12px; display: flex; gap: 12px; color: var(--muted); font-size: 11.5px; pointer-events: none; }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+.plot { height: 270px; }
+.stack { display: grid; gap: 14px; align-content: start; }
+.row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--sep); }
+th { color: var(--muted); font-weight: 600; font-size: 11.5px; }
+td.ok { color: var(--green); font-weight: 600; } td.meh { color: var(--orange); font-weight: 600; }
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+.kpi { background: var(--card); border: 1px solid var(--sep); border-radius: 12px; padding: 10px 12px; box-shadow: var(--shadow); }
+.kpi b { display: block; font-size: 20px; letter-spacing: -.02em; } .kpi span { color: var(--muted); font-size: 11.5px; }
+@media (max-width: 1100px) { .grid, .row3 { grid-template-columns: 1fr; } .kpis { grid-template-columns: repeat(2, 1fr); } }
+.back { display: inline-block; color: var(--accent); text-decoration: none; font-size: 13px; margin-bottom: 10px; }
+.back:hover { text-decoration: underline; }
+.study { margin: 0 0 16px; padding: 18px 20px; }
+.study p { margin: 0 0 10px; font-size: 14px; line-height: 1.55; max-width: 92ch; }
+.steps { margin: 4px 0 14px; padding: 0; list-style: none; counter-reset: st; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+.steps li { counter-increment: st; background: var(--input); border-radius: 11px; padding: 10px 12px 10px 40px; position: relative; font-size: 12.8px; line-height: 1.45; }
+.steps li::before { content: counter(st); position: absolute; left: 12px; top: 10px; width: 19px; height: 19px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 11px; font-weight: 600; display: grid; place-items: center; }
+.steps b { display: block; font-size: 13px; margin-bottom: 1px; }
+.params { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+.params h4 { margin: 0 0 4px; font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: .02em; }
+.params table td { padding: 5px 6px; } .params table td:first-child { color: var(--muted); }
+.params table td:last-child { text-align: right; }
+.fine { color: var(--muted); font-size: 11.5px; line-height: 1.5; margin: 12px 0 0 !important; }
+@media (max-width: 760px) {
+  html, body { height: auto; } .window { display: block; height: auto; }
+  .sidebar { width: auto; border-right: 0; border-bottom: 1px solid var(--sep); padding: 10px 12px; }
+  .sidebar .traffic, .sidebar .side-foot, .sidebar .brand { display: none; }
+  main { padding: 16px 16px 40px; overflow: visible; } h1 { font-size: 22px; }
+  #view { height: 420px; } .kpis { grid-template-columns: 1fr 1fr; } .legend { display: none; }
+  .card:not(#view) { overflow-x: auto; }
+  .sidebar.moved { background: var(--card); border: 1px solid var(--sep); border-radius: var(--radius); box-shadow: var(--shadow); margin: 0 0 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 2px 6px; }
+  .sidebar.moved .group, .sidebar.moved .seg, .sidebar.moved .theme { grid-column: 1 / -1; }
+  .sidebar.moved .tog { font-size: 12.5px; padding: 6px 4px; gap: 6px; }
+}
+</style>
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+<script src="vendor/plotly.min.js"></script>
+</head>
+<body>
+<div class="window">
+  <aside class="sidebar">
+    <div class="traffic"><span></span><span></span><span></span></div>
+    <div class="brand"><div class="logo">IPM</div><div><b>SGC-IPM Extraction</b><small>Elmer field · Geant4 MC</small></div></div>
+    <div class="group">Voltage set</div>
+    <div class="seg" id="seg-v"><button data-v="v1" aria-pressed="true">Voltage 1</button><button data-v="v2" aria-pressed="false">Voltage 2</button></div>
+    <div class="group">Proton beam radius</div>
+    <div class="seg" id="seg-r"><button data-r="0.5">0.5</button><button data-r="2.5" aria-pressed="true">2.5</button><button data-r="5">5</button><button data-r="10">10</button><button data-r="15">15</button></div>
+    <div class="group">Show</div>
+    <label class="tog"><i style="background:#8e8e93"></i>Electrodes &amp; MCP<input type="checkbox" data-l="elec" checked></label>
+    <label class="tog"><i style="background:var(--orange)"></i>Gas curtain<input type="checkbox" data-l="curtain" checked></label>
+    <label class="tog"><i style="background:#30d158"></i>Proton tracks (Geant4)<input type="checkbox" data-l="beam" checked></label>
+    <label class="tog"><i style="background:#0a84ff"></i>Ar⁺ ions (curtain)<input type="checkbox" data-l="ions" checked></label>
+    <label class="tog"><i style="background:#ff3b30"></i>Delta electrons (Geant4)<input type="checkbox" data-l="elecs" checked></label>
+    <label class="tog"><i style="background:#ffd60a"></i>Gas light (photons)<input type="checkbox" data-l="ph" checked></label>
+    <label class="tog"><i style="background:var(--muted)"></i>Background N₂⁺ (Geant4)<input type="checkbox" data-l="bg"></label>
+    <label class="tog"><i style="background:linear-gradient(90deg,#0a84ff,#ff453a)"></i>Potential slice<input type="checkbox" data-l="field" checked></label>
+    <div class="theme" id="theme"><button data-t="light">☀︎</button><button data-t="auto">A</button><button data-t="dark">☾</button></div>
+    <div class="side-foot">Geometry and voltages from Parambil et al., <i>Instruments</i> 10 (2026) 4 (CC BY). Field: ElmerFEM, axisymmetric. Ions tracked in 3D with the gas-jet velocity.</div>
+  </aside>
+  <main>
+    <a class="back" href="/CV/">‹ Bharat Singh Rawat · CV</a>
+    <h1>Supersonic gas-curtain IPM: Elmer field + Geant4 Monte Carlo</h1>
+    <p class="sub">An independent re-simulation of a published beam-profile monitor, built from open tools and compared with the original CST results.</p>
+    <section class="card study" aria-labelledby="study-h">
+      <h3 id="study-h" style="font-size:16px;margin-bottom:8px">The study</h3>
+      <p>The supersonic gas-curtain ionisation profile monitor (SGC-IPM) images a proton beam without touching it: the beam crosses a thin, 45°-tilted sheet of argon, ionises a tiny fraction of it, and an electrode stack pulls the Ar⁺ ions onto a micro-channel plate (MCP), whose image is the beam profile. Its extraction system was designed in CST and published by Parambil et al. (<a href="https://www.mdpi.com/2410-390X/10/1/4" target="_blank" rel="noopener"><i>Instruments</i> 10 (2026) 4</a>). I rebuilt it from the paper alone, with open-source codes, to check how well an independent model reproduces their predictions and to add the physics a field-and-tracking study leaves out.</p>
+      <ol class="steps">
+        <li><b>Geometry</b>Repeller, ten field rings and the MCP, with positions and both voltage sets taken from the paper.</li>
+        <li><b>Field (ElmerFEM)</b>Axisymmetric electrostatic solution on a gmsh mesh, exported as a 0.1 mm field map of the whole chamber.</li>
+        <li><b>Monte Carlo (Geant4 11.2)</b>A real proton beam crosses the curtain; ionisation, delta electrons and ion birth come from Geant4's EM physics (option 4 + PAI). Ions and electrons are tracked through the Elmer field in Geant4.</li>
+        <li><b>Gas motion</b>Each ion starts with the jet velocity and thermal spread; background ions start at rest-gas thermal speeds.</li>
+        <li><b>Background and light</b>Residual-gas N₂⁺ ions from the whole beam path, and gas-light photons emitted and transported to the MCP.</li>
+        <li><b>Detector and statistics</b>MCP efficiency vs impact energy, 25 µm binning, Gaussian fits; bootstrap, Poisson and four-seed errors on every number.</li>
+      </ol>
+      <div class="params">
+        <div><h4>PROTON BEAM</h4><table>
+          <tr><td>Voltage 1 case</td><td>100 MeV, 600 nA</td></tr>
+          <tr><td>Voltage 2 case</td><td>28 MeV, 70 nA</td></tr>
+          <tr><td>Beam radius R</td><td>0.5, 2.5, 5, 10, 15 mm</td></tr>
+          <tr><td>Transverse profile</td><td>Gaussian, σ = 0.41 R, cut at R</td></tr>
+          <tr><td>Protons simulated</td><td>90 000 / 32 000 per case</td></tr></table></div>
+        <div><h4>GAS CURTAIN (ARGON)</h4><table>
+          <tr><td>Density</td><td>3.9 × 10¹⁶ m⁻³</td></tr>
+          <tr><td>Sheet</td><td>1 mm thick, 60 × 40 mm, 45° to the beam</td></tr>
+          <tr><td>Jet speed</td><td>587 m/s</td></tr>
+          <tr><td>Jet temperature</td><td>5 K</td></tr>
+          <tr><td>W-value (eV per ion pair)</td><td>26.4 eV</td></tr></table></div>
+        <div><h4>BACKGROUND GAS (N₂, ASSUMED)</h4><table>
+          <tr><td>Pressure</td><td>1 × 10⁻⁸ mbar</td></tr>
+          <tr><td>Density</td><td>2.4 × 10¹⁴ m⁻³</td></tr>
+          <tr><td>Temperature</td><td>300 K</td></tr>
+          <tr><td>Region</td><td>70 × 64 × 50 mm around the curtain</td></tr>
+          <tr><td>W-value</td><td>34.8 eV</td></tr></table></div>
+      </div>
+      <p class="fine">Gas densities are raised 10⁷× inside Geant4 so enough collisions happen to give good statistics; every count is weighted back by 10⁻⁷ (the density is still far too low for multiple collisions). Electron collisions are switched off after birth for the same reason. The background pressure, the MCP efficiency curve and the gas-light yields are estimates, not measurements of this chamber. This is my own independent study, not an official result of the paper's authors.</p>
+    </section>
+    <div class="kpis" id="kpis"></div>
+    <div class="grid">
+      <div class="card" id="view">
+        <div class="hud"><div><b>Extraction system</b><br><span id="hud-sub"></span></div><span id="hud-t"></span></div>
+        <div class="ctrl"><button class="btn" id="play">Pause</button><button class="btn" id="reset">Reset view</button></div>
+        <div class="legend"><span><i style="background:#30d158"></i>p (beam)</span><span><i style="background:#0a84ff"></i>Ar⁺</span><span><i style="background:#9cc3ff"></i>N₂⁺ (background)</span><span><i style="background:#ff3b30"></i>e⁻</span><span><i style="background:#ffd60a"></i>γ (gas light)</span></div>
+      </div>
+      <div class="stack">
+        <div class="card"><h3>Image on the MCP</h3><p class="note" id="mcp-note"></p><div class="plot" id="p-mcp"></div></div>
+        <div class="card"><h3>Profiles at the MCP</h3><p class="note">Ion arrival positions, X (beam direction) and Y (gas-jet direction).</p><div class="plot" id="p-prof" style="height:200px"></div></div>
+      </div>
+    </div>
+    <div class="grid" style="margin-top:14px">
+      <div class="card"><h3>Potential map</h3><p class="note" id="pmap-note">Elmer solution in the plane through the axis (mirrored), equipotentials every 100 V; electrodes in grey.</p><div class="plot" id="p-pmap" style="height:430px"></div></div>
+      <div class="card"><h3>Axial potential φ(z)</h3><p class="note">Potential along the extraction axis, repeller → curtain → MCP, for both voltage sets; dots mark the electrodes and their set voltages.</p><div class="plot" id="p-paxis" style="height:430px"></div></div>
+    </div>
+    <div class="row3">
+      <div class="card"><h3>Ion energy at the MCP</h3><p class="note">Spread grows with beam size: ions from the low end of the tilted curtain fall further.</p><div class="plot" id="p-energy"></div></div>
+      <div class="card"><h3>Field along the axis</h3><p class="note">E<sub>z</sub> on the extraction axis, from the Elmer solution.</p><div class="plot" id="p-field"></div></div>
+      <div class="card"><h3>Position response</h3><p class="note">Centroid at the MCP when the proton beam is moved (Voltage 1, 2.5 mm beam).</p><div class="plot" id="p-pos"></div></div>
+    </div>
+    <div class="row3">
+      <div class="card"><h3>Realistic counts</h3><p class="note">Geant4 11.2 (standard EM option 4 + PAI in the curtain, 15.76 eV threshold); curtain 3.9 × 10¹⁶ m⁻³, 1 mm at 45°.</p><div id="counts"></div></div>
+      <div class="card"><h3>MCP detection efficiency</h3><p class="note">Weight given to each ion by its impact energy (curve after Oberheide et al. 1997, approximate). Shaded: energies the ions actually arrive with.</p><div class="plot" id="p-q"></div></div>
+      <div class="card"><h3>Ionisation cross-section, p + Ar</h3><p class="note">Relativistic Bethe (used here) against the measured data in the paper's Fig. 4, and the Rudd model.</p><div class="plot" id="p-x" style="height:320px"></div></div>
+    </div>
+    <div class="card" style="margin-top:14px"><h3>Elmer vs CST (paper)</h3><p class="note">Same geometry and voltages; plate heights read from the paper's Figure 2 (±1 mm). Widths on both sides include the MCP detection efficiency and the 25 µm channel binning, with Gaussian fits.</p><div id="cmp"></div></div>
+  </main>
+</div>
+<script>
+  // phones: the controls follow the study description instead of sitting above it
+  if (matchMedia('(max-width: 760px)').matches) { const sb = document.querySelector('.sidebar'), st = document.querySelector('.study'); st.after(sb); sb.classList.add('moved'); }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from './vendor/OrbitControls.js';
+const D = await (await fetch('data/ipm.json')).json();
+const G4 = await (await fetch('data/g4.json')).json();
+D.py = JSON.parse(JSON.stringify(D.results));          // keep the Python tracker's numbers for the comparison
+const g4tag = (v, r) => v === 'v1' ? `v1_r${r}` : (r === '2.5' ? 'v2_r2.5' : null);
+if (G4.background && G4.background['v1_r2.5']) D.background = G4.background['v1_r2.5'];
+for (const r of ['0.5', '2.5', '5', '10', '15']) { const g = G4.results[`v1_r${r}`]; if (!g) continue;
+  D.arrivals[r] = G4.arrivals[`v1_r${r}`];
+  Object.assign(D.results.radii[r], { cy: g.cy, cx: g.cx, emin: g.emin, emax: g.emax, emean: g.emean, edev: g.edev, tof: g.tof_us, hit: g.ions }); }
+const $ = id => document.getElementById(id);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let V = 'v1', RAD = '2.5';
+
+// ---------- theme (same switch as the twin) ----------
+const setTheme = t => { if (t === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
+  try { localStorage.setItem('ipm-theme', t); } catch (e) {} document.querySelectorAll('#theme button').forEach(b => b.setAttribute('aria-pressed', b.dataset.t === t)); restyle(); };
+document.querySelectorAll('#theme button').forEach(b => b.onclick = () => setTheme(b.dataset.t));
+const isDark = () => document.documentElement.dataset.theme ? document.documentElement.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+
+// ---------- 3D: three.js axes = (beam x, extraction z, gas y) ----------
+const host = $('view'), renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); host.prepend(renderer.domElement);
+const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(36, 1, 1, 5000);
+const ctl = new OrbitControls(cam, renderer.domElement); ctl.enableDamping = true; ctl.target.set(0, 70, 0);
+const home = () => { cam.position.set(330, 150, 420); ctl.target.set(0, 68, 0); ctl.update(); }; home();
+scene.add(new THREE.HemisphereLight(0xffffff, 0x666670, 1.1)); const dl = new THREE.DirectionalLight(0xffffff, 1.4); dl.position.set(200, 300, 150); scene.add(dl);
+const P = (x, y, z) => new THREE.Vector3(x, z, y);                     // paper (x, y, z) -> three
+const layers = {}; const L = k => (layers[k] ||= (() => { const g = new THREE.Group(); scene.add(g); return g; })());
+const G = D.geo;
+const metal = new THREE.MeshStandardMaterial({ color: 0xc7c7cc, metalness: .75, roughness: .32, transparent: true, opacity: .55, side: THREE.DoubleSide, depthWrite: false });
+function annulus(rin, rout, t) { const s = new THREE.Shape(); s.absarc(0, 0, rout, 0, Math.PI * 2); if (rin > 0) { const h = new THREE.Path(); h.absarc(0, 0, rin, 0, Math.PI * 2, true); s.holes.push(h); }
+  const g = new THREE.ExtrudeGeometry(s, { depth: t, bevelEnabled: false, curveSegments: 64 }); g.rotateX(-Math.PI / 2); g.translate(0, -t / 2, 0); return g; }
+// cut-away: draw three quarters so the inside shows
+function cutAnnulus(rin, rout, t) { const s = new THREE.Shape(); s.absarc(0, 0, rout, 0, Math.PI * 1.5); s.lineTo(0, -rin); if (rin > 0) s.absarc(0, 0, rin, Math.PI * 1.5, 0, true); else s.lineTo(0, 0); s.closePath();
+  const g = new THREE.ExtrudeGeometry(s, { depth: t, bevelEnabled: false, curveSegments: 64 }); g.rotateX(-Math.PI / 2); g.translate(0, -t / 2, 0); return g; }
+G.rings.forEach(r => { const m = new THREE.Mesh(cutAnnulus(G.rin, G.rout, G.t), metal); m.position.y = r.z; L('elec').add(m); });
+{ const m = new THREE.Mesh(cutAnnulus(0, G.rout, G.t), metal); m.position.y = G.repeller.z; L('elec').add(m); }
+const mcpMat = new THREE.MeshStandardMaterial({ color: 0x3a3a3c, metalness: .4, roughness: .5 });
+{ const h = G.mcp.z_back - G.mcp.z_front, m = new THREE.Mesh(new THREE.CylinderGeometry(G.mcp.r, G.mcp.r, h, 96, 1, false, 0, Math.PI * 1.5), mcpMat); m.position.y = (G.mcp.z_front + G.mcp.z_back) / 2; L('elec').add(m); }
+// MCP face: the ion image builds up here
+const imgCv = document.createElement('canvas'); imgCv.width = imgCv.height = 256; const imgCtx = imgCv.getContext('2d');
+const imgTex = new THREE.CanvasTexture(imgCv); imgTex.colorSpace = THREE.SRGBColorSpace;
+{ const m = new THREE.Mesh(new THREE.CircleGeometry(30, 64), new THREE.MeshBasicMaterial({ map: imgTex, transparent: true })); m.rotation.x = Math.PI / 2; m.position.y = G.mcp.z_front - 0.3; L('elec').add(m); }
+// gas curtain: 1 mm sheet tilted 45 deg in the beam-extraction plane, along the gas jet
+{ const m = new THREE.Mesh(new THREE.BoxGeometry(70, 1, 60), new THREE.MeshStandardMaterial({ color: 0xff9f0a, transparent: true, opacity: .22, depthWrite: false, emissive: 0xff9f0a, emissiveIntensity: .25 }));
+  m.rotation.z = Math.PI / 4; L('curtain').add(m); }
+// proton beam along x
+const beamMesh = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 260, 32), new THREE.MeshBasicMaterial({ color: 0x28cd41, transparent: true, opacity: .55 }));
+beamMesh.rotation.z = Math.PI / 2; L('beam').add(beamMesh);
+// potential slice (r, z) mirrored to a vertical plane through the axis
+const fCv = document.createElement('canvas'), fTex = new THREE.CanvasTexture(fCv); fTex.colorSpace = THREE.SRGBColorSpace;
+const fPlane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: fTex, transparent: true, opacity: .55, side: THREE.DoubleSide, depthWrite: false }));
+L('field').add(fPlane);
+function drawField() {
+  const F = D.field[V], nr = F.r.length, nz = F.z.length; fCv.width = nr * 2; fCv.height = nz; const c = fCv.getContext('2d'), img = c.createImageData(nr * 2, nz);
+  const vmax = 2000;
+  for (let j = 0; j < nz; j++) for (let i = 0; i < nr * 2; i++) {
+    const ir = Math.abs(i - nr + 0.5) | 0, v = F.phi[Math.min(nr - 1, ir)][nz - 1 - j], k = (j * nr * 2 + i) * 4, a = Math.min(1, Math.abs(v) / vmax);
+    const col = v < 0 ? [10, 132, 255] : [255, 69, 58]; img.data[k] = col[0]; img.data[k + 1] = col[1]; img.data[k + 2] = col[2]; img.data[k + 3] = 40 + 200 * a;
+  }
+  c.putImageData(img, 0, 0); fTex.needsUpdate = true;
+  const rM = F.r[nr - 1], z0 = F.z[0], z1 = F.z[nz - 1]; fPlane.scale.set(rM * 2, z1 - z0, 1); fPlane.position.set(0, (z0 + z1) / 2, 0);
+}
+// trajectories, Geant4 style: every particle a solid polyline, coloured by charge (G4 drawByCharge: + blue, − red, 0 green)
+const TR = await (await fetch('data/g4tracks.json')).json();
+const COLS = { p: 0x30d158, ion: 0x0a84ff, bg: 0x9cc3ff, e: 0xff3b30, ph: 0xffd60a };          // beam green, Ar+ blue, N2+ light blue, electrons red
+const OPAC = { p: .55, ion: .85, bg: .75, e: .9, ph: .5 };
+const LAYER = { p: 'beam', ion: 'ions', bg: 'bg', e: 'elecs', ph: 'ph' };
+let sets = {};
+function trackSet(list, kind) {
+  const g = L(LAYER[kind]); g.children.filter(c => c.userData.track).forEach(c => { c.geometry.dispose(); g.remove(c); });
+  const mat = new THREE.LineBasicMaterial({ color: COLS[kind], transparent: true, opacity: OPAC[kind], depthWrite: false });
+  const lines = (list || []).filter(t => t.length > 1).map(t => { const geo = new THREE.BufferGeometry().setFromPoints(t.map(q => P(q[0], q[1], q[2])));
+    const ln = new THREE.Line(geo, mat); ln.userData.track = true; ln.userData.n = t.length; g.add(ln); return ln; });
+  return lines;
+}
+const setIons = () => {
+  const t = g4tag(V, RAD), T = (t && TR[t]) || TR['v1_r2.5'];
+  for (const k of ['p', 'ion', 'bg', 'e', 'ph']) sets[k] = trackSet(T[k] || [], k);
+  beamMesh.visible = false;                                                       // the proton tracks are the beam now
+};
+setIons();
+layers.bg.visible = false;
+// tracks grow along their paths during playback: protons cross in < 1 ns, electrons in a few ns, ions in ~3.5 µs
+function grow(lines, f) { for (const ln of lines) ln.geometry.setDrawRange(0, Math.max(2, Math.ceil(f * ln.userData.n))); }
+document.querySelectorAll('[data-l]').forEach(cb => cb.onchange = () => { L(cb.dataset.l).visible = cb.checked; });
+
+// animation: ion flight ~3.5 us replayed in a few seconds; electrons (6 ns) shown as a quick flash at the start
+let t0 = performance.now(), playing = !reduce;
+$('play').textContent = playing ? 'Pause' : 'Play'; $('play').onclick = () => { playing = !playing; $('play').textContent = playing ? 'Pause' : 'Play'; if (playing) t0 = performance.now() - phase * 6000; };
+$('reset').onclick = () => home();
+let phase = reduce ? 1 : 0;
+function drawImage(f) {
+  const c = imgCtx, A = D.arrivals[RAD], s = 256 / 60, tNow = f * tmax();
+  c.clearRect(0, 0, 256, 256); c.fillStyle = isDark() ? 'rgba(20,20,22,.9)' : 'rgba(40,40,44,.85)'; c.beginPath(); c.arc(128, 128, 128, 0, 7); c.fill();
+  c.globalCompositeOperation = 'lighter';
+  const Ph = G4.photons && G4.photons[g4tag(V, RAD) || 'v1_r2.5'];
+  if (Ph && layers.ph && layers.ph.visible) { c.fillStyle = 'rgba(255,214,10,.35)'; for (let i = 0; i < Ph.x.length; i++) { if (Ph.t[i] / 1000 > tNow) continue; c.fillRect(128 + Ph.x[i] * s - 1, 128 - Ph.y[i] * s - 1, 2, 2); } }
+  c.fillStyle = 'rgba(120,255,140,.20)';
+  for (let i = 0; i < A.x.length; i++) { if (A.t && A.t[i] > tNow) continue; if (!A.t && f < 0.97) continue; const x = 128 + A.x[i] * s, y = 128 - A.y[i] * s; c.fillRect(x - 1, y - 1, 2, 2); }
+  c.globalCompositeOperation = 'source-over'; imgTex.needsUpdate = true;
+}
+const tmax = () => { const A = D.arrivals[RAD]; return A.t ? Math.max(...A.t) * 1.02 : D.results.radii[RAD].tof * 1.02; };
+function resize() { const w = host.clientWidth, h = host.clientHeight; renderer.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); }
+new ResizeObserver(resize).observe(host); resize();
+function loop(now) {
+  requestAnimationFrame(loop);
+  if (playing) phase = Math.max(0, ((now - t0) / 6000) % 1.15);
+  const f = Math.max(0, Math.min(1, phase));
+  grow(sets.p, Math.min(1, f * 25)); grow(sets.e, Math.min(1, f * 10)); grow(sets.ph, Math.min(1, f * 400)); grow(sets.ion, f * f * 1.04); grow(sets.bg, f * f * 1.04);   // ions start at rest and accelerate: distance ~ t^2
+  $('hud-t').textContent = `t = ${(f * tmax()).toFixed(2)} µs`;
+  if (Math.abs(f - (loop.lf || -1)) > 0.004) { drawImage(f); loop.lf = f; }
+  ctl.update(); renderer.render(scene, cam);
+}
+requestAnimationFrame(loop);
+
+// ---------- plots ----------
+const lay = (extra = {}) => ({ margin: { l: 46, r: 10, t: 6, b: 36 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+  font: { family: css('--font'), size: 11, color: css('--muted') }, xaxis: { gridcolor: css('--sep'), zeroline: false }, yaxis: { gridcolor: css('--sep'), zeroline: false }, showlegend: false, ...extra });
+const cfg = { displayModeBar: false, responsive: true };
+function plots() {
+  const A = D.arrivals[RAD], R = D.results.radii[RAD], B = (G4.background && G4.background[g4tag(V, RAD) || 'v1_r2.5']) || D.background;
+  const showBg = layers.bg.visible;
+  const tr = [{ type: 'histogram2d', x: A.x, y: A.y, nbinsx: 70, nbinsy: 70, colorscale: [[0, 'rgba(0,0,0,0)'], [.15, '#1f6f3a'], [.6, '#34c759'], [1, '#d7ffe0']], showscale: false }];
+  if (showBg) tr.unshift({ type: 'histogram2d', x: B.x, y: B.y, nbinsx: 70, nbinsy: 70, colorscale: [[0, 'rgba(0,0,0,0)'], [1, 'rgba(142,142,147,.7)']], showscale: false });
+  const span = Math.max(4, +RAD * 2.4) + 2;
+  Plotly.react('p-mcp', tr, lay({ xaxis: { title: 'X (mm)', range: showBg ? [-30, 30] : [-span, span], gridcolor: css('--sep') }, yaxis: { title: 'Y (mm)', range: showBg ? [-12, 14] : [R.cy - span, R.cy + span], gridcolor: css('--sep'), scaleanchor: 'x' } }), cfg);
+  $('mcp-note').textContent = `${RAD} mm beam · ${R.hit.toLocaleString()} ions tracked · centroid shifted ${R.cy.toFixed(2)} mm along Y by the gas jet${showBg ? ` · grey: residual-gas N₂⁺ (Geant4, ${G4.results['v1_r2.5'].residual_mbar.toExponential(0)} mbar assumed), no gas-jet shift` : ''}`;
+  Plotly.react('p-prof', [{ type: 'histogram', x: A.x, nbinsx: 60, marker: { color: '#64d2ff' }, opacity: .8, name: 'X' }, { type: 'histogram', x: A.y, nbinsx: 60, marker: { color: '#ff9f0a' }, opacity: .7, name: 'Y' }],
+    lay({ barmode: 'overlay', showlegend: true, legend: { orientation: 'h', y: 1.15, x: 0 }, xaxis: { title: 'position (mm)', gridcolor: css('--sep') }, yaxis: { title: 'ions', gridcolor: css('--sep') } }), cfg);
+  Plotly.react('p-energy', ['0.5', '2.5', '5', '10', '15'].map(r => [r, D.arrivals[r]]).map(([r, a], i) => ({ type: 'violin', y: a.ek, name: r + ' mm', box: { visible: false }, meanline: { visible: true }, line: { color: ['#30b0c7', '#0a84ff', '#5e5ce6', '#af52de', '#ff375f'][i] }, points: false })),
+    lay({ yaxis: { title: 'energy (eV)', gridcolor: css('--sep') }, xaxis: { title: 'beam radius' } }), cfg);
+  Plotly.react('p-field', ['v1', 'v2'].map(v => ({ x: D.field[v].z_axis, y: D.field[v].ez_axis, mode: 'lines', name: v === 'v1' ? 'Voltage 1' : 'Voltage 2', line: { width: 2, color: v === 'v1' ? '#0a84ff' : '#ff9f0a', dash: v === V ? 'solid' : 'dot' } })),
+    lay({ showlegend: true, legend: { orientation: 'h', y: 1.15, x: 0 }, xaxis: { title: 'Z (mm)', gridcolor: css('--sep') }, yaxis: { title: 'E_z (V/mm)', gridcolor: css('--sep') } }), cfg);
+  const O = D.results.offsets, base = D.results.radii['2.5'];
+  const sy = [-5, -1, 1, 5].map(d => O[`${d},0`].cy - base.cy), sz = [-5, -1, 1, 5].map(d => O[`0,${d}`].cx - base.cx);
+  Plotly.react('p-pos', [{ x: [-5, -1, 1, 5], y: sy, mode: 'markers+lines', name: 'beam moved in Y → Y', line: { color: '#ff9f0a' }, marker: { size: 8 } },
+    { x: [-5, -1, 1, 5], y: sz, mode: 'markers+lines', name: 'beam moved in Z → X', line: { color: '#64d2ff' }, marker: { size: 8 } },
+    { x: [-6, 6], y: [-6, 6], mode: 'lines', line: { color: css('--sep2'), dash: 'dot' }, hoverinfo: 'skip', showlegend: false }],
+    lay({ showlegend: true, legend: { orientation: 'h', y: 1.2, x: 0 }, xaxis: { title: 'beam offset (mm)', gridcolor: css('--sep') }, yaxis: { title: 'image shift (mm)', gridcolor: css('--sep') } }), cfg);
+}
+function kpis() {
+  const R = D.results.radii[RAD], O = D.others, v2 = D.results.v2;
+  const k = V === 'v1' ? [[`${(R.emean / 1000).toFixed(2)} keV`, 'mean ion energy at the MCP'], [`${R.cy.toFixed(2)} mm`, 'gas-jet shift along Y'], [`${(G4.results[`v1_r${RAD}`].detected_per_s / 1000).toFixed(1)}k /s`, 'ions detected by the MCP (Geant4 MC)'], [`${Math.round(G4.results[`v1_r${RAD}`].e_energy_median)} eV`, 'delta electrons at the repeller (median, Geant4)']]
+                       : [[`${(v2.emean / 1000).toFixed(2)} keV`, 'mean ion energy (2.5 mm)'], [`${v2.tof.toFixed(2)} µs`, 'ion flight time'], [`${v2.cy.toFixed(2)} mm`, 'gas-jet shift along Y'], ['−1575 V', 'MCP (after the series resistor)']];
+  $('kpis').innerHTML = k.map(([b, s]) => `<div class="kpi"><b>${b}</b><span>${s}</span></div>`).join('');
+  $('hud-sub').textContent = `${V === 'v1' ? 'Voltage 1' : 'Voltage 2'} · ${RAD} mm proton beam · Geant4 Monte Carlo${g4tag(V, RAD) ? '' : ' (V2 run at 2.5 mm only; Python paths shown)'} · Geant4 trajectories`;
+}
+function compare() {
+  const R = D.results.radii, P = D.paper, row = (q, a, b, ok) => `<tr><td>${q}</td><td>${a}</td><td>${b}</td><td class="${ok ? 'ok' : 'meh'}">${ok ? 'agrees' : 'differs'}</td></tr>`; const GR = G4.results;
+  let h = '<table><thead><tr><th>Quantity</th><th>Elmer field + Geant4 MC</th><th>CST (paper)</th><th></th></tr></thead><tbody>';
+  ['0.5', '2.5', '5', '10', '15'].forEach(r => { const g = GR[`v1_r${r}`], a = g.edev, b = P.edev[r]; h += row(`Energy spread at MCP, ${r} mm beam`, `±${a.toFixed(2)} (±${Math.max(g.edev_err, 0.01).toFixed(2)}) %`, `±${b.toFixed(2)} %`, Math.abs(a - b) < 0.5); });
+  const G25 = GR['v1_r2.5'], Sd = GR.seeds || {};
+  h += row('Centroid shift from the gas jet (Y)', `${G25.cy.toFixed(3)} ± ${Math.max(G25.cy_err, (Sd.cy || {}).sd || 0).toFixed(3)} mm`, `${P.shift.toFixed(2)} mm`, Math.abs(G25.cy - P.shift) < 0.3);
+  h += row('Ion energy at MCP', `${(R['2.5'].emin / 1000).toFixed(2)}–${(R['2.5'].emax / 1000).toFixed(2)} keV`, P.energy, true);
+  const Mc = { '2.5': GR['v1_r2.5'], '0.5': GR['v1_r0.5'] };
+  const ex = Math.max(G25.fx_err, (Sd.fx || {}).sd || 0), ey = Math.max(G25.fy_err, (Sd.fy || {}).sd || 0);
+  h += row('FWHM, 2.5 mm beam (X broadened by the curtain / Y)', `${Mc['2.5'].fx.toFixed(2)} ± ${ex.toFixed(2)} / ${Mc['2.5'].fy.toFixed(2)} ± ${ey.toFixed(2)} mm`, `${P.fwhm['2.5'].v} / ${P.fwhm['2.5'].h} mm`, Math.abs(Mc['2.5'].fx - P.fwhm['2.5'].v) < 0.3);
+  h += row('FWHM, 0.5 mm beam (X broadened by the curtain / Y)', `${Mc['0.5'].fx.toFixed(3)} ± ${Mc['0.5'].fx_err.toFixed(3)} / ${Mc['0.5'].fy.toFixed(3)} ± ${Mc['0.5'].fy_err.toFixed(3)} mm`, `${P.fwhm['0.5'].v} / ${P.fwhm['0.5'].h} mm`, false);
+  h += row('Field uniformity along the drift region', '±4.4 % (rings 1–7), 24 % incl. the top rings', `±${P.field_dev} %`, false);
+  h += row('Position response (±1, ±5 mm)', 'linear, 1 : 1 (Python tracker)', 'linear', true);
+  h += row('Ar⁺ made, 100 MeV 600 nA', `(${(G25.ions_per_s / 1e4).toFixed(2)} ± ${(G25.ions_per_s_err / 1e4).toFixed(2)}) × 10<sup>4</sup> /s`, '2.84 × 10³ ions simulated (no time window given)', true);
+  h += row('Background / signal at the MCP (1e-8 mbar N₂, assumed)', `${G25.bg_ratio.toFixed(3)} ± ${Math.max(G25.bg_ratio_err, (Sd.bg_ratio || {}).sd || 0).toFixed(3)}`, 'background visible in Fig. 6 (no ratio given)', true);
+  $('cmp').innerHTML = h + `</tbody></table><p class="note" style="margin-top:8px">Uncertainties are statistical (1σ): Poisson for rates, standard error for centroids, bootstrap (200 resamples) for widths and spreads; where ${(GR.seeds || {}).n || 4} independent random seeds of the 2.5 mm case vary more than the bootstrap, the seed spread is quoted. Geometry (plates read from Fig. 2, ±1 mm) and the assumed residual pressure are not included.</p>`;
+}
+function extras() {
+  const C = D.mcp.counts, Mc = D.mcp.mcp, B = D.mcp.background, f = v => { const [m, e] = v.toExponential(2).split('e'); return `${m} × 10<sup>${+e}</sup>`; };
+  const frame = D.mcp.exposure_s;
+  const G = D.mcp.geant4, Gd = D.mcp.detected_g4;
+  $('counts').innerHTML = `<table><thead><tr><th></th><th>100 MeV, 600 nA</th><th>28 MeV, 70 nA</th></tr></thead><tbody>
+    <tr><td><b>Ar⁺ made (Geant4 Monte Carlo)</b></td><td><b>${f(G4.results['v1_r2.5'].ions_per_s)} ± ${(100 * G4.results['v1_r2.5'].ions_per_s_err / G4.results['v1_r2.5'].ions_per_s).toFixed(1)} % /s</b></td><td><b>${f(G4.results['v2_r2.5'].ions_per_s)} ± ${(100 * G4.results['v2_r2.5'].ions_per_s_err / G4.results['v2_r2.5'].ions_per_s).toFixed(1)} % /s</b></td></tr>
+    <tr><td>Detected by the MCP</td><td>${f(G4.results['v1_r2.5'].detected_per_s)} /s</td><td>${f(G4.results['v2_r2.5'].detected_per_s)} /s</td></tr>
+    <tr><td>Per ${frame * 1000} ms frame</td><td>${Math.round(G4.results['v1_r2.5'].detected_per_s * frame).toLocaleString()}</td><td>${Math.round(G4.results['v2_r2.5'].detected_per_s * frame).toLocaleString()}</td></tr>
+    <tr><td>Gas-light photons detected by the MCP (assumed yields)</td><td>${G4.results['v1_r2.5'].photons ? f(G4.results['v1_r2.5'].photons.detected_per_s) + ' /s (' + G4.results['v1_r2.5'].photons.ratio_to_detected_ions.toExponential(1) + ' × ions)' : '–'}</td><td>${G4.results['v2_r2.5'].photons ? f(G4.results['v2_r2.5'].photons.detected_per_s) + ' /s' : '–'}</td></tr>
+    <tr><td>Delta electrons (hard collisions)</td><td>${f(G4.results['v1_r2.5'].delta_per_s)} /s</td><td>${f(G4.results['v2_r2.5'].delta_per_s)} /s</td></tr>
+    <tr><td style="color:var(--muted)">Bethe (Rieke &amp; Prepejchal), primary</td><td style="color:var(--muted)">${f(G.sim.bethe_per_s)} /s</td><td style="color:var(--muted)">${f(G.exp.bethe_per_s)} /s</td></tr>
+    <tr><td style="color:var(--muted)">Geant4 total energy loss ÷ W (upper bound)</td><td style="color:var(--muted)">${f(G.sim.g4_total_W_per_s)} /s</td><td style="color:var(--muted)">${f(G.exp.g4_total_W_per_s)} /s</td></tr>
+    <tr><td>Residual-gas N₂⁺ made (${G4.results['v1_r2.5'].residual_mbar.toExponential(0)} mbar, assumed)</td><td>${f(G4.results['v1_r2.5'].bg_ions_per_s)} /s</td><td>${f(G4.results['v2_r2.5'].bg_ions_per_s)} /s</td></tr>
+    <tr><td>Background / signal at the MCP</td><td>${G4.results['v1_r2.5'].bg_ratio.toFixed(3)} ± ${G4.results['v1_r2.5'].bg_ratio_err.toFixed(3)}</td><td>${G4.results['v2_r2.5'].bg_ratio.toFixed(3)} ± ${G4.results['v2_r2.5'].bg_ratio_err.toFixed(3)}</td></tr></tbody></table>`;
+  const q = D.mcp.q_curve, e = D.arrivals[RAD].ek, lo = Math.min(...e), hi = Math.max(...e);
+  Plotly.react('p-q', [{ x: q.E, y: q.q.map(v => v * 100), mode: 'lines', line: { color: '#0a84ff', width: 2 } }],
+    lay({ shapes: [{ type: 'rect', x0: lo, x1: hi, y0: 0, y1: 60, fillcolor: 'rgba(48,176,199,.18)', line: { width: 0 } }],
+      xaxis: { title: 'ion energy at the MCP (eV)', gridcolor: css('--sep') }, yaxis: { title: 'detection efficiency (%)', gridcolor: css('--sep'), range: [0, 62] } }), cfg);
+  const X = D.xsec;
+  Plotly.react('p-x', [{ x: X.E, y: X.bethe, mode: 'lines', name: 'Bethe (Rieke & Prepejchal)', line: { color: '#0a84ff', width: 2.5 } },
+    { x: X.E, y: X.rudd, mode: 'lines', name: 'Rudd model', line: { color: '#ff9f0a', width: 1.5, dash: 'dash' } },
+    { x: X.dubois.map(p => p[0]), y: X.dubois.map(p => p[1]), mode: 'markers', name: 'DuBois et al.', marker: { color: '#5e5ce6', size: 7 } },
+    { x: X.toburen.map(p => p[0]), y: X.toburen.map(p => p[1]), mode: 'markers', name: 'Toburen et al.', marker: { color: css('--text'), size: 7 } },
+    { x: [28, 100], y: [C.exp.sigma_m2, C.sim.sigma_m2], mode: 'markers', name: '28 / 100 MeV used', marker: { color: '#ff3b30', size: 10, symbol: 'diamond' } }],
+    lay({ showlegend: true, legend: { orientation: 'h', y: -0.42, x: 0, font: { size: 10 } }, margin: { l: 52, r: 10, t: 6, b: 92 },
+      xaxis: { type: 'log', title: 'proton energy (MeV)', gridcolor: css('--sep') }, yaxis: { type: 'log', title: 'σ (m²)', gridcolor: css('--sep'), exponentformat: 'power' } }), cfg);
+}
+function potential() {
+  const F = D.field[V], nr = F.r.length, xs = [...F.r.slice(1).map(r => -r).reverse(), ...F.r];
+  const zgrid = F.z.map((_, k) => [...F.r.slice(1).map((_, i) => F.phi[nr - 1 - i][k]), ...F.r.map((_, i) => F.phi[i][k])]);
+  const g = G.rings, gray = isDark() ? 'rgba(200,200,205,.9)' : 'rgba(60,60,67,.85)';
+  const plate = (x0, x1, z, t) => ({ type: 'rect', x0, x1, y0: z - t / 2, y1: z + t / 2, fillcolor: gray, line: { width: 0 } });
+  const shapes = [];
+  g.forEach(r => { shapes.push(plate(G.rin, 45, r.z, G.t)); shapes.push(plate(-45, -G.rin, r.z, G.t)); });
+  shapes.push(plate(-45, 45, G.repeller.z, G.t));
+  shapes.push({ type: 'rect', x0: -45, x1: 45, y0: G.mcp.z_front, y1: G.mcp.z_front + 3, fillcolor: gray, line: { width: 0 } });
+  shapes.push({ type: 'line', x0: -14, x1: 14, y0: -14, y1: 14, line: { color: '#ff9f0a', width: 3 } });          // the tilted gas curtain
+  const vmax = Math.max(...zgrid.flat().map(Math.abs));
+  Plotly.react('p-pmap', [{ type: 'contour', x: xs, y: F.z, z: zgrid, zmin: -vmax, zmax: vmax, ncontours: 45, contours: { coloring: 'heatmap', showlines: true, start: -2100, end: 500, size: 100 },
+      line: { width: .6, color: 'rgba(255,255,255,.35)' }, colorscale: [[0, '#0a3d91'], [.35, '#0a84ff'], [.5, isDark() ? '#1c1c1e' : '#f5f5f7'], [.65, '#ff9f0a'], [1, '#ff3b30']],
+      colorbar: { title: { text: 'φ (V)', side: 'right' }, thickness: 10, len: .9, tickfont: { size: 10 } }, hovertemplate: 'x %{x:.0f} mm, z %{y:.0f} mm<br>φ = %{z:.0f} V<extra></extra>' }],
+    lay({ shapes, margin: { l: 46, r: 10, t: 6, b: 38 }, xaxis: { title: 'r (mm, mirrored)', gridcolor: css('--sep'), range: [-45, 45] }, yaxis: { title: 'Z (mm)', gridcolor: css('--sep'), scaleanchor: 'x', range: [F.z[0], G.mcp.z_front + 4] } }), cfg);
+  $('pmap-note').textContent = `${V === 'v1' ? 'Voltage 1' : 'Voltage 2'}: Elmer solution in the plane through the axis (mirrored), equipotentials every 100 V; electrodes in grey, gas curtain in orange.`;
+  const tr = ['v1', 'v2'].map(v => ({ x: D.field[v].z, y: D.field[v].phi[0], mode: 'lines', name: v === 'v1' ? 'Voltage 1' : 'Voltage 2', line: { width: v === V ? 2.6 : 1.4, color: v === 'v1' ? '#0a84ff' : '#ff9f0a', dash: v === V ? 'solid' : 'dot' } }));
+  const ez = G.rings.map(r => r.z).concat([G.repeller.z, G.mcp.z_front]), ev = G.rings.map(r => r[V]).concat([G.repeller[V], V === 'v1' ? G.mcp.v1 : G.mcp.v2]);
+  tr.push({ x: ez, y: ev, mode: 'markers', name: 'electrode set voltage', marker: { size: 7, color: css('--text'), symbol: 'line-ew-open', line: { width: 2 } }, hovertemplate: 'z %{x:.1f} mm: %{y:.1f} V<extra></extra>' });
+  Plotly.react('p-paxis', tr, lay({ showlegend: true, legend: { orientation: 'h', y: 1.1, x: 0 }, xaxis: { title: 'Z (mm)', gridcolor: css('--sep') }, yaxis: { title: 'φ on axis (V)', gridcolor: css('--sep') },
+    shapes: [{ type: 'line', x0: 0, x1: 0, y0: 0, y1: 1, yref: 'paper', line: { color: '#ff9f0a', width: 1.5, dash: 'dot' } }],
+    annotations: [{ x: 0, y: 1, yref: 'paper', text: 'curtain', showarrow: false, font: { color: '#ff9f0a', size: 10 }, yanchor: 'bottom' }] }), cfg);
+}
+function restyle() { plots(); extras(); potential(); }
+document.querySelectorAll('#seg-v button').forEach(b => b.onclick = () => { V = b.dataset.v; document.querySelectorAll('#seg-v button').forEach(x => x.setAttribute('aria-pressed', x === b)); drawField(); setIons(); plots(); kpis(); potential(); });
+document.querySelectorAll('#seg-r button').forEach(b => b.onclick = () => { RAD = b.dataset.r; document.querySelectorAll('#seg-r button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  beamMesh.scale.set(+RAD, 1, +RAD); setIons(); plots(); kpis(); extras(); loop.lf = -1; });
+document.querySelector('[data-l="bg"]').addEventListener('change', plots);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', restyle);
+setTheme((() => { try { return localStorage.getItem('ipm-theme') || 'auto'; } catch (e) { return 'auto'; } })());
+beamMesh.scale.set(2.5, 1, 2.5); drawField(); plots(); kpis(); compare(); extras(); potential();
+</script>
+</body>
+</html>
