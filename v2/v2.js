@@ -342,6 +342,7 @@
                     ${authors ? `<span class="authors">${authors}</span>` : ''}
                     ${p.doi ? `<a class="doi" href="${doiUrl}" target="_blank" rel="noopener">doi:${esc(p.doi)}</a>` : ''}
                     ${p.url ? `<a class="doi" href="${esc(p.url)}" target="_blank" rel="noopener">${/researchgate/i.test(p.url) ? 'ResearchGate' : 'Read online'} ↗</a>` : ''}
+                    ${p.sim ? `<a class="doi sim" href="${esc(p.sim)}">${T('Reproduced in simulation')} ›</a>` : ''}
                 </div>`;
             }).join('')}
             </div>
@@ -371,7 +372,7 @@
                 const url = p.doi ? `https://doi.org/${encodeURI(p.doi)}` : (p.url || '');
                 const yr = i && more[i - 1].year === p.year ? '' : (p.year || '');    // year only on the first paper of that year
                 return `<li${yr ? ' class="pm-new"' : ''}><span class="pm-y">${yr}</span><div>${url ? `<a class="pm-t" href="${url}" target="_blank" rel="noopener">${esc(p.title)}</a>` : `<span class="pm-t">${esc(p.title)}</span>`}
-                    <span class="pm-m">${esc(p.v)}${p.doi ? ` · <a href="${url}" target="_blank" rel="noopener">doi:${esc(p.doi)}</a>` : ''}</span></div></li>`;
+                    <span class="pm-m">${esc(p.v)}${p.doi ? ` · <a href="${url}" target="_blank" rel="noopener">doi:${esc(p.doi)}</a>` : ''}${p.sim ? ` · <a href="${esc(p.sim)}">${T('Reproduced in simulation')} ›</a>` : ''}</span></div></li>`;
             }).join('')}</ol>`;
         moreEl.hidden = false;
     }

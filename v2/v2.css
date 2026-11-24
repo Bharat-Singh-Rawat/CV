@@ -310,6 +310,7 @@ a.title:hover { color: var(--link); text-decoration: underline; }
 .pub .doi { display: inline-block; margin-top: 3px; font-size: 0.82rem; color: var(--link); text-decoration: none; }
 .pub .doi:hover { text-decoration: underline; }
 .pub .doi + .doi { margin-left: 14px; }
+.pub .doi.sim { color: var(--warm); font-weight: 500; }   /* link to my own re-simulation of the paper */
 .station li a { color: var(--link); text-decoration: none; }
 .station li a:hover { text-decoration: underline; }
 
