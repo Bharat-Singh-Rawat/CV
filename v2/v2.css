@@ -1337,3 +1337,9 @@ html[data-theme="dark"] .clip-play { background: rgba(28, 28, 30, 0.72); color: 
 html[data-theme="dark"] .tilt-pill { background: rgba(44, 44, 46, 0.72); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.1); }
 .tilt-pill[hidden] { display: none; }
 @keyframes tilt-pill-in { from { opacity: 0; transform: translate(-50%, 6px); } }
+
+/* ---------- typography pass: balanced headings, no lone last words, kerning, aligned numbers ---------- */
+h1, h2, h3, h4 { text-wrap: balance; font-kerning: normal; }
+p, li, dd, figcaption, blockquote { text-wrap: pretty; hanging-punctuation: first; }
+body { text-rendering: optimizeLegibility; font-feature-settings: "kern" 1; }
+table, time, .num, [data-num] { font-variant-numeric: tabular-nums; }

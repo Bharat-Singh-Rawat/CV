@@ -383,3 +383,9 @@ html.locked, html.locked body { overflow: hidden; }
 #sfx-toggle { width: 32px; height: 32px; border-radius: 50%; border: 0; padding: 0; display: grid; place-items: center; cursor: pointer; background: var(--line); color: var(--text); }
 #sfx-toggle svg { width: 16px; height: 16px; }
 #sfx-toggle[aria-pressed="false"] { opacity: .5; }
+
+/* ---------- typography pass: balanced headings, no lone last words, kerning, aligned numbers ---------- */
+h1, h2, h3, h4 { text-wrap: balance; font-kerning: normal; }
+p, li, dd, figcaption, blockquote { text-wrap: pretty; hanging-punctuation: first; }
+body { text-rendering: optimizeLegibility; font-feature-settings: "kern" 1; }
+table, time, .num, [data-num] { font-variant-numeric: tabular-nums; }
