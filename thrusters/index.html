@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Electric Propulsion in Space: Flown Ion &amp; Hall Thrusters — Bharat Singh Rawat</title>
+<meta name="description" content="An interactive atlas of every gridded-ion and Hall-effect thruster that has flown in space, mission by mission, on an animated Earth: orbit, country, launch year, thruster model and its key parameters (specific impulse, thrust, power, beam and discharge voltage and current), each with sources.">
+<link rel="canonical" href="https://bharat-singh-rawat.github.io/CV/thrusters/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%235e5ce6'/%3E%3Ccircle cx='16' cy='16' r='7' fill='none' stroke='white' stroke-width='2.4'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='white'/%3E%3C/svg%3E">
+<script>
+  (function () { var t = null; try { t = localStorage.getItem('ep-theme'); } catch (e) {} if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; })();
+</script>
+<style>
+:root {
+  --bg: #f5f5f7; --card: rgba(255,255,255,.86); --card-solid: #fff; --text: #1d1d1f; --muted: #6e6e73;
+  --sep: rgba(0,0,0,.08); --sep2: rgba(0,0,0,.14); --accent: #0071e3; --accent-soft: rgba(0,113,227,.12);
+  --ion: #0a84ff; --hall: #bf5af2; --side: rgba(236,236,240,.72); --input: rgba(0,0,0,.045);
+  --shadow: 0 1px 2px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.06); --radius: 14px;
+  --space: #0b0d14; --font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif; color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #000; --card: rgba(28,28,30,.86); --card-solid: #1c1c1e; --text: #f5f5f7; --muted: #98989d; --sep: rgba(255,255,255,.08);
+  --sep2: rgba(255,255,255,.16); --accent: #0a84ff; --accent-soft: rgba(10,132,255,.18); --side: rgba(30,30,32,.72); --input: rgba(255,255,255,.07);
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 30px rgba(0,0,0,.35); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #000; --card: rgba(28,28,30,.86); --card-solid: #1c1c1e; --text: #f5f5f7; --muted: #98989d; --sep: rgba(255,255,255,.08);
+  --sep2: rgba(255,255,255,.16); --accent: #0a84ff; --accent-soft: rgba(10,132,255,.18); --side: rgba(30,30,32,.72); --input: rgba(255,255,255,.07);
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 30px rgba(0,0,0,.35); color-scheme: dark; }
+* { box-sizing: border-box; } [hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); font-size: 13.5px; -webkit-font-smoothing: antialiased; letter-spacing: -.005em;
+  background-image: radial-gradient(1200px 600px at 85% -10%, var(--accent-soft), transparent 60%); }
+.window { display: flex; height: 100vh; }
+.sidebar { width: 290px; flex: none; background: var(--side); backdrop-filter: saturate(180%) blur(24px); -webkit-backdrop-filter: saturate(180%) blur(24px);
+  border-right: 1px solid var(--sep); display: flex; flex-direction: column; padding: 14px 12px; gap: 4px; overflow: auto; }
+.traffic { display: flex; gap: 8px; padding: 2px 6px 14px; }
+.traffic span { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; } .traffic span:nth-child(2) { background: #febc2e; } .traffic span:nth-child(3) { background: #28c840; }
+.brand { display: flex; align-items: center; gap: 10px; padding: 2px 6px 12px; }
+.brand .logo { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 12px; background: linear-gradient(135deg, #0a84ff, #bf5af2); }
+.brand b { display: block; font-size: 14px; } .brand small { color: var(--muted); font-size: 11.5px; }
+.group { margin: 10px 6px 4px; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .02em; display: flex; justify-content: space-between; }
+.seg { display: flex; background: var(--input); border-radius: 9px; padding: 2px; margin: 0 4px; flex-wrap: wrap; }
+.seg button { flex: 1; border: 0; background: none; color: var(--text); font: inherit; font-size: 12.5px; padding: 5px 6px; border-radius: 7px; cursor: pointer; white-space: nowrap; }
+.seg button[aria-pressed="true"] { background: var(--card-solid); box-shadow: 0 1px 3px rgba(0,0,0,.12); font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 4px; }
+.chip { border: 1px solid var(--sep2); background: var(--card-solid); color: var(--text); font: inherit; font-size: 12px; padding: 3px 8px; border-radius: 980px; cursor: pointer; }
+.chip[aria-pressed="false"] { opacity: .38; }
+.search { margin: 2px 4px 4px; border: 1px solid var(--sep2); background: var(--card-solid); color: var(--text); font: inherit; font-size: 12.5px; padding: 6px 9px; border-radius: 8px; }
+.list { margin: 0 4px; min-height: 160px; flex: 1; overflow: auto; border-radius: 9px; background: var(--input); padding: 3px; }
+.item { display: flex; align-items: center; gap: 8px; padding: 5px 7px; border-radius: 6px; cursor: pointer; font-size: 12.5px; }
+.item:hover { background: var(--card-solid); }
+.item .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .item.sel { background: var(--accent-soft); }
+.item .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; } .item small { margin-left: auto; color: var(--muted); font-size: 11px; white-space: nowrap; }
+.flag { font-size: 15px; line-height: 1; } .flag.txt { font-size: 9.5px; font-weight: 700; padding: 1px 3px; border-radius: 3px; background: #c8102e; color: #ffd700; }
+.tag { font-size: 10px; font-weight: 600; padding: 1px 5px; border-radius: 5px; background: var(--input); color: var(--muted); }
+.timeline { display: flex; gap: 6px; align-items: center; margin: 0 4px; }
+.timeline input { flex: 1; accent-color: var(--accent); } .timeline b { font-variant-numeric: tabular-nums; min-width: 34px; text-align: right; }
+.play { border: 1px solid var(--sep2); background: var(--card-solid); color: var(--text); border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-size: 11px; }
+.theme { display: flex; gap: 2px; background: var(--input); border-radius: 8px; padding: 2px; margin: 10px 4px 0; }
+.theme button { flex: 1; border: 0; background: none; color: var(--muted); font: inherit; font-size: 12px; padding: 4px; border-radius: 6px; cursor: pointer; }
+.theme button[aria-pressed="true"] { background: var(--card-solid); color: var(--text); }
+main { flex: 1; overflow: auto; padding: 22px 26px 40px; }
+.back { color: var(--accent); text-decoration: none; font-size: 13px; }
+h1 { margin: 8px 0 0; font-size: 26px; letter-spacing: -.025em; }
+.sub { margin: 4px 0 14px; color: var(--muted); font-size: 13.5px; max-width: 92ch; line-height: 1.5; }
+.stage { position: relative; height: 620px; border-radius: var(--radius); overflow: hidden; background: radial-gradient(circle at 50% 45%, #141a2e 0%, var(--space) 70%); box-shadow: var(--shadow); }
+.stage canvas { display: block; width: 100%; height: 100%; }
+.hud { position: absolute; left: 14px; top: 12px; color: #e8eaf2; font-size: 12px; pointer-events: none; line-height: 1.5; }
+.hud b { font-size: 13px; } .legend { position: absolute; left: 14px; bottom: 12px; color: #c9cdd8; font-size: 11.5px; display: flex; gap: 14px; pointer-events: none; }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+.counter { position: absolute; right: 14px; bottom: 12px; color: #c9cdd8; font-size: 11.5px; pointer-events: none; text-align: right; }
+.inset { position: absolute; right: 12px; top: 12px; width: 230px; height: 170px; border-radius: 12px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); backdrop-filter: blur(6px); }
+.inset span { position: absolute; left: 10px; top: 7px; color: #c9cdd8; font-size: 11px; pointer-events: none; }
+@media (max-width: 860px) { .inset { width: 150px; height: 115px; } }
+.tip { position: absolute; pointer-events: none; background: rgba(20,22,30,.9); color: #fff; font-size: 12px; padding: 5px 8px; border-radius: 7px; transform: translate(12px, -50%); white-space: nowrap; }
+.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--sep); padding: 16px 18px; margin-top: 14px; }
+.card h2 { margin: 0; font-size: 19px; letter-spacing: -.02em; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.card h3 { margin: 14px 0 6px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.card p { margin: 6px 0; line-height: 1.55; max-width: 100ch; }
+.kv { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; margin-top: 10px; }
+.kv div { background: var(--input); border-radius: 10px; padding: 8px 10px; } .kv span { display: block; color: var(--muted); font-size: 11px; }
+.kv b { font-size: 14px; font-variant-numeric: tabular-nums; } .kv sup.s { color: var(--accent); font-size: 9px; }
+.src { margin: 6px 0 0; padding-left: 18px; font-size: 12px; line-height: 1.55; word-break: break-word; } .src a { color: var(--accent); }
+.fine { color: var(--muted); font-size: 11.5px; line-height: 1.5; }
+.conf { font-size: 10.5px; padding: 1px 6px; border-radius: 6px; font-weight: 600; } .conf.high { background: rgba(48,209,88,.16); color: #1f9d48; }
+.conf.medium { background: rgba(255,159,10,.16); color: #c27400; } .conf.low { background: rgba(255,69,58,.16); color: #d1342b; }
+table.models { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; margin-top: 8px; }
+table.models th, table.models td { text-align: left; padding: 6px 7px; border-bottom: 1px solid var(--sep); white-space: nowrap; }
+table.models th { color: var(--muted); font-weight: 600; font-size: 11px; position: sticky; top: 0; background: var(--card-solid); cursor: pointer; }
+table.models tr:hover td { background: var(--input); } .tblwrap { max-height: 420px; overflow: auto; }
+@media (max-width: 860px) {
+  html, body { height: auto; } .window { display: flex; flex-direction: column-reverse; height: auto; }
+  .sidebar { width: auto; border-right: 0; border-top: 1px solid var(--sep); } .sidebar .traffic, .sidebar .brand { display: none; }
+  .counter { display: none; } .legend span:last-child { display: none; }
+  .list { max-height: 230px; flex: none; } main { padding: 14px 12px 40px; overflow: visible; } .stage { height: 440px; } h1 { font-size: 22px; }
+}
+</style>
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+<script src="vendor/globe-dots.js"></script>
+</head>
+<body>
+<div class="window">
+  <aside class="sidebar">
+    <div class="traffic"><span></span><span></span><span></span></div>
+    <div class="brand"><div class="logo">EP</div><div><b>EP in Space</b><small>flown ion &amp; Hall thrusters</small></div></div>
+    <div class="group">Thruster type</div>
+    <div class="seg" id="f-type"><button data-v="all" aria-pressed="true">All</button><button data-v="ion" aria-pressed="false">Gridded ion</button><button data-v="hall" aria-pressed="false">Hall</button></div>
+    <div class="group">Orbit</div>
+    <div class="chips" id="f-orbit"></div>
+    <div class="group">Country</div>
+    <div class="chips" id="f-country"></div>
+    <div class="group"><span>Launched up to</span><span id="n-shown"></span></div>
+    <div class="timeline"><button class="play" id="play" aria-label="Play the timeline" title="Play">▶</button><input type="range" id="year"><b id="year-l"></b></div>
+    <div class="group">Missions</div>
+    <input class="search" id="q" placeholder="Search mission, thruster, country">
+    <div class="list" id="list"></div>
+    <div class="theme" id="theme"><button data-t="light" aria-label="Light theme" title="Light">☀︎</button><button data-t="auto" aria-label="Automatic theme" title="Automatic">A</button><button data-t="dark" aria-label="Dark theme" title="Dark">☾</button></div>
+  </aside>
+  <main>
+    <a class="back" href="/CV/">‹ Bharat Singh Rawat · CV</a> <span class="fine" style="margin-left:10px">Open data: <a class="back" href="/CV/yields/">Yield Explorer ›</a> · <a class="back" href="/CV/fc-atlas/">Faraday Cup Atlas ›</a></span>
+    <h1>Electric propulsion in space: every flown ion and Hall thruster</h1>
+    <p class="sub">Each spacecraft (or series, or constellation) that has flown a gridded ion engine or a Hall-effect thruster, placed on its orbit around an animated Earth. Blue: gridded ion engines (accelerating grids, ion beam). Violet: Hall thrusters (annular channel, plasma plume). Click a spacecraft or a list entry for its thruster, the thruster's key parameters and the sources.</p>
+    <div class="stage" id="stage">
+      <div class="hud" id="hud"></div>
+      <div class="legend"><span><i style="background:var(--ion)"></i>Gridded ion</span><span><i style="background:var(--hall)"></i>Hall</span><span>Orbit radii compressed, not to scale</span></div>
+      <div class="counter" id="counter"></div>
+      <div class="tip" id="tip" hidden></div>
+      <div class="inset" id="inset"><span id="inset-l"></span></div>
+    </div>
+    <section class="card" id="detail"></section>
+    <section class="card">
+      <h2>Thruster models and key parameters</h2>
+      <p class="fine">Nominal operating point unless noted; ranges show the throttle range. Ion engines: beam voltage = energy per singly charged beam ion (eV). Hall thrusters: discharge voltage and current. Every value links to its source; empty cells were not found in a citable source.</p>
+      <div class="tblwrap"><table class="models" id="models"></table></div>
+    </section>
+    <section class="card">
+      <h2>About the data</h2>
+      <p id="about"></p>
+      <p class="fine">Compiled from agency, manufacturer and peer-reviewed sources (IEPC, AIAA and journal papers), listed on every entry. Constellations are shown as one entry tagged <b>cluster</b>; families of near-identical satellites as one entry tagged <b>series</b>. Orbit placement and inclinations in the animation are illustrative. Please report any error.</p>
+    </section>
+  </main>
+</div>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from './vendor/OrbitControls.js';
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const [M, MOD] = await Promise.all(['missions', 'models'].map(n => fetch('data/' + n + '.json').then(r => r.json())));
+const MODELS = Object.fromEntries(MOD.models.map(m => [m.model, m]));
+const ORBITS = ['LEO', 'MEO', 'GEO', 'HEO', 'Lunar', 'Deep space', 'Suborbital'];
+const COL = { ion: 0x0a84ff, hall: 0xbf5af2 };
+
+// ---------- flags ----------
+const NAMES = { SU: 'USSR', EU: 'ESA / Europe', INT: 'Multinational' };
+const flag = cc => {
+  if (cc === 'SU') return '<span class="flag txt" title="USSR">USSR</span>';
+  if (cc === 'INT') return '<span class="flag" title="Multinational operators">🌐</span>';
+  if (!/^[A-Z]{2}$/.test(cc)) return '';
+  const f = String.fromCodePoint(...[...cc].map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
+  let nm = NAMES[cc]; try { nm = nm || new Intl.DisplayNames(['en'], { type: 'region' }).of(cc); } catch (e) {}
+  return `<span class="flag" title="${esc(nm || cc)}">${f}</span>`;
+};
+const cname = cc => { try { return NAMES[cc] || new Intl.DisplayNames(['en'], { type: 'region' }).of(cc); } catch (e) { return cc; } };
+const yearOf = d => +String(d || '').slice(0, 4) || null;
+
+// ---------- data ----------
+const ms = M.missions.map((m, i) => ({ ...m, id: i, year: yearOf(m.launch) }));
+ms.sort((a, b) => (a.year || 9999) - (b.year || 9999) || a.name.localeCompare(b.name));
+const years = ms.flatMap(m => [m.year, yearOf(m.launch_last)]).filter(Boolean);
+const Y0 = Math.min(...years), Y1 = Math.max(...years);
+const S = { type: 'all', orbits: new Set(ORBITS), countries: new Set(ms.map(m => m.country)), year: Y1, q: '', sel: null };
+
+// ---------- three.js scene ----------
+const stage = $('#stage');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+stage.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 200);
+camera.position.set(0, 2.6, 11.5);
+const controls = new OrbitControls(camera, renderer.domElement);
+let dragging = false; controls.addEventListener('start', () => { dragging = true; }); controls.addEventListener('end', () => { dragging = false; wantDist = camera.position.length(); });
+controls.enableDamping = true; controls.minDistance = 1.6; controls.maxDistance = 40; controls.enablePan = false;
+scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(5, 3, 4); scene.add(sun);
+// starfield
+{ const g = new THREE.BufferGeometry(), n = 1500, p = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { const r = 60 + Math.random() * 40, t = Math.random() * Math.PI * 2, u = Math.acos(2 * Math.random() - 1);
+    p.set([r * Math.sin(u) * Math.cos(t), r * Math.cos(u), r * Math.sin(u) * Math.sin(t)], i * 3); }
+  g.setAttribute('position', new THREE.BufferAttribute(p, 3));
+  scene.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0x9aa3b8, size: 0.12, sizeAttenuation: true }))); }
+// Earth: dark ocean sphere + land dots (Natural Earth, as on the CV career globe)
+const earth = new THREE.Group(); scene.add(earth);
+earth.add(new THREE.Mesh(new THREE.SphereGeometry(0.995, 64, 48), new THREE.MeshPhongMaterial({ color: 0x14254a, emissive: 0x060b18, shininess: 12 })));
+{ const D = window.GLOBE_DOTS, n = D.length / 2, p = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { const la = D[2 * i] * Math.PI / 180, lo = D[2 * i + 1] * Math.PI / 180;
+    p.set([Math.cos(la) * Math.cos(lo), Math.sin(la), -Math.cos(la) * Math.sin(lo)], i * 3); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(p, 3));
+  earth.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0x7fb0ff, size: 0.022 }))); }
+earth.add(new THREE.Mesh(new THREE.SphereGeometry(1.06, 48, 32), new THREE.MeshBasicMaterial({ color: 0x3d7bff, transparent: true, opacity: 0.08, side: THREE.BackSide })));
+// Moon
+const moon = new THREE.Mesh(new THREE.SphereGeometry(0.27, 32, 24), new THREE.MeshPhongMaterial({ color: 0x9a9a9a, emissive: 0x111111 }));
+scene.add(moon);
+const R = { LEO: 1.18, MEO: 1.95, GEO: 3.1, HEO: [1.25, 3.6], Lunar: 5.4, Suborbital: 1.04 };
+// orbit guide rings
+const ringMat = new THREE.LineBasicMaterial({ color: 0x8896b8, transparent: true, opacity: 0.22 });
+const ring = (r, inc = 0) => { const pts = []; for (let k = 0; k <= 128; k++) { const t = k / 128 * Math.PI * 2; pts.push(new THREE.Vector3(r * Math.cos(t), 0, r * Math.sin(t))); }
+  const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), ringMat); l.rotation.x = inc; return l; };
+[R.LEO, R.MEO, R.GEO].forEach(r => scene.add(ring(r)));
+scene.add(ring(R.Lunar));
+// orbit labels
+const label = (txt, pos) => { const c = document.createElement('canvas'); c.width = 256; c.height = 64; const x = c.getContext('2d');
+  x.font = '600 30px -apple-system, Segoe UI, sans-serif'; x.fillStyle = 'rgba(200,210,235,.75)'; x.fillText(txt, 6, 42);
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false })); s.scale.set(0.8, 0.2, 1); s.position.copy(pos); scene.add(s); };
+label('LEO', new THREE.Vector3(R.LEO + 0.2, 0.06, 0)); label('MEO', new THREE.Vector3(R.MEO + 0.2, 0.06, 0)); label('GEO', new THREE.Vector3(R.GEO + 0.25, 0.06, 0));
+label('Moon orbit', new THREE.Vector3(R.Lunar + 0.3, 0.06, 0)); label('→ deep space', new THREE.Vector3(7.2, 0.6, -2.5));
+
+// ---------- spacecraft models ----------
+const gold = new THREE.MeshStandardMaterial({ color: 0xd4a73c, metalness: 0.6, roughness: 0.35 });
+const panelMat = new THREE.MeshStandardMaterial({ color: 0x1b3a8c, metalness: 0.3, roughness: 0.5, emissive: 0x050c22 });
+const steel = new THREE.MeshStandardMaterial({ color: 0xb8bcc6, metalness: 0.8, roughness: 0.3 });
+function gridTexture() {   // ion-engine grid: hexagonal hole pattern
+  const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d');
+  x.fillStyle = '#9aa3b2'; x.beginPath(); x.arc(64, 64, 62, 0, Math.PI * 2); x.fill(); x.fillStyle = '#1b2233';
+  for (let j = -9; j <= 9; j++) for (let i = -9; i <= 9; i++) { const px = 64 + (i + (j & 1) * 0.5) * 7, py = 64 + j * 6.1;
+    if ((px - 64) ** 2 + (py - 64) ** 2 < 54 ** 2) { x.beginPath(); x.arc(px, py, 2.3, 0, Math.PI * 2); x.fill(); } }
+  return new THREE.CanvasTexture(c);
+}
+const GRID = gridTexture();
+function plumeMat(color, op) { return new THREE.MeshBasicMaterial({ color, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }); }
+function thruster(type) {   // points along -X (exhaust towards -X)
+  const g = new THREE.Group();
+  if (type === 'ion') {
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.09, 0.16, 32), steel); body.rotation.z = Math.PI / 2; g.add(body);
+    const grid = new THREE.Mesh(new THREE.CircleGeometry(0.11, 40), new THREE.MeshStandardMaterial({ map: GRID, metalness: 0.7, roughness: 0.35 }));
+    grid.rotation.y = -Math.PI / 2; grid.position.x = -0.081; g.add(grid);
+    const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.105, 0.2, 0.9, 32, 1, true), plumeMat(0x3fa0ff, 0.22)); beam.rotation.z = -Math.PI / 2; beam.position.x = -0.53; g.add(beam);
+    const core = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.13, 0.6, 24, 1, true), plumeMat(0x9fd0ff, 0.22)); core.rotation.z = -Math.PI / 2; core.position.x = -0.38; g.add(core);
+    g.userData.plumes = [beam, core];
+  } else {
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.12, 40), steel); body.rotation.z = Math.PI / 2; g.add(body);
+    const chan = new THREE.Mesh(new THREE.RingGeometry(0.055, 0.095, 48), new THREE.MeshBasicMaterial({ color: 0xd98cff, side: THREE.DoubleSide }));
+    chan.rotation.y = -Math.PI / 2; chan.position.x = -0.062; g.add(chan);
+    const pole = new THREE.Mesh(new THREE.CircleGeometry(0.05, 32), new THREE.MeshStandardMaterial({ color: 0x2a2d35, metalness: 0.5 }));
+    pole.rotation.y = -Math.PI / 2; pole.position.x = -0.063; g.add(pole);
+    const cath = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.1, 12), steel); cath.rotation.z = Math.PI / 2; cath.position.set(-0.04, 0.15, 0); g.add(cath);
+    const plume = new THREE.Mesh(new THREE.CylinderGeometry(0.095, 0.42, 0.8, 40, 1, true), plumeMat(0xb45cff, 0.22)); plume.rotation.z = -Math.PI / 2; plume.position.x = -0.46; g.add(plume);
+    const inner = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.2, 0.55, 32, 1, true), plumeMat(0xe4b8ff, 0.18)); inner.rotation.z = -Math.PI / 2; inner.position.x = -0.34; g.add(inner);
+    const halo = new THREE.Mesh(new THREE.TorusGeometry(0.075, 0.03, 12, 48), plumeMat(0xe0a6ff, 0.55)); halo.rotation.y = Math.PI / 2; halo.position.x = -0.09; g.add(halo);
+    g.userData.plumes = [plume, inner, halo];
+  }
+  return g;
+}
+function spacecraft(type) {
+  const s = new THREE.Group();
+  const bus = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.3, 0.3), gold); s.add(bus);
+  for (const z of [-1, 1]) { const w = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.012, 0.62), panelMat); w.position.set(0, 0, z * 0.48); s.add(w);
+    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.18, 8), steel); arm.rotation.x = Math.PI / 2; arm.position.set(0, 0, z * 0.2); s.add(arm); }
+  const dish = new THREE.Mesh(new THREE.SphereGeometry(0.12, 24, 12, 0, Math.PI * 2, 0, Math.PI / 3), new THREE.MeshStandardMaterial({ color: 0xe8e8ee, side: THREE.DoubleSide }));
+  dish.position.set(0.05, 0.2, 0); s.add(dish);
+  const t = thruster(type); t.position.x = -0.25; s.add(t); s.userData.thr = t;
+  return s;
+}
+
+// ---------- place missions ----------
+const hash = s => { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return (h >>> 0) / 4294967296; };
+const objs = [];
+const pick = [];
+for (const m of ms) {
+  const h1 = hash(m.name), h2 = hash(m.name + '#');
+  const o = { m, phase: h1 * Math.PI * 2, inc: m.orbit === 'GEO' ? 0 : (h2 - 0.5) * 1.4, node: hash(m.name + '$') * Math.PI * 2 };
+  o.speed = { LEO: 0.55, Suborbital: 0.55, MEO: 0.22, GEO: 0.09, HEO: 0.18, Lunar: 0.05, 'Deep space': 0.05 }[m.orbit] || 0.1;
+  o.dot = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 8), new THREE.MeshBasicMaterial({ color: COL[m.thruster_type] }));
+  o.dot.userData.o = o; scene.add(o.dot); pick.push(o.dot);
+  o.trail = null;
+  if (m.kind === 'cluster') {   // swarm of tiny dots on the shell
+    const n = Math.min(240, Math.max(30, (m.count || 60) / 20 | 0)), p = new Float32Array(n * 3);
+    o.swarm = new THREE.Points(new THREE.BufferGeometry(), new THREE.PointsMaterial({ color: COL[m.thruster_type], size: 0.04, transparent: true, opacity: 0.9 }));
+    o.swarmData = Array.from({ length: n }, (_, k) => ({ ph: hash(m.name + k) * 6.283, inc: (hash(m.name + 'i' + k) - 0.5) * 1.9, nd: hash(m.name + 'n' + k) * 6.283 }));
+    o.swarm.geometry.setAttribute('position', new THREE.BufferAttribute(p, 3)); scene.add(o.swarm);
+  }
+  objs.push(o);
+}
+const v = new THREE.Vector3();
+function posAt(o, t, out) {
+  const m = o.m;
+  if (m.orbit === 'Deep space') {         // spiral out from Earth, then loop
+    const u = ((t * o.speed + o.phase / 6.283) % 1), r = 1.3 + u * 7.5, a = o.phase + u * 6;
+    out.set(r * Math.cos(a), Math.sin(o.node) * u * 2.2, r * Math.sin(a)); return out;
+  }
+  if (m.orbit === 'Lunar') {              // around the Moon
+    const a = t * 0.9 + o.phase; out.copy(moon.position).add(new THREE.Vector3(0.5 * Math.cos(a), 0.18 * Math.sin(a * 1.3), 0.5 * Math.sin(a))); return out;
+  }
+  let r = R[m.orbit] || R.LEO, a = o.phase + t * o.speed;
+  if (m.orbit === 'HEO') { const e = 0.48, rp = 1.25, ra = 3.6; const E = a; r = (rp + ra) / 2 * (1 - e * Math.cos(E)); }
+  out.set(r * Math.cos(a), 0, r * Math.sin(a));
+  out.applyAxisAngle(new THREE.Vector3(1, 0, 0), o.inc).applyAxisAngle(new THREE.Vector3(0, 1, 0), o.node);
+  return out;
+}
+// pulsing ring on the selected spacecraft
+const hl = new THREE.Mesh(new THREE.RingGeometry(0.1, 0.125, 48), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthTest: false }));
+hl.renderOrder = 10; scene.add(hl);
+// the detailed model follows the selected spacecraft
+let model = null, modelType = null;
+function setModel(type) { if (model) scene.remove(model); model = spacecraft(type); model.scale.setScalar(0.42); modelType = type; scene.add(model); }
+
+// ---------- filtering + list ----------
+const visible = m => (S.type === 'all' || m.thruster_type === S.type) && S.orbits.has(m.orbit) && S.countries.has(m.country) && (!m.year || m.year <= S.year)
+  && (!S.q || `${m.name} ${(m.members || []).join(' ')} ${m.thruster} ${cname(m.country)} ${m.thruster_country ? cname(m.thruster_country) : ''} ${m.agency_or_operator || ''}`.toLowerCase().includes(S.q));
+function renderList() {
+  const vis = ms.filter(visible);
+  $('#list').innerHTML = vis.map(m => `<div class="item${S.sel === m.id ? ' sel' : ''}" data-id="${m.id}"><i class="dot" style="background:${m.thruster_type === 'ion' ? 'var(--ion)' : 'var(--hall)'}"></i>${flag(m.country)} <span class="nm" title="${esc(m.name)}">${esc(m.name)}</span>${m.kind !== 'single' ? ` <span class="tag">${m.kind}${m.count ? ' ×' + m.count.toLocaleString('en') : ''}</span>` : ''}<small>${m.year || ''} · ${esc(m.orbit)}</small></div>`).join('') || '<div class="fine" style="padding:8px">No mission matches the filters.</div>';
+  $$('#list .item').forEach(e => e.onclick = () => select(+e.dataset.id));
+  const nIon = vis.filter(m => m.thruster_type === 'ion').length;
+  $('#n-shown').textContent = `${vis.length} shown`;
+  $('#counter').innerHTML = `${vis.length} entries (${nIon} ion, ${vis.length - nIon} Hall)<br>${vis.reduce((s, m) => s + (m.count || 1), 0).toLocaleString('en')} spacecraft · up to ${S.year}`;
+  for (const o of objs) { const on = visible(o.m); o.dot.visible = on; if (o.swarm) o.swarm.visible = on; }
+}
+const seg = (id, key) => $$(`#${id} button`).forEach(b => b.onclick = () => { S[key] = b.dataset.v; $$(`#${id} button`).forEach(x => x.setAttribute('aria-pressed', x === b)); renderList(); });
+seg('f-type', 'type');
+const orbitsPresent = ORBITS.filter(o => ms.some(m => m.orbit === o));
+$('#f-orbit').innerHTML = orbitsPresent.map(o => `<button class="chip" data-v="${o}" aria-pressed="true">${o}</button>`).join('');
+$$('#f-orbit .chip').forEach(b => b.onclick = () => { const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', on); on ? S.orbits.add(b.dataset.v) : S.orbits.delete(b.dataset.v); renderList(); });
+const ccs = [...new Set(ms.map(m => m.country))].sort((a, b) => cname(a).localeCompare(cname(b)));
+$('#f-country').innerHTML = ccs.map(c => `<button class="chip" data-v="${c}" aria-pressed="true" title="${esc(cname(c))}">${flag(c)} ${c === 'SU' ? '' : c}</button>`).join('');
+$$('#f-country .chip').forEach(b => b.onclick = () => { const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', on); on ? S.countries.add(b.dataset.v) : S.countries.delete(b.dataset.v); renderList(); });
+$('#year').min = Y0; $('#year').max = Y1; $('#year').value = Y1; $('#year-l').textContent = Y1;
+$('#year').oninput = e => { S.year = +e.target.value; $('#year-l').textContent = S.year; renderList(); };
+let playing = null;
+$('#play').onclick = () => {
+  if (playing) { clearInterval(playing); playing = null; $('#play').textContent = '▶'; return; }
+  S.year = Y0; $('#play').textContent = '❚❚';
+  playing = setInterval(() => { S.year++; if (S.year >= Y1) { S.year = Y1; clearInterval(playing); playing = null; $('#play').textContent = '▶'; }
+    $('#year').value = S.year; $('#year-l').textContent = S.year; renderList(); }, 380);
+};
+$('#q').oninput = e => { S.q = e.target.value.trim().toLowerCase(); renderList(); };
+
+// ---------- detail card ----------
+const PARAMS = [['power_W', 'Input power', 'W'], ['thrust_mN', 'Thrust', 'mN'], ['isp_s', 'Specific impulse', 's'], ['efficiency_pct', 'Total efficiency', '%'],
+  ['beam_voltage_V', 'Beam voltage (≈ beam energy, eV per ion)', 'V'], ['beam_current_A', 'Beam current', 'A'], ['accel_voltage_V', 'Accelerator grid voltage', 'V'],
+  ['grid_diameter_cm', 'Grid diameter', 'cm'], ['discharge_voltage_V', 'Discharge voltage', 'V'], ['discharge_current_A', 'Discharge current', 'A'],
+  ['channel_diameter_mm', 'Channel outer diameter', 'mm'], ['mass_kg', 'Thruster mass', 'kg'], ['demonstrated_life', 'Demonstrated life', '']];
+const fmtV = p => p == null ? '' : Array.isArray(p.v) ? `${p.v[0]}–${p.v[1]}` : String(p.v);
+function modelsOf(m) { return (m.models || []).map(k => MODELS[k]).filter(Boolean); }
+function select(id) {
+  S.sel = id; const m = ms.find(x => x.id === id); renderList();
+  const md = modelsOf(m);
+  if (modelType !== m.thruster_type) { setModel(m.thruster_type); setInset(m.thruster_type); }
+  wantDist = (m.orbit === 'Lunar' || m.orbit === 'Deep space') ? 17 : 11.5;
+  let html = `<h2>${flag(m.country)} ${esc(m.name)} <span class="tag">${m.thruster_type === 'ion' ? 'Gridded ion' : 'Hall'}</span>${m.kind !== 'single' ? `<span class="tag">${m.kind}${m.count ? ' · ' + m.count.toLocaleString('en') + ' spacecraft' : ''}</span>` : ''}<span class="conf ${esc(m.confidence)}">${esc(m.confidence)} confidence</span></h2>
+    <div class="kv"><div><span>Country</span><b>${esc(cname(m.country))}</b></div><div><span>Operator / agency</span><b>${esc(m.agency_or_operator)}</b></div>
+    <div><span>Launch</span><b>${esc(m.launch)}${m.launch_last ? ' – ' + esc(m.launch_last) : ''}</b></div><div><span>Orbit</span><b>${esc(m.orbit)}</b></div>
+    <div><span>Thruster${m.thruster_country ? ' (built in ' + esc(cname(m.thruster_country)) + ')' : ''}</span><b>${m.thruster_country ? flag(m.thruster_country) + ' ' : ''}${esc(m.thruster)}${m.n_thrusters ? ' ×' + m.n_thrusters : ''}</b></div><div><span>Role</span><b style="font-size:12.5px">${esc(m.target_or_role)}</b></div></div>
+    ${m.status ? `<p><b>Status:</b> ${esc(m.status)}</p>` : ''}${m.flight_performance ? `<p><b>In flight:</b> ${esc(m.flight_performance)}</p>` : ''}
+    ${m.kind !== 'single' && m.members && m.members.length ? `<p class="fine"><b>${m.kind === 'cluster' ? 'Constellation' : 'Members'}:</b> ${m.members.map(esc).join(', ')}</p>` : ''}
+    ${m.notes ? `<p class="fine">${esc(m.notes)}</p>` : ''}`;
+  for (const d of md) {
+    html += `<h3>${esc(d.model)} — ${esc(d.manufacturer || '')} ${flag(d.country)} · ${esc(d.propellant || '')}</h3><div class="kv">` +
+      PARAMS.filter(([k]) => d.params && d.params[k]).map(([k, lab, u]) => { const p = d.params[k];
+        return `<div><span>${lab}</span><b>${esc(fmtV(p))}${u && k !== 'demonstrated_life' ? ' ' + u : ''}</b> <sup class="s"><a href="${esc(d.sources[p.src] || '#')}" target="_blank" rel="noopener">[${(p.src ?? 0) + 1}]</a></sup>${p.note ? `<div class="fine">${esc(p.note)}</div>` : ''}</div>`; }).join('') +
+      `</div><ol class="src">${(d.sources || []).map(u => `<li><a href="${esc(u)}" target="_blank" rel="noopener">${esc(u)}</a></li>`).join('')}</ol>`;
+  }
+  if (!md.length) html += `<p class="fine">No parameter record: the exact thruster model is not confirmed in the sources, or no citable parameter set was found for it.</p>`;
+  html += `<h3>Mission sources</h3><ol class="src">${(m.sources || []).map(u => `<li><a href="${esc(u)}" target="_blank" rel="noopener">${esc(u)}</a></li>`).join('')}</ol>`;
+  $('#detail').innerHTML = html;
+}
+
+// ---------- models table ----------
+const COLS = [['model', 'Model'], ['type', 'Type'], ['country', ''], ['propellant', 'Prop.'], ['power_W', 'P (W)'], ['thrust_mN', 'F (mN)'], ['isp_s', 'Isp (s)'], ['efficiency_pct', 'η (%)'],
+  ['beam_voltage_V', 'V_beam (V)'], ['beam_current_A', 'I_beam (A)'], ['discharge_voltage_V', 'V_d (V)'], ['discharge_current_A', 'I_d (A)'], ['mass_kg', 'Mass (kg)']];
+function renderModels() {
+  $('#models').innerHTML = `<tr>${COLS.map(([, l]) => `<th>${l}</th>`).join('')}</tr>` + MOD.models.map(d => `<tr>${COLS.map(([k]) => {
+    if (k === 'model') return `<td><b>${esc(d.model)}</b></td>`; if (k === 'type') return `<td>${d.type === 'ion' ? 'Ion' : 'Hall'}</td>`;
+    if (k === 'country') return `<td>${flag(d.country)}</td>`; if (k === 'propellant') return `<td>${esc(d.propellant || '')}</td>`;
+    const p = d.params && d.params[k]; return `<td>${p ? `<a href="${esc(d.sources[p.src] || '#')}" target="_blank" rel="noopener" style="color:inherit">${esc(fmtV(p))}</a>` : ''}</td>`; }).join('')}</tr>`).join('');
+}
+renderModels();
+$('#about').innerHTML = `${ms.length} entries (${ms.reduce((s, m) => s + (m.count || 1), 0).toLocaleString('en')} spacecraft) from ${Y0} to ${Y1}, ${MOD.models.length} thruster models. Last updated ${esc(M.updated || '')}.`;
+
+// ---------- close-up of the selected thruster ----------
+const inset = $('#inset'), ir = new THREE.WebGLRenderer({ antialias: true, alpha: true }); ir.setPixelRatio(Math.min(devicePixelRatio, 2)); inset.prepend(ir.domElement);
+const iscene = new THREE.Scene(), icam = new THREE.PerspectiveCamera(35, 230 / 170, 0.01, 20); icam.position.set(-0.75, 0.42, 1.15); icam.lookAt(-0.45, 0.08, 0);
+iscene.add(new THREE.AmbientLight(0xffffff, 0.7)); const il = new THREE.DirectionalLight(0xffffff, 1.5); il.position.set(1, 1, 2); iscene.add(il);
+let ithr = null;
+function setInset(type) { if (ithr) iscene.remove(ithr); ithr = thruster(type); iscene.add(ithr);
+  $('#inset-l').textContent = type === 'ion' ? 'Gridded ion engine: grids + ion beam' : 'Hall thruster: annular channel + plume'; }
+function insetSize() { const w = inset.clientWidth, h = inset.clientHeight; ir.setSize(w, h, false); icam.aspect = w / h; icam.updateProjectionMatrix(); }
+addEventListener('resize', insetSize); insetSize();
+
+// ---------- picking / hover ----------
+const ray = new THREE.Raycaster(), mouse = new THREE.Vector2(); ray.params.Points = { threshold: 0.05 };
+renderer.domElement.addEventListener('pointermove', e => {
+  const r = renderer.domElement.getBoundingClientRect(); mouse.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
+  ray.setFromCamera(mouse, camera); const hit = ray.intersectObjects(pick.filter(p => p.visible))[0];
+  const tip = $('#tip');
+  if (hit) { const m = hit.object.userData.o.m; tip.hidden = false; tip.style.left = (e.clientX - r.left) + 'px'; tip.style.top = (e.clientY - r.top) + 'px';
+    tip.innerHTML = `${flag(m.country)} ${esc(m.name)} · ${esc(m.thruster)}`; renderer.domElement.style.cursor = 'pointer'; }
+  else { tip.hidden = true; renderer.domElement.style.cursor = ''; }
+});
+renderer.domElement.addEventListener('click', () => { ray.setFromCamera(mouse, camera); const hit = ray.intersectObjects(pick.filter(p => p.visible))[0]; if (hit) select(hit.object.userData.o.m.id); });
+
+// ---------- loop ----------
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function resize() { const w = stage.clientWidth, h = stage.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+let t = 0, last = performance.now(), wantDist = 11.5;
+const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now; t += reduce ? dt * 0.15 : dt;
+  earth.rotation.y = t * 0.05;
+  moon.position.set(R.Lunar * Math.cos(t * 0.03), 0, R.Lunar * Math.sin(t * 0.03));
+  for (const o of objs) {
+    if (!o.dot.visible) continue; posAt(o, t, o.dot.position);
+    if (o.swarm) { const p = o.swarm.geometry.attributes.position, r = R[o.m.orbit] || R.LEO;
+      o.swarmData.forEach((d, k) => { tmp.set(r * Math.cos(d.ph + t * o.speed), 0, r * Math.sin(d.ph + t * o.speed)).applyAxisAngle(new THREE.Vector3(1, 0, 0), d.inc).applyAxisAngle(new THREE.Vector3(0, 1, 0), d.nd); p.setXYZ(k, tmp.x, tmp.y, tmp.z); });
+      p.needsUpdate = true; }
+  }
+  if (model) {
+    const o = objs.find(x => x.m.id === S.sel);
+    if (o && o.dot.visible) {
+      model.visible = true; posAt(o, t, model.position); posAt(o, t + 0.02, tmp2);
+      const vel = tmp2.sub(model.position).normalize();                 // thrust along the velocity: exhaust points backwards
+      model.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), vel);
+      const f = 0.85 + 0.15 * Math.sin(now / 90); model.userData.thr.userData.plumes.forEach(p => p.material.opacity = (p.userData.base ??= p.material.opacity) * f);
+    } else model.visible = false;
+  }
+  { const o = objs.find(x => x.m.id === S.sel); hl.visible = !!(o && o.dot.visible);
+    if (hl.visible) { hl.position.copy(o.dot.position); hl.quaternion.copy(camera.quaternion); const k = 1 + 0.35 * Math.sin(now / 260); hl.scale.setScalar(k * camera.position.distanceTo(hl.position) / 9); hl.material.opacity = 0.9 - 0.4 * (k - 0.65); } }
+  { const dcur = camera.position.length(); if (Math.abs(dcur - wantDist) > 0.05 && !dragging) camera.position.multiplyScalar(1 + (wantDist / dcur - 1) * 0.04); }
+  controls.update(); renderer.render(scene, camera);
+  if (ithr) { ithr.rotation.y = 0.25 * Math.sin(t * 0.6); ithr.rotation.x = 0.15 * Math.sin(t * 0.4);
+    const f = 0.8 + 0.2 * Math.sin(now / 70); ithr.userData.plumes.forEach(p => p.material.opacity = (p.userData.base ??= p.material.opacity) * f); ir.render(iscene, icam); }
+  $('#hud').innerHTML = S.sel != null ? (() => { const m = ms.find(x => x.id === S.sel); return `<b>${flag(m.country)} ${esc(m.name)}</b><br>${esc(m.thruster)} · ${esc(m.orbit)} · ${esc(m.launch)}`; })() : 'Drag to rotate · scroll to zoom · click a spacecraft';
+  requestAnimationFrame(frame);
+}
+renderList();
+const qs = new URLSearchParams(location.search).get('sel');
+const first = (qs && ms.find(m => m.name.toLowerCase() === qs.toLowerCase())) || ms.find(m => m.name === 'Dawn') || ms[ms.length - 1]; select(first.id);
+requestAnimationFrame(frame);
+// theme
+function setTheme(x) { if (x === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = x;
+  try { localStorage.setItem('ep-theme', x); } catch (e) {} $$('#theme button').forEach(b => b.setAttribute('aria-pressed', b.dataset.t === x)); }
+$$('#theme button').forEach(b => b.onclick = () => setTheme(b.dataset.t));
+$$('#theme button').forEach(b => b.setAttribute('aria-pressed', b.dataset.t === (document.documentElement.dataset.theme || 'auto')));
+</script>
+</body>
+</html>
