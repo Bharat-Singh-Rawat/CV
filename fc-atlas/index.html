@@ -160,7 +160,7 @@ html { scroll-behavior: smooth; }
 <script src="/CV/v2/globe-dots.js?v=20261124a" defer></script>
 <script>
 (async () => {
-  const J = await (await fetch('/CV/fc-atlas/atlas.json?v=20261124d')).json();
+  const J = await (await fetch('/CV/fc-atlas/atlas.json?v=20261124e')).json();
   let D = J.papers.map(o => ({ mat: [], kind: [], ...o }));
   let textLoaded = false;
 
@@ -189,7 +189,7 @@ html { scroll-behavior: smooth; }
   // the ~17,000 papers that mention a cup only inside the text: fetched the first time that filter is chosen
   async function loadText(btn) {
     if (textLoaded) return; textLoaded = true; const was = btn.textContent; btn.textContent = 'Loading…';
-    const T = await (await fetch('/CV/fc-atlas/atlas-text.json?v=20261124d')).json();
+    const T = await (await fetch('/CV/fc-atlas/atlas-text.json?v=20261124e')).json();
     D = D.concat(T.map(o => ({ mat: [], kind: [], ...o }))); btn.textContent = was;
   }
   document.querySelectorAll('#f-scope .seg').forEach(b => b.onclick = async () => { if (b.dataset.s === 'text') await loadText(b); scope = b.dataset.s;
