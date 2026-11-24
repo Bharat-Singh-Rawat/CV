@@ -136,7 +136,7 @@ html[data-theme="dark"] .bsr-intro { background: #000; }
 .about { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 72px; align-items: center; }
 .about-photo { margin: 0; aspect-ratio: 4 / 5; border-radius: var(--radius); box-shadow: var(--shadow); transition: box-shadow 0.6s var(--ease); }
 .about-photo:hover { box-shadow: var(--shadow-hover); }
-.about-photo:hover img { transform: none; }   /* hover belongs to the dust effect (portrait-fx.js) */
+.about-photo:hover img { transform: none; }   /* the portrait stays still: only the black & white -> colour scroll fade */
 .about-photo img { filter: grayscale(calc(1 - var(--colour, 0))); }
 html:not([data-theme="dark"]) .about-photo img { filter: grayscale(calc(1 - var(--colour, 0))) brightness(0.97); }   /* light mode: pure whites match the off-white page instead of glowing */
 /* the photo is a cut-out (head-and-shoulders crop): no tile, no shadow, no fades; it sits straight on the page colour */
@@ -1325,21 +1325,41 @@ html[data-theme="dark"] .clip-play { background: rgba(28, 28, 30, 0.72); color: 
 /* "Share CV" (phones with a share sheet): looks like the other hero links */
 .share-cv { border: 0; background: none; padding: 0; font-family: inherit; line-height: inherit; cursor: pointer; }
 
-/* iPhone: "Enable tilt" pill on the portrait while it is dust (portrait-fx.js) */
-.tilt-pill {
-    position: absolute; left: 50%; bottom: 14%; z-index: 3; transform: translateX(-50%);
-    border: 0; border-radius: 980px; padding: 9px 16px; font-family: inherit; font-size: 0.82rem; font-weight: 600; line-height: 1; white-space: nowrap;
-    color: var(--text); background: rgba(255, 255, 255, 0.72); cursor: pointer;
-    -webkit-backdrop-filter: saturate(180%) blur(14px); backdrop-filter: saturate(180%) blur(14px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
-    animation: tilt-pill-in 0.4s var(--ease);
-}
-html[data-theme="dark"] .tilt-pill { background: rgba(44, 44, 46, 0.72); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.1); }
-.tilt-pill[hidden] { display: none; }
-@keyframes tilt-pill-in { from { opacity: 0; transform: translate(-50%, 6px); } }
 
 /* ---------- typography pass: balanced headings, no lone last words, kerning, aligned numbers ---------- */
 h1, h2, h3, h4 { text-wrap: balance; font-kerning: normal; }
 p, li, dd, figcaption, blockquote { text-wrap: pretty; hanging-punctuation: first; }
 body { text-rendering: optimizeLegibility; font-feature-settings: "kern" 1; }
 table, time, .num, [data-num] { font-variant-numeric: tabular-nums; }
+
+/* ---------- depth (depth.js): hero layers, photos sliding in their frames, tilting cards, background light ---------- */
+/* 1. hero: a soft far glow behind the magnetic bottle */
+.hero-glow { position: absolute; inset: -20% -10% auto; height: 120%; pointer-events: none; z-index: 0; will-change: transform;
+    background: radial-gradient(42% 38% at 50% 42%, rgba(0, 113, 227, 0.07), transparent 70%),
+                radial-gradient(30% 26% at 72% 30%, rgba(191, 72, 0, 0.05), transparent 70%); }
+html[data-theme="dark"] .hero-glow { background: radial-gradient(42% 38% at 50% 42%, rgba(41, 151, 255, 0.12), transparent 70%),
+                radial-gradient(30% 26% at 72% 30%, rgba(255, 159, 10, 0.07), transparent 70%); }
+.depth #field, .depth .hero-name, .depth .hero-pitch, .depth .hero-ctas { will-change: transform; }
+/* 3. research photos: a little larger than the frame, sliding inside it */
+.depth-full .project:not(.wide) .zoom > img, .depth-full .project:not(.wide) .zoom > video, .depth-full .project:not(.wide) .zoom .clip {
+    transform: translate3d(0, var(--py, 0px), 0) scale(1.12); transition: transform 0.9s var(--ease); }
+.depth-full .project:not(.wide):hover .zoom > img, .depth-full .project:not(.wide):hover .zoom > video, .depth-full .project:not(.wide):hover .zoom .clip {
+    transform: translate3d(0, var(--py, 0px), 0) scale(1.16); }
+/* 4. tilting research cards with a soft light reflection that follows the cursor */
+.depth-full .project.tilting { transition: transform 0.18s ease-out, box-shadow 0.7s var(--ease); box-shadow: var(--shadow-hover); }
+.depth-full .project::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 3; opacity: 0;
+    background: radial-gradient(420px circle at var(--gx, 50%) var(--gy, 50%), rgba(255, 255, 255, 0.22), transparent 60%);
+    transition: opacity 0.5s var(--ease); mix-blend-mode: soft-light; }
+.depth-full .project.tilting::after { opacity: 1; }
+/* 7. background light in each section, moving slower than the content (behind it, above the section colour) */
+.depth-full .section:not(.contact) { position: relative; isolation: isolate; }
+.depth-full .section:not(.contact)::before { content: ''; position: absolute; inset: -12% 0; z-index: -1; pointer-events: none;
+    transform: translate3d(0, var(--bgy, 0px), 0); will-change: transform;
+    background: radial-gradient(34% 30% at 12% 30%, rgba(0, 113, 227, 0.045), transparent 70%),
+                radial-gradient(28% 26% at 88% 70%, rgba(191, 72, 0, 0.035), transparent 70%); }
+.depth-full .section:not(.contact):nth-of-type(even)::before {
+    background: radial-gradient(30% 28% at 85% 25%, rgba(0, 113, 227, 0.045), transparent 70%),
+                radial-gradient(32% 28% at 15% 78%, rgba(88, 86, 214, 0.035), transparent 70%); }
+html[data-theme="dark"].depth-full .section:not(.contact)::before {
+    background: radial-gradient(34% 30% at 12% 30%, rgba(41, 151, 255, 0.08), transparent 70%),
+                radial-gradient(28% 26% at 88% 70%, rgba(255, 159, 10, 0.05), transparent 70%); }
