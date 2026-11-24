@@ -106,7 +106,7 @@ td.ok { color: var(--green); font-weight: 600; } td.meh { color: var(--orange); 
   .sidebar.moved .tog { font-size: 12.5px; padding: 6px 4px; gap: 6px; }
 }
 .f6grid { grid-template-columns: minmax(0,.8fr) minmax(0,1.4fr); }
-@media (max-width: 760px) { .f6grid { grid-template-columns: 1fr; } #p-f6 { height: 520px !important; } #f6tab { overflow-x: auto; } }
+@media (max-width: 760px) { .f6grid { grid-template-columns: 1fr; } #p-f6 { height: 600px !important; } #f6tab { overflow-x: auto; } }
 </style>
 <script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
 <script src="vendor/plotly.min.js"></script>
@@ -197,10 +197,10 @@ td.ok { color: var(--green); font-weight: 600; } td.meh { color: var(--orange); 
     </div>
     <div class="card" style="margin-top:14px"><h3>Elmer vs CST (paper)</h3><p class="note">Same geometry and voltages; plate heights read from the paper's Figure 2 (±1 mm). Widths on both sides include the MCP detection efficiency and the 25 µm channel binning, with Gaussian fits.</p><div id="cmp"></div></div>
     <div class="card" id="fig6card" style="margin-top:14px"><h3>Simulation vs the measured MCP image (paper Fig. 6)</h3>
-      <p class="note">Measured: the phosphor-screen images of Fig. 6 (28 MeV, 70 nA; gas jet ON and OFF), converted from their published false colours back to intensity. Lines: this simulation (Voltage 2, 2.5 mm beam), solid = gas-jet ions, dashed = background ions, placed so that the background lines coincide.</p>
+      <p class="note">Measured: the phosphor-screen images of Fig. 6 (28 MeV, 70 nA; gas jet ON and OFF), converted from their published false colours back to intensity. Black: this simulation (Voltage 2, 2.5 mm beam), solid = gas-jet ions, dashed = background ions, placed so that the background lines coincide. Magenta: the measured gas-jet spot (fitted, FWHM ellipse) and the centre of the measured background line.</p>
       <div class="seg" id="seg-f6" style="max-width:340px;margin:0 0 8px"><button data-f="on" aria-pressed="true">Gas jet ON</button><button data-f="off" aria-pressed="false">Gas jet OFF</button><button data-f="diff" aria-pressed="false">ON − OFF</button></div>
       <div class="grid f6grid">
-        <div class="plot" id="p-f6" style="height:460px"></div>
+        <div class="plot" id="p-f6" style="height:540px"></div>
         <div><div class="plot" id="p-f6p" style="height:250px"></div><div id="f6tab" style="margin-top:8px"></div></div>
       </div>
       <div id="f6cap" class="fine" style="font-size:12px;color:var(--muted);line-height:1.55;margin-top:10px"></div>
@@ -440,8 +440,12 @@ async function fig6() {
   Plotly.react('p-f6', [
     { type: 'heatmap', x: F6.x, y: F6.y, z, colorscale: F6V === 'diff' ? 'RdBu' : 'Viridis', zmid: F6V === 'diff' ? 0 : undefined, showscale: false, hovertemplate: '%{x:.1f}, %{y:.1f} mm<br>%{z} (arb.)<extra>measured</extra>' },
     { type: 'contour', x: F6.x, y: F6.y, z: F6.sim_line, contours: { coloring: 'none', start: .5, end: .5, size: 1 }, line: { color: ink, width: 1.6, dash: 'dash' }, showscale: false, hoverinfo: 'skip', name: 'sim background' },
-    { type: 'contour', x: F6.x, y: F6.y, z: F6.sim_spot, contours: { coloring: 'none', start: .25, end: .75, size: .25 }, line: { color: ink, width: 1.6 }, showscale: false, hoverinfo: 'skip', name: 'sim gas jet' }],
-    lay({ margin: { l: 46, r: 8, t: 6, b: 40 }, xaxis: { title: 'Gas-jet direction (mm)', range: [49, 75], constrain: 'domain', gridcolor: css('--sep') }, yaxis: { title: 'Beam direction (mm)', range: [18, 78], constrain: 'domain', gridcolor: css('--sep'), scaleanchor: 'x' } }), cfg);
+    { type: 'contour', x: F6.x, y: F6.y, z: F6.sim_spot, contours: { coloring: 'none', start: .25, end: .75, size: .25 }, line: { color: ink, width: 1.6 }, showscale: false, hoverinfo: 'skip', name: 'sim gas jet' },
+    (() => { const th = M.spot_tilt * Math.PI / 180, a = 1.1774 * M.spot_sig[0], b = 1.1774 * M.spot_sig[1], xs = [], ys = [];
+      for (let k = 0; k <= 72; k++) { const t = k / 72 * 2 * Math.PI; xs.push(M.spot_x + a * Math.cos(t) * Math.cos(th) - b * Math.sin(t) * Math.sin(th)); ys.push(M.spot_y + a * Math.cos(t) * Math.sin(th) + b * Math.sin(t) * Math.cos(th)); }
+      return { x: xs, y: ys, mode: 'lines', line: { color: '#ff2dd4', width: 2.6, dash: 'dash' }, name: 'measured gas-jet spot (fit, FWHM)', hovertemplate: `measured spot ${f(M.spot_x)}, ${f(M.spot_y)} mm<extra></extra>` }; })(),
+    { x: [M.line_x, M.line_x], y: [M.line_mid - M.line_len / 2, M.line_mid + M.line_len / 2], mode: 'lines', line: { color: '#ff2dd4', width: 1.4, dash: 'dot' }, name: 'measured background line (centre)', hoverinfo: 'skip' }],
+    lay({ showlegend: true, legend: { orientation: 'h', x: 0, y: -0.14, font: { size: 10.5 } }, margin: { l: 46, r: 8, t: 6, b: 40 }, xaxis: { title: 'Gas-jet direction (mm)', range: [49, 75], constrain: 'domain', gridcolor: css('--sep') }, yaxis: { title: 'Beam direction (mm)', range: [18, 78], constrain: 'domain', gridcolor: css('--sep'), scaleanchor: 'x' } }), cfg);
   const P = F6.prof;
   Plotly.react('p-f6p', [
     { x: P.x, y: P.on, mode: 'lines', name: 'measured, gas ON', line: { color: '#0a84ff', width: 2 } },
