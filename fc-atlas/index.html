@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Faraday Cup Atlas — Bharat Singh Rawat</title>
 <meta name="description" content="Every published Faraday cup on one map: beam type, energy, cup material and design, with links to each paper.">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root { --bg: #f7f7f8; --card: #ffffff; --text: #1d1d1f; --body: #424245; --muted: #6e6e73; --line: rgba(0,0,0,.08); --accent: #0071e3; --warm: #bf4800;
   --ease: cubic-bezier(.16,1,.3,1); --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
@@ -35,7 +34,6 @@ select, input[type=search] { font: inherit; font-size: .86rem; padding: 7px 12px
 input[type=search] { min-width: 220px; }
 .grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 14px; }
 .card { background: var(--card); border-radius: 22px; overflow: hidden; position: relative; }
-#map { height: 520px; background: var(--card); }
 .plotwrap { padding: 16px 18px 10px; }
 .plotwrap h3, .tablewrap h3 { margin: 0 0 4px; font-size: 1.05rem; letter-spacing: -.01em; }
 .note { color: var(--muted); font-size: .8rem; margin: 0 0 8px; }
@@ -55,13 +53,15 @@ td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
 tr:hover td { background: color-mix(in srgb, var(--accent) 5%, transparent); }
 .tag { display: inline-block; font-size: .72rem; padding: 1px 7px; border-radius: 980px; margin: 1px 3px 1px 0; background: color-mix(in srgb, var(--text) 7%, transparent); color: var(--body); white-space: nowrap; }
 .more { display: block; margin: 10px auto 12px; }
-.leaflet-container { font-family: var(--font); }
-.leaflet-popup-content { margin: 12px 14px; font-size: .84rem; max-height: 260px; overflow: auto; }
-.leaflet-popup-content b { font-size: .92rem; }
-.leaflet-popup-content ul { margin: 6px 0 0; padding-left: 16px; }
-.leaflet-popup-content li { margin: 3px 0; }
 .foot { color: var(--muted); font-size: .8rem; margin-top: 22px; }
-.mapcard { display: flex; flex-direction: column; }
+.mapcard { display: flex; flex-direction: column; position: relative; }
+#globe { position: relative; height: 520px; display: grid; place-items: center; background: var(--card); }
+#gcv { width: min(100%, 500px); aspect-ratio: 1; cursor: grab; touch-action: none; }
+#gcv:active { cursor: grabbing; }
+.gtip { position: absolute; pointer-events: none; background: var(--text); color: var(--bg); font-size: .78rem; font-weight: 600; padding: 4px 10px; border-radius: 980px; transform: translate(-50%, -150%); white-space: nowrap; }
+.ghint { position: absolute; bottom: 8px; margin: 0; font-size: .75rem; color: var(--muted); }
+.yearwrap { margin-top: 14px; }
+@media (max-width: 900px) { #globe { height: 380px; } }
 .timeline { display: flex; align-items: center; gap: 12px; padding: 10px 14px 12px; border-top: 1px solid var(--line); }
 .tl-play { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer; background: var(--text); color: var(--bg); transition: transform .25s var(--ease); }
 .tl-play:hover { transform: scale(1.06); } .tl-play:active { transform: scale(.94); }
@@ -88,10 +88,9 @@ tr:hover td { background: color-mix(in srgb, var(--accent) 5%, transparent); }
 tr td { transition: background .25s var(--ease); }
 .card, .stat, .review { transition: transform .5s var(--ease), box-shadow .5s var(--ease); }
 .stat:hover, .review:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,.06); }
-.leaflet-fade-anim .leaflet-popup { transition: opacity .25s var(--ease); }
 html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) { *, .fade { animation: none !important; transition: none !important; } html { scroll-behavior: auto; } }
-@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .stats { grid-template-columns: repeat(2, 1fr); } #map { height: 380px; } .hide-sm { display: none; } }
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .stats { grid-template-columns: repeat(2, 1fr); } .hide-sm { display: none; } }
 </style>
 </head>
 <body>
@@ -99,7 +98,7 @@ html { scroll-behavior: smooth; }
 <main>
   <header>
     <p class="eyebrow">Beam diagnostics</p>
-    <h1>Every Faraday cup, on one map.</h1>
+    <h1>Every Faraday cup, on one globe.</h1>
     <p class="sub">Over two and a half thousand papers that build or use a Faraday cup, placed at the lab they came from, with the beam, energy, cup material and design each one reports. Filter, zoom in, and open any paper.</p>
   </header>
   <div class="stats" id="stats"></div>
@@ -119,7 +118,8 @@ html { scroll-behavior: smooth; }
     <input type="search" id="f-q" placeholder="Search title, lab or journal">
   </div>
   <div class="grid">
-    <div class="card mapcard"><div id="map" aria-label="Map of labs that published Faraday cup papers"></div>
+    <div class="card mapcard">
+      <div id="globe"><canvas id="gcv" aria-label="Globe of labs that published Faraday cup papers"></canvas><div class="gtip" id="gtip" hidden></div><p class="ghint">Drag to turn · click a lab to list its papers</p></div>
       <div class="timeline" id="timeline">
         <button class="tl-play" id="tl-play" aria-label="Play the timeline"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path id="tl-icon" d="M8 5v14l11-7z" fill="currentColor"/></svg></button>
         <input type="range" id="tl-range" aria-label="Year" min="1950" max="2026" step="1">
@@ -130,6 +130,11 @@ html { scroll-behavior: smooth; }
       <p class="note">Papers that quote a beam energy (log scale; earlier papers sit on the 1950 edge). Ringed dots are cited in my review. Hover a dot for the paper, click to open it.</p>
       <svg id="plot" viewBox="0 0 520 440" role="img" aria-label="Beam energy against publication year"></svg>
     </div>
+  </div>
+  <div class="card plotwrap yearwrap">
+    <h3>Papers per year, by beam</h3>
+    <p class="note" id="year-note">How many Faraday-cup papers appeared each year (3-year average), stacked by beam. Hover for the numbers.</p>
+    <svg id="years" class="chart" viewBox="0 0 1180 300" role="img" aria-label="Papers per year, stacked by beam type"></svg>
   </div>
   <div class="grid grid2">
     <div class="card plotwrap">
@@ -149,11 +154,10 @@ html { scroll-behavior: smooth; }
     <table><thead><tr><th data-k="y">Year</th><th data-k="t">Paper</th><th data-k="beam">Beam</th><th data-k="emin" class="hide-sm">Energy</th><th data-k="mat" class="hide-sm">Material</th><th data-k="kind" class="hide-sm">Design</th><th data-k="lab">Lab</th></tr></thead><tbody id="rows"></tbody></table>
     <button class="chip more" id="more">Show more</button>
   </div>
-  <p class="foot">Data: <a href="https://openalex.org" target="_blank" rel="noopener">OpenAlex</a> (CC0), <a href="https://inspirehep.net" target="_blank" rel="noopener">INSPIRE-HEP</a> and <a href="https://pubmed.ncbi.nlm.nih.gov" target="_blank" rel="noopener">PubMed</a>: only papers that say “Faraday cup” in their title or abstract. Cup materials are also read from the full text of open-access papers; labs are the first author’s institution with known coordinates. Country outlines: <a href="https://www.naturalearthdata.com" target="_blank" rel="noopener">Natural Earth</a> (public domain). Built by <a href="/CV/">Bharat Singh Rawat</a>.</p>
+  <p class="foot">Data: <a href="https://openalex.org" target="_blank" rel="noopener">OpenAlex</a> (CC0), <a href="https://inspirehep.net" target="_blank" rel="noopener">INSPIRE-HEP</a> and <a href="https://pubmed.ncbi.nlm.nih.gov" target="_blank" rel="noopener">PubMed</a>: only papers that say “Faraday cup” in their title or abstract. Cup materials are also read from the full text of open-access papers; labs are the first author’s institution with known coordinates. Land dots: <a href="https://www.naturalearthdata.com" target="_blank" rel="noopener">Natural Earth</a> (public domain). Built by <a href="/CV/">Bharat Singh Rawat</a>.</p>
 </main>
 <script src="/CV/v2/sfx.js?v=20261117z"></script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script src="/CV/v2/globe-dots.js?v=20261124a" defer></script>
 <script>
 (async () => {
   const J = await (await fetch('/CV/fc-atlas/atlas.json?v=20261124d')).json();
@@ -199,21 +203,6 @@ html { scroll-behavior: smooth; }
     && (!fq.value || (o.t + ' ' + (o.lab || '') + ' ' + (o.j || '')).toLowerCase().includes(fq.value.toLowerCase()));
   const fmat = document.getElementById('f-mat'), fkind = document.getElementById('f-kind'), fy0 = document.getElementById('f-y0'), fy1 = document.getElementById('f-y1'), fq = document.getElementById('f-q');
 
-  // ---------- map: one marker per lab, sized by its papers, coloured by its main beam ----------
-  const map = L.map('map', { preferCanvas: true, zoomControl: true, scrollWheelZoom: false, minZoom: 1, maxZoom: 9, attributionControl: true, zoomSnap: 0.25, zoomDelta: 0.5, wheelPxPerZoomLevel: 120, inertia: true }).setView([30, 10], 1.5);
-  map.attributionControl.setPrefix('').addAttribution('Outlines: <a href="https://www.naturalearthdata.com" target="_blank" rel="noopener">Natural Earth</a>');
-  map.on('focus', () => map.scrollWheelZoom.enable()); map.on('blur', () => map.scrollWheelZoom.disable());
-  // the world drawn from Natural Earth outlines (public domain): no tile service, follows light / dark exactly
-  const land = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json')).json();
-  // countries that cross the 180° line (Russia, Fiji): put their far-east parts past +180 so no stripe is drawn across the map
-  const geo = topojson.feature(land, land.objects.countries);
-  const unwrap = ring => { if (ring.some(p => p[0] > 160) && ring.some(p => p[0] < -160)) ring.forEach(p => { if (p[0] < 0) p[0] += 360; }); };
-  geo.features.forEach(f => { const g = f.geometry; if (!g) return; (g.type === 'Polygon' ? [g.coordinates] : g.coordinates).forEach(poly => poly.forEach(unwrap)); });
-  const countries = L.geoJSON(geo, { interactive: false, style: () => landStyle() }).addTo(map);
-  function landStyle() { return dark() ? { color: '#3a3a3c', weight: 0.6, fillColor: '#2c2c2e', fillOpacity: 1 } : { color: '#ffffff', weight: 0.8, fillColor: '#e3e3e8', fillOpacity: 1 }; }
-  const restyle = () => { countries.setStyle(landStyle()); document.getElementById('map').style.background = dark() ? '#1c1c1e' : '#ffffff'; };
-  restyle(); matchMedia('(prefers-color-scheme: dark)').addEventListener('change', restyle);
-  const layer = L.layerGroup().addTo(map);
   // ---------- timeline: play the labs appearing year by year ----------
   const reduceM = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const tlR = document.getElementById('tl-range'), tlP = document.getElementById('tl-play'), tlI = document.getElementById('tl-icon');
@@ -298,25 +287,119 @@ html { scroll-behavior: smooth; }
   // ---------- the map (and the timeline: playY limits it to papers up to that year) ----------
   let MR = [], playY = null, seen = new Set();
   function drawMap() {
-    layer.clearLayers();
     const byLab = new Map(); MR.filter(o => o.lat != null && (playY == null || (o.y && o.y <= playY))).forEach(o => { const k = o.lab; if (!byLab.has(k)) byLab.set(k, []); byLab.get(k).push(o); });
-    byLab.forEach((ps, lab) => {
-      const top = Object.entries(ps.reduce((a, o) => (a[o.beam] = (a[o.beam] || 0) + 1, a), {})).sort((a, b) => b[1] - a[1])[0][0];
-      const cited = ps.some(o => o.rev);
-      const mk = L.circleMarker([ps[0].lat, ps[0].lon], { radius: 4 + Math.min(14, Math.sqrt(ps.length) * 2.2), color: cited ? (dark() ? '#f5f5f7' : '#1d1d1f') : '#fff', weight: cited ? 2 : 1.2, fillColor: COL[top], fillOpacity: .82 });
-      mk.on('click', () => sound('click')); mk.on('mouseover', () => sound('hover'));
-      mk.bindPopup(`<b>${esc(lab)}</b><br><span style="color:var(--muted)">${esc([ps[0].city, ps[0].cc].filter(Boolean).join(', '))} · ${ps.length} paper${ps.length > 1 ? 's' : ''}</span><ul>${ps.sort((a, b) => b.y - a.y).map(o =>
-        `<li><a href="${esc(link(o))}" target="_blank" rel="noopener">${title(o.t)}</a> <span style="color:var(--muted)">(${o.y}${o.emin != null ? ', ' + fmtE(o.emin, o.emax) : ''})</span>${o.rev ? ' <span class="tag">cited in my review</span>' : ''}</li>`).join('')}</ul>`, { maxWidth: 340 });
-      mk.bindTooltip(`${esc(lab)} · ${ps.length}`, { direction: 'top', offset: [0, -6] });
-      layer.addLayer(mk);
-    });
-    // timeline: labs that appear this year get a short pulse ring
-    if (playY != null) byLab.forEach((ps, lab) => { if (!seen.has(lab)) { seen.add(lab);
-      const ring = L.circleMarker([ps[0].lat, ps[0].lon], { radius: 6, color: COL[ps[0].beam], weight: 2, fill: false, opacity: .9, interactive: false }).addTo(layer);
-      let k = 0; const grow = () => { k += 0.08; ring.setRadius(6 + k * 22); ring.setStyle({ opacity: .9 * (1 - k) }); if (k < 1) requestAnimationFrame(grow); else layer.removeLayer(ring); };
-      if (!reduceM) requestAnimationFrame(grow); else layer.removeLayer(ring); } });
+    gLabs = [...byLab].map(([lab, ps]) => ({ lab, n: ps.length, lat: ps[0].lat, lon: ps[0].lon,
+      beam: Object.entries(ps.reduce((a, o) => (a[o.beam] = (a[o.beam] || 0) + 1, a), {})).sort((a, b) => b[1] - a[1])[0][0] }));
+    if (reduceM) gDraw();
+    // timeline: labs that appear this year send out a short ripple on the globe
+    if (playY != null) byLab.forEach((ps, lab) => { if (!seen.has(lab)) { seen.add(lab); if (!reduceM) gRings.push({ lat: ps[0].lat, lon: ps[0].lon, beam: ps[0].beam, t: performance.now() }); } });
     document.getElementById('tl-year').textContent = playY == null ? 'All years' : playY;
     document.getElementById('tl-count').textContent = playY == null ? '' : `${byLab.size} labs · ${MR.filter(o => o.y && o.y <= playY).length} papers`;
+  }
+
+  // ---------- globe view: the same labs on a slowly turning dotted globe (land dots from the CV's career globe) ----------
+  let gLabs = [], gRings = [], gOn = true, gLon = -20, gLat = 22, gDrag = null, gVel = 0.012, gHover = -1, gRaf = 0;
+  const gcv = document.getElementById('gcv'), gctx = gcv.getContext('2d'), gtip = document.getElementById('gtip');
+  // turn the globe smoothly to a place (from the table); the slow spin pauses there for a few seconds
+  let gHold = 0;
+  function turnTo(lat, lon) {
+    const l0 = gLon, a0 = gLat, dl = ((lon - l0 + 540) % 360) - 180, da = Math.max(-60, Math.min(70, lat)) - a0, t0 = performance.now();
+    gHold = t0 + 4000;
+    const step = now => { const k = Math.min(1, (now - t0) / 1200), e = 1 - Math.pow(1 - k, 3); gLon = l0 + dl * e; gLat = a0 + da * e; if (reduceM) gDraw(); if (k < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  }
+  let GS = 0, gdpr = 1;
+  const gResize = () => { gdpr = Math.min(2, devicePixelRatio || 1); GS = gcv.clientWidth; gcv.width = gcv.height = Math.round(GS * gdpr); };
+  addEventListener('resize', () => { gResize(); if (reduceM) gDraw(); });
+  const RAD = Math.PI / 180;
+  const gProj = (lat, lon) => {            // orthographic: x right, y up, z towards the viewer
+    const la = lat * RAD, lo = (lon - gLon) * RAD, c0 = Math.cos(gLat * RAD), s0 = Math.sin(gLat * RAD);
+    const x = Math.cos(la) * Math.sin(lo), y = Math.sin(la) * c0 - Math.cos(la) * Math.cos(lo) * s0, z = Math.sin(la) * s0 + Math.cos(la) * Math.cos(lo) * c0;
+    const r = GS * 0.46; return [GS / 2 + x * r, GS / 2 - y * r, z];
+  };
+  function gDraw() {
+    const c = gctx, dk = dark(); c.setTransform(gdpr, 0, 0, gdpr, 0, 0); c.clearRect(0, 0, GS, GS);
+    const r = GS * 0.46;
+    const grd = c.createRadialGradient(GS * .42, GS * .38, r * .1, GS / 2, GS / 2, r);
+    grd.addColorStop(0, dk ? '#2c2c2e' : '#ffffff'); grd.addColorStop(1, dk ? '#1c1c1e' : '#ececf0');
+    c.fillStyle = grd; c.beginPath(); c.arc(GS / 2, GS / 2, r, 0, 7); c.fill();
+    c.strokeStyle = dk ? 'rgba(255,255,255,.1)' : 'rgba(0,0,0,.08)'; c.lineWidth = 1; c.stroke();
+    const D2 = window.GLOBE_DOTS || [];
+    c.fillStyle = dk ? 'rgba(255,255,255,.28)' : 'rgba(29,29,31,.26)';
+    for (let i = 0; i < D2.length; i += 2) { const [x, y, z] = gProj(D2[i], D2[i + 1]); if (z > 0) { const d = 0.6 + z * 0.9; c.fillRect(x - d / 2, y - d / 2, d, d); } }
+    // labs, back to front
+    const pts = gLabs.map((L, i) => { const [x, y, z] = gProj(L.lat, L.lon); return { L, i, x, y, z }; }).filter(p => p.z > 0.02).sort((a, b) => a.z - b.z);
+    for (const p of pts) {
+      const rr = (2.2 + Math.min(8, Math.sqrt(p.L.n) * 1.5)) * (0.6 + 0.4 * p.z);
+      c.globalAlpha = 0.35 + 0.65 * p.z; c.fillStyle = COL[p.L.beam]; c.beginPath(); c.arc(p.x, p.y, rr, 0, 7); c.fill();
+      c.lineWidth = p.i === gHover ? 2 : 1; c.strokeStyle = p.i === gHover ? (dk ? '#fff' : '#1d1d1f') : (dk ? 'rgba(0,0,0,.5)' : '#fff'); c.stroke();
+    }
+    // ripples for labs that just appeared (timeline)
+    const now = performance.now(); gRings = gRings.filter(g => now - g.t < 900);
+    for (const g of gRings) { const [x, y, z] = gProj(g.lat, g.lon); if (z <= 0) continue; const k = (now - g.t) / 900;
+      c.globalAlpha = 0.9 * (1 - k); c.strokeStyle = COL[g.beam]; c.lineWidth = 2; c.beginPath(); c.arc(x, y, 4 + k * 18, 0, 7); c.stroke(); }
+    c.globalAlpha = 1; gPts = pts;
+  }
+  let gPts = [];
+  function gLoop() {
+    cancelAnimationFrame(gRaf);
+    const step = () => { if (!gOn) return; if (!gDrag && !reduceM && performance.now() > gHold) gLon -= gVel * 16; gDraw(); gRaf = requestAnimationFrame(step); };
+    if (reduceM) gDraw(); else gRaf = requestAnimationFrame(step);
+  }
+  const gXY = e => { const b = gcv.getBoundingClientRect(); return [(e.clientX - b.left) * GS / b.width, (e.clientY - b.top) * GS / b.height]; };
+  gcv.addEventListener('pointerdown', e => { gDrag = { x: e.clientX, y: e.clientY, lon: gLon, lat: gLat, moved: false }; gcv.setPointerCapture(e.pointerId); });
+  gcv.addEventListener('pointermove', e => {
+    if (gDrag) { const dx = e.clientX - gDrag.x, dy = e.clientY - gDrag.y; if (Math.abs(dx) + Math.abs(dy) > 3) gDrag.moved = true;
+      gLon = gDrag.lon - dx * 0.35; gLat = Math.max(-60, Math.min(70, gDrag.lat + dy * 0.3)); if (reduceM) gDraw(); return; }
+    const [x, y] = gXY(e); let best = -1, bd = 12 * 12;
+    for (const p of gPts) { const d = (p.x - x) ** 2 + (p.y - y) ** 2; if (d < bd) { bd = d; best = p.i; } }
+    if (best !== gHover) { gHover = best; if (best >= 0) sound('hover'); if (reduceM) gDraw(); }
+    const b = gcv.getBoundingClientRect(), host = document.getElementById('globe').getBoundingClientRect();
+    if (best >= 0) { const L = gLabs[best], p = gPts.find(q => q.i === best); gtip.hidden = false; gtip.textContent = `${L.lab} · ${L.n}`;
+      gtip.style.left = (b.left - host.left + p.x * b.width / GS) + 'px'; gtip.style.top = (b.top - host.top + p.y * b.height / GS) + 'px'; } else gtip.hidden = true;
+  });
+  gcv.addEventListener('pointerleave', () => { gHover = -1; gtip.hidden = true; });
+  gcv.addEventListener('pointerup', () => {
+    const d = gDrag; gDrag = null;
+    if (d && !d.moved && gHover >= 0) {           // click a lab: list its papers in the table below
+      sound('click'); fq.value = gLabs[gHover].lab; render();
+      document.querySelector('.tablewrap').scrollIntoView({ behavior: reduceM ? 'auto' : 'smooth', block: 'start' });
+    }
+  });
+
+  // ---------- papers per year, stacked by beam ----------
+  const ysvg = document.getElementById('years');
+  function drawYears(R) {
+    fadeIn(ysvg);
+    const W = 1180, H = 300, l = 44, r = 14, t = 12, b = 28, YA = 1950, YB = Y1;
+    const order = beams.filter(bm => R.some(o => o.beam === bm));
+    const cnt = {}; order.forEach(bm => cnt[bm] = new Array(YB - YA + 1).fill(0));
+    R.forEach(o => { if (o.y >= YA && o.y <= YB) cnt[o.beam][o.y - YA]++; });
+    // 3-year running mean (the last year is partial, so it keeps its own value)
+    const sm = a => a.map((v, i) => i === a.length - 1 ? v : (a[Math.max(0, i - 1)] + v + a[Math.min(a.length - 1, i + 1)]) / 3);
+    const S = order.map(bm => sm(cnt[bm]));
+    const tot = S[0] ? S[0].map((_, i) => S.reduce((a, s) => a + s[i], 0)) : [];
+    const mx = Math.max(1, ...tot);
+    const x = i => l + i / (YB - YA) * (W - l - r), y = v => H - b - v / mx * (H - t - b);
+    let g = '', base = new Array(YB - YA + 1).fill(0);
+    const nice = Math.pow(10, Math.floor(Math.log10(mx))), stepY = mx / nice > 5 ? nice * 2 : nice;
+    for (let v = 0; v <= mx; v += stepY) g += `<line x1="${l}" x2="${W - r}" y1="${y(v)}" y2="${y(v)}" stroke="currentColor" stroke-opacity=".07"/><text x="${l - 8}" y="${y(v) + 4}" text-anchor="end">${Math.round(v)}</text>`;
+    for (let yy = YA; yy <= YB; yy += 10) g += `<text x="${x(yy - YA)}" y="${H - 8}" text-anchor="middle">${yy}</text>`;
+    S.forEach((s, k) => {
+      const top = s.map((v, i) => base[i] + v);
+      let d = `M${x(0)},${y(top[0])}`; for (let i = 1; i < top.length; i++) d += `L${x(i).toFixed(1)},${y(top[i]).toFixed(1)}`;
+      for (let i = top.length - 1; i >= 0; i--) d += `L${x(i).toFixed(1)},${y(base[i]).toFixed(1)}`;
+      g += `<path d="${d}Z" fill="${COL[order[k]]}" fill-opacity=".82" stroke="var(--card)" stroke-width=".6"/>`;
+      base = top;
+    });
+    g += `<line id="yh" x1="0" x2="0" y1="${t}" y2="${H - b}" stroke="var(--text)" stroke-opacity=".5" visibility="hidden"/><rect id="yhit" x="${l}" y="${t}" width="${W - l - r}" height="${H - t - b}" fill="transparent"/>`;
+    ysvg.innerHTML = g;
+    const hit = document.getElementById('yhit'), hl = document.getElementById('yh');
+    hit.onmousemove = e => { const pt = ysvg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const q = pt.matrixTransform(ysvg.getScreenCTM().inverse());
+      const i = Math.max(0, Math.min(YB - YA, Math.round((q.x - l) / (W - l - r) * (YB - YA)))); hl.setAttribute('x1', x(i)); hl.setAttribute('x2', x(i)); hl.setAttribute('visibility', 'visible');
+      const parts = order.map((bm, k) => [bm, cnt[bm][i]]).filter(p => p[1]).sort((a, b) => b[1] - a[1]).map(([bm, n]) => `${bm} ${n}`);
+      document.getElementById('year-note').textContent = `${YA + i}: ${parts.reduce((a, p) => a + +p.split(' ').pop(), 0)} papers${parts.length ? ' — ' + parts.join(', ') : ''}`; };
+    hit.onmouseleave = () => { hl.setAttribute('visibility', 'hidden'); document.getElementById('year-note').textContent = 'How many Faraday-cup papers appeared each year (3-year average), stacked by beam. Hover for the numbers.'; };
   }
   // numbers glide to their new value
   function countTo(el, n) { const from = +el.dataset.n || 0; el.dataset.n = n; const t0 = performance.now();
@@ -349,11 +432,13 @@ html { scroll-behavior: smooth; }
       <td class="num hide-sm">${fmtE(o.emin, o.emax)}${o.species ? ` <span style="color:var(--muted)">${esc(o.species)}</span>` : ''}${o.checked ? ' <span class="tag ok" title="Checked by hand">✓ checked</span>' : ''}</td><td class="hide-sm">${tags(o.mat)}</td><td class="hide-sm">${tags(o.kind)}</td>
       <td>${o.lab ? `<a href="#" data-lat="${o.lat}" data-lon="${o.lon}" class="go">${esc(o.lab)}</a>` : '<span style="color:var(--muted)">–</span>'}</td></tr>`).join('');
     document.getElementById('more').hidden = R.length <= shown;
-    drawMat(R); drawHeat(R);
+    drawMat(R); drawHeat(R); drawYears(R);
   }
   document.getElementById('rows').addEventListener('click', e => { const a = e.target.closest('.go'); if (!a) return; e.preventDefault();
-    sound('click'); map.flyTo([+a.dataset.lat, +a.dataset.lon], 8, { duration: 1.6, easeLinearity: 0.15 }); document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+    sound('click'); turnTo(+a.dataset.lat, +a.dataset.lon); document.getElementById('globe').scrollIntoView({ behavior: reduceM ? 'auto' : 'smooth', block: 'center' }); });
   render();
+  const startGlobe = () => { gResize(); gLoop(); };
+  if (window.GLOBE_DOTS) startGlobe(); else document.querySelector('script[src*="globe-dots"]').addEventListener('load', startGlobe);
 })();
 </script>
 </body>
