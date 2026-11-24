@@ -142,6 +142,9 @@ function frontScrew() {
 // Every part is modelled with the cup in the beam; the drive pulls the moving parts back by up to STROKE.
 const XC = 230, YC = -29, STROKE = 80;
 const CUP_M = new THREE.Matrix4().makeTranslation(XC, YC, 0).multiply(new THREE.Matrix4().makeRotationZ(-Math.PI / 2));
+// shown standing: the drive axis (CAD x) turned to vertical, the cup (+x) on top and the bellows drive below it;
+// turning about CAD y keeps the mouth (-y) towards the viewer and the cut plane (constant y) where it was
+const MOUNT = new THREE.Matrix4().makeRotationY(-Math.PI / 2);
 const cupPt = (u, v, w) => cad(u, v, w).applyMatrix4(CUP_M);       // cup coordinates -> CAD
 const RCOIL = R + RP;                                               // tube centre, brazed on the outer wall
 const COIL_W0 = 74, COIL_W1 = 14, TURNS = 5;                        // the coil runs from near the mouth back to near the back
@@ -301,6 +304,7 @@ export function hpfcData() {
     add('Air fittings', fittings(), I, [-290, 0, 0]);
     return {
         name: '10 kW Faraday cup', procedural: true, cooling: pp,
+        mount: MOUNT,      // stood upright: the cup on top, the bellows drive below, mouth to the viewer
         drive: { stroke: STROKE },
         blurb: 'A water-cooled copper Faraday cup for 20–30 mA ion beams, on a pneumatic bellows drive that pushes it into the beam. A suppressor ring on a ceramic isolator sits at its mouth.',
         groups, instances, explode, geo, geoms: geo.map(() => ({})), systems: []
@@ -313,6 +317,7 @@ export class CoolingFlow {
     constructor(M, holder) {
         const pp = M.data.cooling;
         this.holder = new THREE.Group(); holder.add(this.holder);
+        if (M.data.mount) { this.holder.matrixAutoUpdate = false; this.holder.matrix.copy(M.data.mount); }   // the water and the beam stand with the model
         this.mover = new THREE.Group(); this.holder.add(this.mover);       // rides with the arm
         this.cupG = new THREE.Group(); this.cupG.matrixAutoUpdate = false; this.cupG.matrix.copy(CUP_M); this.mover.add(this.cupG);
         this.u = {
@@ -412,20 +417,20 @@ export class CoolingFlow {
 // An illustration of how the heat moves, not a solved thermal model, so the legend has no numbers.
 export class ThermalView {
     constructor(M) {
-        this.u = { uVis: { value: 0 }, uBulk: { value: 0 }, uSpot: { value: 0 }, uWater: { value: 0 }, uCut: { value: 0 }, uCutZ: { value: 0 }, uFade: { value: 1 } };
+        this.u = { uVis: { value: 0 }, uBulk: { value: 0 }, uSpot: { value: 0 }, uWater: { value: 0 }, uCut: { value: 0 }, uCutN: { value: new THREE.Vector3(0, 0, -1) }, uCutC: { value: 0 }, uFade: { value: 1 } };
         this.mat = new THREE.ShaderMaterial({
             uniforms: this.u, transparent: true, depthWrite: false, side: THREE.DoubleSide,
             polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2,
             vertexShader: `varying vec3 vP, vW, vN, vV;
                 void main() { vP = position; vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz;
                     vec4 mv = viewMatrix * w; vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }`,
-            fragmentShader: `uniform float uVis, uBulk, uSpot, uWater, uCut, uCutZ, uFade; varying vec3 vP, vW, vN, vV;
+            fragmentShader: `uniform float uVis, uBulk, uSpot, uWater, uCut, uCutC, uFade; uniform vec3 uCutN; varying vec3 vP, vW, vN, vV;
                 vec3 ironbow(float t) {
                     vec3 c0 = vec3(0.04, 0.02, 0.19), c1 = vec3(0.29, 0.06, 0.55), c2 = vec3(0.71, 0.14, 0.48), c3 = vec3(0.94, 0.35, 0.16), c4 = vec3(0.98, 0.71, 0.11), c5 = vec3(1.0, 0.97, 0.80);
                     if (t < 0.2) return mix(c0, c1, t / 0.2); if (t < 0.4) return mix(c1, c2, (t - 0.2) / 0.2);
                     if (t < 0.6) return mix(c2, c3, (t - 0.4) / 0.2); if (t < 0.8) return mix(c3, c4, (t - 0.6) / 0.2); return mix(c4, c5, (t - 0.8) / 0.2); }
                 void main() {
-                    if (uCut > 0.5 && vW.z > uCutZ) discard;
+                    if (uCut > 0.5 && dot(uCutN, vW) + uCutC < 0.0) discard;
                     float w = vP.x, r = length(vP.yz);
                     float d = length(vec2(max(${TB.toFixed(1)} - w, 0.0) + max(w - ${TB.toFixed(1)}, 0.0) * 0.55, r));   // copper conducts both ways; the bore side reaches the floor faster
                     float rim = smoothstep(${(R - 16).toFixed(1)}, ${R.toFixed(1)}, r) * uWater;                         // the coil cools the outside
@@ -447,14 +452,14 @@ export class ThermalView {
         });
         this.bulk = 0; this.spot = 0;
     }
-    // vis: how visible; power: 1 while the beam lands on the cup; water: 1 while the water flows; cutZ: the cut plane (world z), or null
-    step(dt, vis, power, water, cutZ) {
+    // vis: how visible; power: 1 while the beam lands on the cup; water: 1 while the water flows; cut: the cut plane (world, a THREE.Plane), or null
+    step(dt, vis, power, water, cut) {
         const ease = (v, goal, rate) => v + (goal - v) * (1 - Math.exp(-dt * rate));
         this.spot = ease(this.spot, 0.6 * power, power > this.spot ? 2.2 : (water ? 1.6 : 0.35));
         const bulkGoal = power * (water ? 0.14 : 0.9);
         this.bulk = ease(this.bulk, bulkGoal, bulkGoal > this.bulk ? (water ? 0.9 : 0.09) : (water ? 0.7 : 0.08));
         const u = this.u;
-        u.uVis.value = vis; u.uBulk.value = this.bulk; u.uSpot.value = this.spot; u.uWater.value = ease(u.uWater.value, water, 2); u.uCut.value = cutZ == null ? 0 : 1; u.uCutZ.value = cutZ || 0;
+        u.uVis.value = vis; u.uBulk.value = this.bulk; u.uSpot.value = this.spot; u.uWater.value = ease(u.uWater.value, water, 2); u.uCut.value = cut ? 1 : 0; if (cut) { u.uCutN.value.copy(cut.normal); u.uCutC.value = cut.constant; }
         this.pairs.forEach(([src, m, g]) => {
             m.matrix.copy(src.matrix); m.matrixWorldNeedsUpdate = true;
             m.visible = vis > 0.01 && src.visible;

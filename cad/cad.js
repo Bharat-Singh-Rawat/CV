@@ -9,8 +9,8 @@ import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
 import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { penningData, PenningEvents, DetectorPlots, STAGES } from './penning.js?v=20261120f';
-import { hpfcData, CoolingFlow, ThermalView } from './hpfc.js?v=20261121i';
+import { penningData, PenningEvents, DetectorPlots, STAGES } from './penning.js?v=20261124g';
+import { hpfcData, CoolingFlow, ThermalView } from './hpfc.js?v=20261124c';
 import { Reflector } from 'three/addons/objects/Reflector.js';
 
 // languages (cad/i18n.js, same choice as the CV): UI strings, model names, subsystems, story beats, Penning stages
@@ -21,9 +21,9 @@ const STAGES_L = L10N.stages || STAGES;
 const MODELS = [
     { key: 'oris', short: 'Ion source', photo: '/CV/v2/img/oris.webp', beam: true },
     { key: 'fc-array', short: 'Faraday cups', photo: '/CV/v2/img/fc-array.webp', profile: true, deskAz: 1.25 },
-    { key: 'hp-cup', short: '10 kW cup', photo: '/CV/v2/img/hp-fc-assembly.webp', procedural: 'hpfc', water: true, noAR: true, az0: -0.64, sweep: 0.3, cutZ: 29 },   // cut through the cup's own axis (it hangs below the drive's)
+    { key: 'hp-cup', short: '10 kW cup', photo: '/CV/v2/img/hp-fc-assembly.webp', procedural: 'hpfc', water: true, noAR: true, az0: -0.64, pol0: 1.36, fit: 1.3, sweep: 0.3, cutN: [-1, 0, 0], cutC: 0, cutAz: 0.95 },   // stands upright, mouth to the viewer, near eye level; the cut runs through the cup's axis (and the drive's), the view turns to it
     { key: 'magnetic-rpa', short: 'Magnetic RPA', photo: '/CV/v2/img/magnet-rpa.webp' },
-    { key: 'penning', short: 'Penning trap', photo: '/CV/v2/img/at-aegis.webp', procedural: true, noAR: true }
+    { key: 'penning', short: 'Penning trap', photo: '/CV/v2/img/at-aegis.webp', procedural: true, noAR: true, az0: -0.4, sweep: 0.35 }   // ~6 m long with the positron line and deflectometer: kept side-on
 ];
 MODELS.forEach(m => { const t = L10N.models && L10N.models[m.key]; if (t) m.short = t[0]; });
 // magnet polarity per model (not in the CAD): returns the magnetisation direction (S to N inside the magnet), CAD axes.
@@ -66,15 +66,19 @@ STORY['hp-cup'] = [
     { parts: ['Suppressor ring', 'Ceramic isolator', 'Ceramic bushes'], title: 'Keeping the electrons in', text: 'Ions hitting copper knock out secondary electrons. A suppressor ring at the front, biased negative and isolated from the cup by ceramic, turns them back, so the measured current stays honest.', fx: 'suppress', az: 0 },
     { parts: ['Cooling coil'], title: 'Water takes the heat', text: 'A copper tube is brazed round the cup in five turns. Cold water comes in along the arm, winds round the cup and leaves warm.', fx: 'water', az: 0 },
     { parts: ['Ceramic standoffs', 'Cup bracket', 'Arm and shaft'], title: 'Hanging on ceramic', text: 'The cup hangs from a steel arm on ceramic standoffs, so the only way its charge can leave is through the signal lead.', fx: 'water', az: 0 },
-    { parts: ['Pneumatic cylinder', 'Edge-welded bellows', 'Bellows flanges', 'Piston rod', 'Tie rods', 'Actuator plate', 'Air fittings', 'Mounting flange'], title: 'Into the beam', text: 'A pneumatic cylinder pushes the arm through two edge-welded bellows, which keep the vacuum sealed. The cup goes into the beam to measure, and comes back out to let the beam through.', fx: 'drive', az: 0 }
+    { parts: ['Pneumatic cylinder', 'Edge-welded bellows', 'Bellows flanges', 'Piston rod', 'Tie rods', 'Actuator plate', 'Air fittings', 'Mounting flange'], title: 'Into the beam', text: 'A pneumatic cylinder pushes the arm through two edge-welded bellows, which keep the vacuum sealed. The cup goes into the beam to measure, and comes back out to let the beam through.', fx: 'drive', az: 0,
+      frame: ['Cup body', 'Back plate', 'Suppressor ring', 'Ceramic isolator', 'Cooling coil', 'Cup bracket', 'Ceramic standoffs'] }
 ];
 STORY['penning'] = [
     { parts: ['Degrader foil'], title: 'Slowing the antiprotons', text: 'Antiprotons from CERN\'s decelerator pass a thin foil that slows them enough to be caught.' },
     { parts: ['Catching electrodes (C)', 'High-voltage electrodes', '5 T solenoid'], title: 'Caught in 5 tesla', text: 'High voltage on the gold electrodes and a 5 tesla field hold the antiprotons in a Penning–Malmberg trap.' },
     { parts: ['B electrodes', 'Rotating-wall electrode', '1 T solenoid'], title: 'The 1 tesla trap', text: 'Further along, a second trap sits in the 1 tesla magnet, with a rotating-wall electrode to compress the cloud.' },
-    { parts: ['Scintillator detectors'], title: 'Annihilation', text: 'When an antiproton meets matter it annihilates into pions, photons and nuclear fragments. The scintillators catch the charged ones.' }
+    { parts: ['Positron source', 'Buffer-gas trap', 'Positron accumulator', 'Diverter', 'Positron transfer line'], title: 'Positrons join in', text: 'A sodium-22 source gives positrons. A buffer-gas trap and an accumulator stack them up, then a line brings them down into the magnet, where they turn into positronium.' },
+    { parts: ['Liquid-helium vessels', 'Helium reservoirs', 'Liquid-nitrogen shields', 'Outer vacuum vessel'], title: 'Kept at 4 kelvin', text: 'The superconducting magnets and the traps sit in liquid helium at 4.2 K, inside a 77 K liquid-nitrogen shield and an insulating vacuum vessel.' },
+    { parts: ['Scintillator detectors'], title: 'Annihilation', text: 'When an antiproton meets matter it annihilates into pions, photons and nuclear fragments. The scintillators catch the charged ones.' },
+    { parts: ['Positronium converter', 'Gate valve', 'Deflectometer housing', 'Moiré gratings', 'Position detector'], title: 'Does antimatter fall?', text: 'Positronium meets the antiprotons to form antihydrogen. Downstream, a moiré deflectometer measures how far it falls on its way.' }
 ];
-const STORY_W0 = 0.12, STORY_W1 = 0.64;
+const STORY_W0 = 0.12, STORY_W1 = 0.64, STORY_MOVE = 0.45;   // a beat moves on after 45% of its scroll
 const FIELD = { 'oris': { seeds: 3, reach: 0.62, box: true }, 'magnetic-rpa': { seeds: 3, reach: 0.8, gap: true } };
 const BASE = '/CV/cad/models/';
 
@@ -96,7 +100,10 @@ const FINISH = {
     gold:     { color: 0xe8c47c, metalness: 1, roughness: 0.2, label: 'Gold' },
     coil:     { color: 0x9aa3b5, metalness: 0.6, roughness: 0.35, opacity: 0.16, label: '' },
     scint:    { color: 0x34c759, metalness: 0, roughness: 0.3, opacity: 0.22, label: '' },
-    foil:     { color: 0xf2f2f7, metalness: 0.3, roughness: 0.3, opacity: 0.7, label: '' }
+    foil:     { color: 0xf2f2f7, metalness: 0.3, roughness: 0.3, opacity: 0.7, label: '' },
+    lhe:      { color: 0x7cc8ff, metalness: 0.2, roughness: 0.15, opacity: 0.2, label: '' },      // liquid helium in its vessel: see-through
+    ln2:      { color: 0xb9b2ff, metalness: 0.2, roughness: 0.2, opacity: 0.1, label: '' },
+    vessel:   { color: 0xc4c8d0, metalness: 0.85, roughness: 0.3, opacity: 0.07, label: '' }     // outer vacuum vessel: a faint glass-like skin
 };
 
 // one chapter of scroll: [progress, distance (× fit), explode]; eased between keys
@@ -212,13 +219,20 @@ if (!phone) {
     mirror.rotation.x = -Math.PI / 2; mirror.renderOrder = -2; scene.add(mirror);
 }
 const applyTheme = () => {
-    floor.material.opacity = dark() ? 0.42 : 0.16;
-    blob.material.opacity = dark() ? 0.85 : 0.5;
-    scene.environmentIntensity = dark() ? 0.9 : 1.05;
-    if (mirror) mirror.material.uniforms.uStrength.value = dark() ? 0.16 : 0.09;
+    // the stage is graphite in both page themes: shadows, reflection and studio light always use the dark-stage values
+    floor.material.opacity = 0.42;
+    blob.material.opacity = 0.85;
+    scene.environmentIntensity = 0.9;
+    if (mirror) mirror.material.uniforms.uStrength.value = 0.16;
 };
 applyTheme();
 new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+// the site bar switches to dark glass while the graphite stage is under it
+{
+    const bar = document.querySelector('.bar');
+    const onStage = () => { const r = stage.getBoundingClientRect(), h = bar.offsetHeight; bar.classList.toggle('on-stage', r.top < h && r.bottom > h * 0.5); };
+    addEventListener('scroll', onStage, { passive: true }); addEventListener('resize', onStage); onStage();
+}
 
 // CAD is z-up; the root turns it to three.js y-up
 const root = new THREE.Group(); root.rotation.x = -Math.PI / 2; scene.add(root); root.updateMatrixWorld(true);
@@ -227,7 +241,7 @@ const cutPlane = new THREE.Plane(new THREE.Vector3(0, 0, -1), 0);
 // ---------- state ----------
 const built = [];          // per chapter: the built model, once loaded
 let active = -1, model = null;
-let explodeT = 0, cut = false;
+let explodeT = 0, cut = false, cutAzS = 0;
 let hovered = -1, selected = -1, solo = false;
 let focus = -1, hoverSys = -1;   // subsystem in focus / under the pointer (models that define subsystems)
 let userAz = 0, userPol = 0, velAz = 0, velPol = 0;
@@ -373,6 +387,12 @@ function build(data) {
             .multiply(new THREE.Matrix4().makeTranslation(-gc.x, -gc.y, -gc.z));
         const e = data.explode[i] || 0;
         mesh.userData.ex = Array.isArray(e) ? new THREE.Vector3(...e) : new THREE.Vector3(0, 0, e);
+        // a model may be stood on its mount (data.mount, a rotation): the drive still works in the model's own axes
+        if (data.mount) {
+            mesh.userData.pre = mesh.userData.base.clone();
+            mesh.userData.base = data.mount.clone().multiply(mesh.userData.pre);
+            mesh.userData.ex.applyMatrix4(data.mount);
+        }
         mesh.userData.g = inst.g; mesh.userData.drive = inst.drive;
         mesh.castShadow = mesh.receiveShadow = true;
         const bb = data.geo[inst.geo].boundingBox.clone().applyMatrix4(mesh.userData.base);
@@ -386,6 +406,7 @@ function build(data) {
         return { ...x, name: t ? t[0] : x.label, note: t ? t[1] : x.blurb, set: new Set(x.groups), count: x.groups.reduce((n, i) => n + data.groups[i].count, 0) };
     }) };
     M.fit0 = boundsOf(M, 0).getBoundingSphere(new THREE.Sphere());
+    if (data.core) { const cs = new Set(groups.map((g, i) => data.core.includes(g.label) ? i : -1).filter(i => i >= 0)); M.core = boundsOf(M, 0, cs).getBoundingSphere(new THREE.Sphere()); }
     M.fit1 = boundsOf(M, 1).getBoundingSphere(new THREE.Sphere());
     const all = boundsOf(M, 0).union(boundsOf(M, 1)), s = all.getSize(new THREE.Vector3());
     M.radius = Math.max(s.x, s.y, s.z) * 0.9;
@@ -409,7 +430,9 @@ function activate(i) {
     if (model) model.holder.visible = false;
     active = i; model = built[i]; model.holder.visible = true;
     selected = hovered = focus = hoverSys = -1; solo = false; closeInfo();
-    cutPlane.constant = MODELS[i].cutZ || 0;
+    // the cut: by default a plane facing the viewer (world z = cutZ); a model may give its own plane (cutN, cutC) and turn to it (cutAz)
+    if (MODELS[i].cutN) cutPlane.normal.fromArray(MODELS[i].cutN); else cutPlane.normal.set(0, 0, -1);
+    cutPlane.constant = MODELS[i].cutN ? MODELS[i].cutC || 0 : MODELS[i].cutZ || 0;
     applyCut();
     const r = model.radius;
     Object.assign(key.shadow.camera, { left: -r, right: r, top: r, bottom: -r, near: 1, far: r * 8 });
@@ -471,6 +494,9 @@ function applyExplode(force) {
         if (d && d.bel) {          // a bellows stretches between its two (moving) ends
             const [[xa, ka], [xb, kb]] = d.bel, a = xa + ka * driveX, b = xb + kb * driveX;
             m.matrix.makeTranslation(a, 0, 0).multiply(_bs.makeScale(b - a, 1, 1));
+            if (model.data.mount) m.matrix.premultiply(model.data.mount);
+        } else if (d && d.move && m.userData.pre) {
+            m.matrix.copy(m.userData.pre); m.matrix.elements[12] += d.move * driveX; m.matrix.premultiply(model.data.mount);
         } else {
             m.matrix.copy(m.userData.base);
             if (d && d.move) m.matrix.elements[12] += d.move * driveX;
@@ -511,12 +537,25 @@ function scrollToChapter(i, p, instant) {
 const holdP = i => hasStory(i) ? 0.83 : 0.68;      // where a chapter rests fully exploded
 function keyAt(p, story) {
     const K = story ? KEYS_STORY : KEYS;
-    let k = 0; while (k < K.length - 2 && p > K[k + 1][0]) k++;
-    const [p0, m0, e0] = K[k], [p1, m1, e1] = K[k + 1], s = smooth(p0, p1, p);
-    const e = e0 + (e1 - e0) * s;
+    // one smooth curve through all keys (monotone cubic): no stop-and-go at the in-between keys, holds stay still, no overshoot
+    const e = hermite(K, 2, p);
     // reduced motion: no fly-in, no zoom, no gradual take-apart; the view cuts between assembled and exploded
     if (reduce) return e > 0.5 ? { m: 1.14, e: 1 } : { m: 1.0, e: 0 };
-    return { m: m0 + (m1 - m0) * s, e };
+    return { m: hermite(K, 1, p), e };
+}
+// Fritsch–Carlson monotone cubic through keys K[i] = [x, ...values]; j picks the value column
+function hermite(K, j, x) {
+    let k = 0; while (k < K.length - 2 && x > K[k + 1][0]) k++;
+    const sl = i => (K[i + 1][j] - K[i][j]) / (K[i + 1][0] - K[i][0]);
+    const tan = i => {
+        if (i <= 0 || i >= K.length - 1) return 0;            // start/end of a chapter: at rest
+        const a = sl(i - 1), b = sl(i);
+        if (a * b <= 0) return 0;                              // a turning point or a hold: flat
+        const ha = K[i][0] - K[i - 1][0], hb = K[i + 1][0] - K[i][0], wa = 2 * hb + ha, wb = hb + 2 * ha;
+        return (wa + wb) / (wa / a + wb / b);
+    };
+    const h = K[k + 1][0] - K[k][0], t = clamp((x - K[k][0]) / h), t2 = t * t, t3 = t2 * t;
+    return (2 * t3 - 3 * t2 + 1) * K[k][j] + (t3 - 2 * t2 + t) * h * tan(k) + (-2 * t3 + 3 * t2) * K[k + 1][j] + (t3 - t2) * h * tan(k + 1);
 }
 
 $('chapters').innerHTML = MODELS.map((m, i) => `<button type="button" role="tab" data-i="${i}" aria-selected="false">${esc(m.short)}<i></i></button>`).join('');
@@ -558,7 +597,9 @@ function stepMaterials(dt) {
         const f = m.userData.fade + (goal - m.userData.fade) * k;
         m.userData.fade = f;
         const baseOp = m.userData.baseOpacity || 1, transparent = f < 0.995 || baseOp < 1;
-        if (m.transparent !== transparent) { m.transparent = transparent; m.depthWrite = !transparent; m.needsUpdate = true; }
+        // faded "ghost" parts still write depth: only their nearest surface shows, so parts behind them don't poke through
+        // depending on draw order (see-through-by-design parts such as grids and coils keep depthWrite off)
+        if (m.transparent !== transparent) { m.transparent = transparent; m.depthWrite = baseOp >= 1; m.needsUpdate = true; }
         m.opacity = transparent ? f * baseOp : 1;
         const hot = g.label === 'Filament' ? beamVis * 2.4 * (reduce ? 1 : 0.92 + 0.08 * Math.sin(performance.now() / 45)) : 0;
         if (hot > 0.02) m.emissive.setHex(0xff6a1a); else if (m.emissiveIntensity < 0.3) m.emissive.setHex(0x0071e3);
@@ -697,7 +738,7 @@ function placeLabels() {
         c.groups.forEach(gi => model.groups[gi].meshes.forEach(m => {
             if (!m.visible) return;
             _v.copy(m.userData.ex).multiplyScalar(t).add(m.userData.c).applyMatrix4(root.matrixWorld);
-            if (cut && _v.z > cutPlane.constant) return;
+            if (cut && cutPlane.distanceToPoint(_v) < 0) return;
             const d = _v.distanceToSquared(camera.position);
             if (d < bd) { bd = d; best = _v.clone(); }
         }));
@@ -749,7 +790,7 @@ function pick(x, y) {
     ray.setFromCamera(ndc, camera);
     const hits = ray.intersectObjects(model.meshes.filter(m => m.visible && m.material.userData.fade > 0.5), false);
     for (const h of hits) {
-        if (cut && h.point.z > cutPlane.constant + 0.01) continue;   // ignore the cut-away half
+        if (cut && cutPlane.distanceToPoint(h.point) < -0.01) continue;   // ignore the cut-away half
         lastPick = h.object;
         return h.object.userData.g;
     }
@@ -770,7 +811,7 @@ canvas.addEventListener('pointermove', e => {
     // touch: only sideways drags turn the model (vertical swipes keep scrolling the page)
     velAz = -dx * 0.008;
     velPol = down.type === 'mouse' ? -dy * 0.006 : 0;
-    userAz += velAz; userPol = clamp(userPol + velPol, -0.75, 0.5);
+    userAz += velAz; userPol = clamp(userPol + velPol, -1.1, 1.45);
 });
 const endDrag = e => {
     canvas.classList.remove('grabbing');
@@ -811,7 +852,7 @@ canvas.addEventListener('keydown', e => {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     const k = e.key, step = e.shiftKey ? 0.3 : 0.12;
     if (k === 'ArrowLeft' || k === 'ArrowRight') { velAz = 0; userAz += (k === 'ArrowLeft' ? 1 : -1) * step; }
-    else if (k === 'ArrowUp' || k === 'ArrowDown') { velPol = 0; userPol = clamp(userPol + (k === 'ArrowUp' ? 1 : -1) * step * 0.6, -0.75, 0.5); }
+    else if (k === 'ArrowUp' || k === 'ArrowDown') { velPol = 0; userPol = clamp(userPol + (k === 'ArrowUp' ? 1 : -1) * step * 0.6, -1.1, 1.45); }
     else if (k === 'Home') { userAz = userPol = velAz = velPol = 0; }
     else return;
     e.preventDefault();
@@ -1046,7 +1087,7 @@ function stepExtras(dt, time) {
         if (model.thermal) {     // live heat map: on with the button, and while the story talks about the water
             thermVis += (Math.max(heatOn ? 1 : 0, storyFx.water) * away - thermVis) * (1 - Math.exp(-dt * 4));
             const inBeam = 1 - clamp((-driveX - 20) / 45);
-            model.thermal.step(dt, thermVis, heatVis > 0.5 ? inBeam : 0, waterVis > 0.5 ? 1 : 0, cut ? cutPlane.constant : null);
+            model.thermal.step(dt, thermVis, heatVis > 0.5 ? inBeam : 0, waterVis > 0.5 ? 1 : 0, cut ? cutPlane : null);
         }
         driveShown = (storyFx.drive > 0.3 || driveOut || driveX < -1) && away > 0.6 ? 1 : 0;
         const chip = $('phase'), parked = driveX < -S * 0.45;
@@ -1109,8 +1150,25 @@ function buildStory(M, key) {
         if (b.sys) { const sy = M.systems.find(x => x.label === b.sys); set = sy && sy.set; }
         else set = new Set(M.groups.map((g, i) => b.parts.includes(g.label) ? i : -1).filter(i => i >= 0));
         if (!set || !set.size) return null;
-        return { ...b, set, sph: boundsOf(M, 0, set).getBoundingSphere(new THREE.Sphere()) };
+        let sph = boundsOf(M, 0, set).getBoundingSphere(new THREE.Sphere());
+        const ms = M.meshes.filter(m => set.has(m.userData.g));
+        // parts that ride on a drive: the camera follows them in and out of the beam
+        const rides = !!(M.data.drive && ms.length && ms.every(m => m.userData.drive && m.userData.drive.move === 1));
+        // the drive's own beat frames the whole assembly over the full stroke, so the cup never leaves the screen
+        if (b.fx === 'drive' && M.data.drive) {
+            const fr = b.frame ? new Set(M.groups.map((g, i) => b.frame.includes(g.label) ? i : -1).filter(i => i >= 0)) : null;
+            const all = boundsOf(M, 0, fr && fr.size ? fr : null), out = all.clone().translate(driveWorld(M, -M.data.drive.stroke));
+            sph = all.union(out).getBoundingSphere(new THREE.Sphere());
+        }
+        return { ...b, set, sph, rides };
     }).filter(Boolean);
+}
+// the drive's displacement (model x, mm) as a world-space vector
+const _rootRot = new THREE.Matrix4();
+function driveWorld(M, x) {
+    const v = new THREE.Vector3(x, 0, 0);
+    if (M.data.mount) v.applyMatrix4(M.data.mount);
+    return v.applyMatrix4(_rootRot.extractRotation(root.matrixWorld));
 }
 // where in the story we are: which beat leads, how far the camera has moved between beats, how visible the text is
 function storyAt(p, n) {
@@ -1118,8 +1176,10 @@ function storyAt(p, n) {
     if (p < STORY_W0) { const b = smooth(STORY_W0 - 0.05, STORY_W0 + 0.015, p); return { from: -1, to: 0, b, w: b, dom: 0, text: smooth(STORY_W0 - 0.01, STORY_W0 + 0.03, p) }; }
     if (p >= STORY_W1) { const b = smooth(STORY_W1 - 0.015, STORY_W1 + 0.05, p); return { from: n - 1, to: -1, b, w: 1 - b, dom: n - 1, text: 1 - smooth(STORY_W1 - 0.03, STORY_W1 + 0.005, p) }; }
     const u = (p - STORY_W0) / slot, k = Math.min(n - 1, Math.floor(u)), f = u - k;
-    if (k < n - 1 && f > 0.66) { const b = smooth(0.66, 1, f); return { from: k, to: k + 1, b, w: 1, dom: b < 0.5 ? k : k + 1, text: 1 - 4 * b * (1 - b) }; }
-    return { from: k, to: k, b: 0, w: 1, dom: k, text: 1 };
+    // each beat: a slow push-in while it is read, then a long, gentle move to the next one (the camera never stands still)
+    const push = Math.min(1, f / STORY_MOVE);
+    if (k < n - 1 && f > STORY_MOVE) { const b = smooth(STORY_MOVE, 1, f); return { from: k, to: k + 1, b, w: 1, dom: b < 0.5 ? k : k + 1, text: 1 - 4 * b * (1 - b), push: push * (1 - b) }; }
+    return { from: k, to: k, b: 0, w: 1, dom: k, text: 1, push };
 }
 
 // --- electrons (desktop): gyrating along the traced field lines, bouncing near the magnets (magnetic mirrors) ---
@@ -1362,34 +1422,44 @@ function loop(now) {
             storyOn = true;
         } else if (storyOn) { storyOn = false; paint(); }
     } else if (storyOn) { storyOn = false; paint(); }
+    // Penning trap close-ups (positronium, lasers, antihydrogen happen inside the electrodes): the stack turns to a ghost
+    if (model.events && !storyOn && selected < 0 && focus < 0) {
+        const close = (model.events.zoom || 1) < 0.4;
+        model.groups.forEach(g => { g.goalFade = !close ? 1 : /electrode|converter/i.test(g.label) ? 0.16 : /helium|nitrogen|vessel|solenoid|coil/i.test(g.label) ? 0.3 : 1; });
+    }
     const capI = $('cap-intro'), capE = $('cap-explode');
     capI.style.opacity = intro.toFixed(3); capI.style.transform = `translateY(${(-24 * (1 - intro)).toFixed(1)}px)`;
     capE.style.opacity = exCap.toFixed(3);
 
     // user drag on top, with a little inertia
-    if (!dragging) { velAz *= Math.exp(-dt * 5); velPol *= Math.exp(-dt * 5); userAz += velAz; userPol = clamp(userPol + velPol, -0.75, 0.5); }
+    if (!dragging) { velAz *= Math.exp(-dt * 5); velPol *= Math.exp(-dt * 5); userAz += velAz; userPol = clamp(userPol + velPol, -1.1, 1.45); }
     const sph = model.fit0.clone();
     sph.center.lerp(model.fit1.center, explodeT); sph.radius += (model.fit1.radius - sph.radius) * explodeT;
     const vfov = THREE.MathUtils.degToRad(camera.fov), hfov = 2 * Math.atan(Math.tan(vfov / 2) * camera.aspect);
     const fitK = 1 / Math.sin(Math.min(vfov, hfov) / 2);
-    let dist = sph.radius * fitK * kf.m;
+    let dist = sph.radius * fitK * kf.m * (MODELS[ci].fit || 1);     // tall models get a margin clear of the tabs and the toolbar
     if (model.events && explodeT < 0.3) {     // Penning trap: come closer and follow the antiproton bunch along the trap
         const fw = (1 - (st ? st.w : 0)) * (1 - smooth(0.05, 0.3, explodeT)), c3 = model.events.centre.clone().applyMatrix4(root.matrixWorld);
-        followC.lerp(c3, 1 - Math.exp(-dt * 2.5));
-        sph.center.lerp(followC, fw * 0.85); dist *= 1 - 0.42 * fw;
+        followC.lerp(c3, 1 - Math.exp(-dt * ((model.events.zoom || 1) < 0.7 ? 6 : 2.5)));     // keeps up with the fast positron bunch
+        sph.center.lerp(followC, fw * ((model.events.zoom || 1) < 0.7 ? 1 : 0.85));     // close-ups centre exactly on the action
+        const dCore = (model.core ? model.core.radius * fitK * kf.m : dist) * 0.58 * (model.events.zoom || 1);   // close-up sized to the trap (and closer still for the mm-scale antihydrogen steps)
+        dist += (Math.min(dist, dCore) - dist) * fw;
     }
     if (st && st.w > 0) {        // move the camera to the beat's subsystem (and between beats)
         const room = camera.aspect < 1 ? 1.22 : 1;      // portrait phones: the card covers the bottom, keep some margin round the beat
-        const anchor = i => i < 0 ? { c: sph.center, d: dist } : { c: story[i].sph.center, d: clamp(story[i].sph.radius * fitK * 1.75 * room, dist * 0.38, dist * 1.05 * room) };
+        const anchor = i => i < 0 ? { c: sph.center, d: dist } : { c: story[i].rides && driveX ? story[i].sph.center.clone().add(driveWorld(model, driveX)) : story[i].sph.center, d: clamp(story[i].sph.radius * fitK * 1.75 * room, dist * 0.38, dist * 1.05 * room) };
         const A = anchor(st.from), B2 = anchor(st.to), sb = reduce ? (st.b < 0.5 ? 0 : 1) : st.b;
         sph.center = A.c.clone().lerp(B2.c, sb); dist = A.d + (B2.d - A.d) * sb;
+        if (!reduce) dist *= 1.03 - 0.07 * (st.push || 0) * st.w;     // slow dolly-in while a beat is read
         // a beat may also turn the model (e.g. to look into the 10 kW cup, or at its back)
         const tw = i => i < 0 ? 0 : story[i].az || 0;
         beatAz = (tw(st.from) + (tw(st.to) - tw(st.from)) * sb);
     } else beatAz = 0;
     beatAzS = reduce ? beatAz : beatAzS + (beatAz - beatAzS) * (1 - Math.exp(-dt * 5));
+    const cutGoal = cut ? MODELS[ci].cutAz || 0 : 0;
+    cutAzS = reduce ? cutGoal : cutAzS + (cutGoal - cutAzS) * (1 - Math.exp(-dt * 4));
     // long models keep a side view: their own offset and a smaller turn over the chapter
-    const az = AZ0 + (desk && MODELS[ci].deskAz || 0) + (MODELS[ci].az0 || 0) + (reduce ? 0 : (p - 0.45) * 1.9 * (MODELS[ci].sweep ?? 1)) + userAz + beatAzS, pol = POL0 + userPol - (reduce ? 0 : 0.1 * Math.sin(Math.PI * p));
+    const az = AZ0 + (desk && MODELS[ci].deskAz || 0) + (MODELS[ci].az0 || 0) + (reduce ? 0 : (p - 0.45) * 1.9 * (MODELS[ci].sweep ?? 1)) + userAz + beatAzS + cutAzS, pol = clamp((MODELS[ci].pol0 || POL0) + userPol - (reduce ? 0 : 0.1 * Math.sin(Math.PI * p)), 0.06, 2.6);   // top view down to well under the floor (not past the poles)
     _c.copy(sph.center);
     camera.position.set(_c.x + dist * Math.sin(pol) * Math.sin(az), _c.y + dist * Math.cos(pol), _c.z + dist * Math.sin(pol) * Math.cos(az));
     camera.lookAt(_c);

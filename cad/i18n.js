@@ -193,10 +193,13 @@
                     ['Frenar los antiprotones', 'Los antiprotones del decelerador del CERN atraviesan una lámina fina que los frena lo suficiente para atraparlos.'],
                     ['Atrapados en 5 teslas', 'La alta tensión en los electrodos de oro y un campo de 5 teslas retienen los antiprotones en una trampa de Penning–Malmberg.'],
                     ['La trampa de 1 tesla', 'Más adelante, una segunda trampa está en el imán de 1 tesla, con un electrodo de pared giratoria para comprimir la nube.'],
-                    ['Aniquilación', 'Cuando un antiprotón se encuentra con la materia, se aniquila en piones, fotones y fragmentos nucleares. Los centelleadores detectan los cargados.']
+                    ['Llegan los positrones', 'Una fuente de sodio-22 da positrones. Una trampa de gas tampón y un acumulador los reúnen, y una línea los lleva al imán, donde se convierten en positronio.'],
+                    ['A 4 kelvin', 'Los imanes superconductores y las trampas están en helio líquido a 4,2 K, dentro de un escudo de nitrógeno líquido a 77 K y de una cámara de vacío aislante.'],
+                    ['Aniquilación', 'Cuando un antiprotón se encuentra con la materia, se aniquila en piones, fotones y fragmentos nucleares. Los centelleadores detectan los cargados.'],
+                    ['¿Cae la antimateria?', 'El positronio se une a los antiprotones y forma antihidrógeno. Más adelante, un deflectómetro de moiré mide cuánto cae en su camino.']
                 ]
             },
-            stages: ['Llegando del decelerador', 'Atrapados en la trampa de 5 T', 'Comprimidos entre dos electrodos', 'Lanzados hacia 1 T', 'Expandiéndose en la trampa de 1 T', 'Saliendo por el otro extremo']
+            stages: ['Llegando del decelerador', 'Atrapados en la trampa de 5 T', 'Enfriados y comprimidos', 'Llevados a la trampa de 1 T, junto a A0', 'Positrones lanzados contra el blanco', 'Dos láseres excitan el positronio', 'Se forma antihidrógeno', 'El antihidrógeno llega al detector', 'Se liberan los antiprotones restantes']
         },
         fr: {
             models: {
@@ -243,10 +246,13 @@
                     ['Ralentir les antiprotons', 'Les antiprotons du décélérateur du CERN traversent une fine feuille qui les ralentit assez pour être piégés.'],
                     ['Piégés dans 5 teslas', 'La haute tension sur les électrodes en or et un champ de 5 teslas retiennent les antiprotons dans un piège de Penning–Malmberg.'],
                     ['Le piège à 1 tesla', 'Plus loin, un second piège se trouve dans l’aimant de 1 tesla, avec une électrode à paroi tournante pour comprimer le nuage.'],
-                    ['Annihilation', 'Quand un antiproton rencontre la matière, il s’annihile en pions, photons et fragments nucléaires. Les scintillateurs détectent les particules chargées.']
+                    ['Les positons arrivent', 'Une source de sodium 22 fournit des positons. Un piège à gaz tampon et un accumulateur les rassemblent, puis une ligne les amène dans l’aimant, où ils deviennent du positronium.'],
+                    ['À 4 kelvins', 'Les aimants supraconducteurs et les pièges baignent dans l’hélium liquide à 4,2 K, dans un écran d’azote liquide à 77 K et une enceinte à vide isolante.'],
+                    ['Annihilation', 'Quand un antiproton rencontre la matière, il s’annihile en pions, photons et fragments nucléaires. Les scintillateurs détectent les particules chargées.'],
+                    ['L’antimatière tombe-t-elle ?', 'Le positronium rencontre les antiprotons et forme de l’antihydrogène. Plus loin, un déflectomètre de moiré mesure de combien il tombe en chemin.']
                 ]
             },
-            stages: ['Arrivée depuis le décélérateur', 'Piégés à 5 T', 'Comprimés entre deux électrodes', 'Éjectés vers 1 T', 'Expansion dans le piège à 1 T', 'Sortie par l’autre extrémité']
+            stages: ['Arrivée depuis le décélérateur', 'Piégés à 5 T', 'Refroidis et comprimés', 'Transférés dans le piège à 1 T, près de A0', 'Positons envoyés sur la cible', 'Deux lasers excitent le positronium', 'L’antihydrogène se forme', 'L’antihydrogène atteint le détecteur', 'Les antiprotons restants sont libérés']
         },
         ru: {
             models: {
@@ -293,10 +299,13 @@
                     ['Замедляем антипротоны', 'Антипротоны из замедлителя ЦЕРН проходят через тонкую фольгу, которая тормозит их настолько, чтобы их можно было поймать.'],
                     ['Пойманы в 5 теслах', 'Высокое напряжение на золотых электродах и поле 5 Тл удерживают антипротоны в ловушке Пеннинга–Мальмберга.'],
                     ['Ловушка на 1 Тл', 'Дальше, в магните на 1 Тл, стоит вторая ловушка с электродом вращающейся стенки для сжатия облака.'],
-                    ['Аннигиляция', 'Встречая вещество, антипротон аннигилирует в пионы, фотоны и ядерные фрагменты. Сцинтилляторы регистрируют заряженные частицы.']
+                    ['Добавляем позитроны', 'Источник натрия-22 даёт позитроны. Ловушка с буферным газом и накопитель собирают их, а линия доставляет в магнит, где они превращаются в позитроний.'],
+                    ['При 4 кельвинах', 'Сверхпроводящие магниты и ловушки находятся в жидком гелии при 4,2 К, внутри экрана из жидкого азота при 77 К и изолирующего вакуумного сосуда.'],
+                    ['Аннигиляция', 'Встречая вещество, антипротон аннигилирует в пионы, фотоны и ядерные фрагменты. Сцинтилляторы регистрируют заряженные частицы.'],
+                    ['Падает ли антивещество?', 'Позитроний встречается с антипротонами и образует антиводород. Дальше муаровый дефлектометр измеряет, насколько он падает по пути.']
                 ]
             },
-            stages: ['Прибывают из замедлителя', 'Пойманы в ловушке 5 Тл', 'Сжаты между двумя электродами', 'Импульсом выведены к 1 Тл', 'Расширяются в ловушке 1 Тл', 'Уходят через дальний конец']
+            stages: ['Прибывают из замедлителя', 'Пойманы в ловушке 5 Тл', 'Охлаждены и сжаты', 'Перенесены в ловушку 1 Тл, к электроду A0', 'Позитроны направлены на мишень', 'Два лазера возбуждают позитроний', 'Образуется антиводород', 'Антиводород достигает детектора', 'Оставшиеся антипротоны выпускаются']
         },
         gu: {
             models: {
@@ -343,10 +352,13 @@
                     ['એન્ટિપ્રોટોનને ધીમા પાડવા', 'CERNના ડિસેલરેટરમાંથી આવતા એન્ટિપ્રોટોન પાતળી ફોઇલમાંથી પસાર થાય છે, જે તેમને પકડી શકાય તેટલા ધીમા પાડે છે.'],
                     ['5 ટેસ્લામાં કેદ', 'સોનાના ઇલેક્ટ્રોડ પરનું ઊંચું વોલ્ટેજ અને 5 ટેસ્લાનું ક્ષેત્ર એન્ટિપ્રોટોનને પેનિંગ–માલ્મબર્ગ ટ્રેપમાં પકડી રાખે છે.'],
                     ['1 ટેસ્લાનો ટ્રેપ', 'થોડે આગળ 1 ટેસ્લાના ચુંબકમાં બીજો ટ્રેપ છે, જેમાં વાદળને સંકોચવા માટે રોટેટિંગ-વૉલ ઇલેક્ટ્રોડ છે.'],
-                    ['એનિહિલેશન', 'એન્ટિપ્રોટોન દ્રવ્યને મળે ત્યારે તે પાયોન, ફોટોન અને ન્યુક્લિયર ટુકડાઓમાં નષ્ટ થાય છે. સિન્ટિલેટર ચાર્જવાળા કણોને પકડે છે.']
+                    ['પોઝિટ્રોન જોડાય છે', 'સોડિયમ-22નો સ્રોત પોઝિટ્રોન આપે છે. બફર-ગેસ ટ્રેપ અને એક્યુમ્યુલેટર તેમને એકઠા કરે છે, પછી એક લાઇન તેમને ચુંબકમાં લાવે છે, જ્યાં તેઓ પોઝિટ્રોનિયમ બને છે.'],
+                    ['4 કેલ્વિન પર', 'સુપરકન્ડક્ટિંગ ચુંબકો અને ટ્રેપ 4.2 K પરના પ્રવાહી હિલિયમમાં છે, 77 K પરના પ્રવાહી નાઇટ્રોજનના કવચ અને ઇન્સ્યુલેટિંગ વેક્યુમ પાત્રની અંદર.'],
+                    ['એનિહિલેશન', 'એન્ટિપ્રોટોન દ્રવ્યને મળે ત્યારે તે પાયોન, ફોટોન અને ન્યુક્લિયર ટુકડાઓમાં નષ્ટ થાય છે. સિન્ટિલેટર ચાર્જવાળા કણોને પકડે છે.'],
+                    ['શું પ્રતિદ્રવ્ય નીચે પડે છે?', 'પોઝિટ્રોનિયમ એન્ટિપ્રોટોનને મળીને એન્ટિહાઇડ્રોજન બનાવે છે. આગળ, મોઆરે ડિફ્લેક્ટોમીટર માપે છે કે તે રસ્તામાં કેટલું નીચે પડે છે.']
                 ]
             },
-            stages: ['ડિસેલરેટરમાંથી આવી રહ્યા છે', '5 T ટ્રેપમાં કેદ', 'બે ઇલેક્ટ્રોડ વચ્ચે સંકોચાયેલા', '1 T તરફ પલ્સથી મોકલ્યા', '1 T ટ્રેપમાં ફેલાઈ રહ્યા છે', 'દૂરના છેડેથી બહાર']
+            stages: ['ડિસેલરેટરમાંથી આવી રહ્યા છે', '5 T ટ્રેપમાં કેદ', 'ઠંડા કરીને સંકોચાયેલા', '1 T ટ્રેપમાં, A0 પાસે ખસેડાયા', 'પોઝિટ્રોન ટાર્ગેટ પર છોડાયા', 'બે લેસર પોઝિટ્રોનિયમને ઉત્તેજિત કરે છે', 'એન્ટિહાઇડ્રોજન બને છે', 'એન્ટિહાઇડ્રોજન ડિટેક્ટર સુધી પહોંચે છે', 'બાકીના એન્ટિપ્રોટોન છોડાય છે']
         }
     };
 
