@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Secondary Electron &amp; Sputtering Yields — Bharat Singh Rawat</title>
+<meta name="description" content="Interactive plots of secondary electron yield (electron and ion impact) and ion sputtering yield versus energy for many beams and target materials, from published compilations, with every point traceable to its reference.">
+<link rel="canonical" href="https://bharat-singh-rawat.github.io/CV/yields/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a84ff'/%3E%3Cpath d='M6 25 C11 8 17 6 26 14' stroke='white' stroke-width='2.5' fill='none'/%3E%3C/svg%3E">
+<script>
+  (function () { var t = null; try { t = localStorage.getItem('yields-theme'); } catch (e) {} if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; })();
+</script>
+<style>
+:root {
+  --bg: #f5f5f7; --card: rgba(255,255,255,.86); --card-solid: #fff;
+  --text: #1d1d1f; --muted: #6e6e73; --sep: rgba(0,0,0,.08); --sep2: rgba(0,0,0,.14);
+  --accent: #0071e3; --accent-soft: rgba(0,113,227,.12); --orange: #ff9f0a;
+  --side: rgba(236,236,240,.72); --input: rgba(0,0,0,.045);
+  --shadow: 0 1px 2px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.06); --radius: 14px;
+  --font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif; color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #000; --card: rgba(28,28,30,.86); --card-solid: #1c1c1e; --text: #f5f5f7; --muted: #98989d;
+  --sep: rgba(255,255,255,.08); --sep2: rgba(255,255,255,.16); --accent: #0a84ff; --accent-soft: rgba(10,132,255,.18);
+  --side: rgba(30,30,32,.72); --input: rgba(255,255,255,.07); --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 30px rgba(0,0,0,.35); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #000; --card: rgba(28,28,30,.86); --card-solid: #1c1c1e; --text: #f5f5f7; --muted: #98989d;
+  --sep: rgba(255,255,255,.08); --sep2: rgba(255,255,255,.16); --accent: #0a84ff; --accent-soft: rgba(10,132,255,.18);
+  --side: rgba(30,30,32,.72); --input: rgba(255,255,255,.07); --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 30px rgba(0,0,0,.35); color-scheme: dark; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); font-size: 13.5px; -webkit-font-smoothing: antialiased; letter-spacing: -.005em;
+  background-image: radial-gradient(1200px 600px at 85% -10%, var(--accent-soft), transparent 60%); }
+.window { display: flex; height: 100vh; }
+.sidebar { width: 268px; flex: none; background: var(--side); backdrop-filter: saturate(180%) blur(24px); -webkit-backdrop-filter: saturate(180%) blur(24px);
+  border-right: 1px solid var(--sep); display: flex; flex-direction: column; padding: 14px 12px; gap: 4px; overflow: auto; }
+.traffic { display: flex; gap: 8px; padding: 2px 6px 14px; }
+.traffic span { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.15); }
+.traffic span:nth-child(2) { background: #febc2e; } .traffic span:nth-child(3) { background: #28c840; }
+.brand { display: flex; align-items: center; gap: 10px; padding: 2px 6px 14px; }
+.brand .logo { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 12px;
+  background: linear-gradient(135deg, #0a84ff, #5e5ce6); box-shadow: 0 2px 8px rgba(10,132,255,.35); }
+.brand b { display: block; font-size: 14px; } .brand small { color: var(--muted); font-size: 11.5px; }
+.group { margin: 10px 6px 4px; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .02em; }
+.seg { display: flex; background: var(--input); border-radius: 9px; padding: 2px; margin: 0 4px; flex-wrap: wrap; }
+.seg button { flex: 1; border: 0; background: none; color: var(--text); font: inherit; font-size: 12.5px; padding: 5px 6px; border-radius: 7px; cursor: pointer; white-space: nowrap; }
+.seg button[aria-pressed="true"] { background: var(--card-solid); box-shadow: 0 1px 3px rgba(0,0,0,.12); font-weight: 600; }
+.search { margin: 2px 4px 4px; border: 1px solid var(--sep2); background: var(--card-solid); color: var(--text); font: inherit; font-size: 12.5px; padding: 6px 9px; border-radius: 8px; }
+.list { margin: 0 4px; max-height: 300px; overflow: auto; border-radius: 9px; background: var(--input); padding: 3px; }
+.list label { display: flex; align-items: center; gap: 8px; padding: 4px 7px; border-radius: 6px; cursor: pointer; font-size: 12.5px; }
+.list label:hover { background: var(--card-solid); }
+.list label small { margin-left: auto; color: var(--muted); font-size: 11px; }
+.list input { accent-color: var(--accent); margin: 0; }
+.mini { display: flex; gap: 6px; margin: 4px 4px 0; }
+.mini button { flex: 1; border: 1px solid var(--sep2); background: var(--card-solid); color: var(--text); font: inherit; font-size: 11.5px; padding: 4px; border-radius: 7px; cursor: pointer; }
+.tog { display: flex; align-items: center; gap: 9px; padding: 5px 8px; border-radius: 8px; cursor: pointer; user-select: none; font-size: 12.5px; }
+.tog:hover { background: var(--input); } .tog input { margin-left: auto; accent-color: var(--accent); }
+select.sel { margin: 0 4px; border: 1px solid var(--sep2); background: var(--card-solid); color: var(--text); font: inherit; font-size: 12.5px; padding: 6px 8px; border-radius: 8px; }
+.theme { display: flex; gap: 2px; background: var(--input); border-radius: 8px; padding: 2px; margin: 10px 4px 0; }
+.theme button { flex: 1; border: 0; background: none; color: var(--muted); font: inherit; font-size: 12px; padding: 4px; border-radius: 6px; cursor: pointer; }
+.theme button[aria-pressed="true"] { background: var(--card-solid); color: var(--text); }
+.side-foot { margin-top: auto; padding: 12px 6px 2px; color: var(--muted); font-size: 11px; line-height: 1.45; }
+main { flex: 1; overflow: auto; padding: 22px 26px 40px; }
+.back { display: inline-block; color: var(--accent); text-decoration: none; font-size: 13px; margin-bottom: 10px; }
+h1 { margin: 0; font-size: 26px; letter-spacing: -.025em; }
+.sub { margin: 4px 0 16px; color: var(--muted); font-size: 13.5px; max-width: 88ch; line-height: 1.5; }
+.tabs { display: inline-flex; background: var(--input); border-radius: 10px; padding: 3px; margin-bottom: 14px; }
+.tabs button { border: 0; background: none; color: var(--text); font: inherit; font-size: 13.5px; padding: 7px 16px; border-radius: 8px; cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--card-solid); box-shadow: 0 1px 3px rgba(0,0,0,.12); font-weight: 600; }
+.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--sep); padding: 14px 16px; backdrop-filter: blur(20px); margin-bottom: 14px; }
+.card h3 { margin: 0 0 4px; font-size: 15px; } .card p { margin: 0 0 8px; font-size: 13px; line-height: 1.55; max-width: 100ch; }
+.plot { height: 640px; }
+.fine { color: var(--muted); font-size: 11.5px; line-height: 1.5; }
+.refs { margin: 0; padding-left: 18px; font-size: 12.3px; line-height: 1.55; } .refs li { margin-bottom: 4px; }
+.warn { border-left: 3px solid var(--orange); padding-left: 10px; }
+code { font-size: 12px; background: var(--input); padding: 1px 4px; border-radius: 4px; }
+@media (max-width: 760px) {
+  html, body { height: auto; } .window { display: block; height: auto; }
+  .sidebar { width: auto; border-right: 0; border-bottom: 1px solid var(--sep); padding: 10px 12px; }
+  .sidebar .traffic, .sidebar .brand, .sidebar .side-foot { display: none; }
+  .list { max-height: 190px; } main { padding: 16px 14px 40px; overflow: visible; } h1 { font-size: 22px; } .plot { height: 440px; }
+}
+</style>
+<script src="vendor/plotly.min.js"></script>
+</head>
+<body>
+<div class="window">
+  <aside class="sidebar">
+    <div class="traffic"><span></span><span></span><span></span></div>
+    <div class="brand"><div class="logo">Y(E)</div><div><b>Yield Explorer</b><small>SEY · sputtering</small></div></div>
+
+    <div id="side-sey">
+      <div class="group">Beam</div>
+      <div class="seg" id="seg-beam"><button data-b="e" aria-pressed="true">Electrons</button><button data-b="i" aria-pressed="false">Ions</button></div>
+      <div id="sey-e-ctrl">
+        <div class="group">Target material</div>
+        <input class="search" id="q-e" placeholder="Search (e.g. Cu, Kapton, oxide)">
+        <div class="list" id="list-e"></div>
+        <div class="mini"><button id="none-e">Clear</button><button id="el-e">Deselect compounds</button></div>
+      </div>
+      <div id="sey-i-ctrl" hidden>
+        <div class="group">Projectile</div>
+        <div class="seg" id="seg-ion"></div>
+        <div class="group">Target</div>
+        <div class="list" id="list-i"></div>
+      </div>
+      <div class="group">Axes</div>
+      <label class="tog">Log energy axis<input type="checkbox" id="logx-sey" checked></label>
+      <label class="tog">Join points of a data set<input type="checkbox" id="join-sey" checked></label>
+    </div>
+
+    <div id="side-sp" hidden>
+      <div class="group">Projectile ion</div>
+      <select class="sel" id="sel-ion"></select>
+      <div class="group">Target</div>
+      <input class="search" id="q-t" placeholder="Search element (e.g. W)">
+      <div class="list" id="list-t"></div>
+      <div class="mini"><button id="none-t">Clear</button><button id="def-t">Default set</button></div>
+      <div class="group">Show</div>
+      <label class="tog">Empirical formula (Yamamura–Tawara)<input type="checkbox" id="sp-fit" checked></label>
+      <label class="tog">Measured points (digitised)<input type="checkbox" id="sp-pts" checked></label>
+      <label class="tog">Log yield axis<input type="checkbox" id="logy-sp" checked></label>
+    </div>
+
+    <div class="theme" id="theme"><button data-t="light" aria-label="Light theme" title="Light">☀︎</button><button data-t="auto" aria-label="Automatic theme" title="Automatic">A</button><button data-t="dark" aria-label="Dark theme" title="Dark">☾</button></div>
+    <div class="side-foot">Every curve and point traces back to a published source (listed below the plot). Hover a point to see its reference.</div>
+  </aside>
+  <main>
+    <a class="back" href="/CV/">‹ Bharat Singh Rawat · CV</a> <span class="fine" style="margin-left:10px">Open data: <a class="back" href="/CV/fc-atlas/">Faraday Cup Atlas ›</a></span>
+    <h1>Secondary electron &amp; sputtering yields</h1>
+    <p class="sub">Two surface processes every beam-line, ion-source and accelerator vacuum system has to live with: how many electrons a surface emits per incident electron or ion, and how many atoms an ion knocks out of it. Compiled from published measurements and the standard empirical formula, for many beams, energies and materials.</p>
+    <div class="tabs" role="tablist"><button role="tab" data-tab="sey" aria-selected="true">Secondary electron yield</button><button role="tab" data-tab="sp" aria-selected="false">Sputtering yield</button></div>
+
+    <section id="tab-sey">
+      <div class="card"><div id="p-sey" class="plot"></div></div>
+      <div class="card" id="about-e">
+        <h3>Electron-induced secondary electron yield δ(E)</h3>
+        <p>Secondary electron yields as tabulated in D. C. Joy's <i>Database of Electron–Solid Interactions</i> (SE data sets published 1931–2003), each data set plotted separately with its original reference. Most sets give the true secondary yield δ (electrons emitted below ~50 eV; some early work used 70 or 100 eV), but some are <b>total</b> yields that include backscattered electrons, e.g. Hilleret et al. (CERN, 2000); check the original reference before comparing sets. The scatter between data sets for the same metal is large (it can exceed a factor of 2) and probably reflects surface condition (adsorbed gas, oxide, carbon), the emitted-energy window and the measurement technique; Joy also notes that the quality of much of the data is poor. For insulators, charging can bias values strongly: Joy advises treating insulator yields with caution unless the provenance of the original data is well documented.</p>
+        <p class="fine">Source: D. C. Joy, <i>A Database of Electron–Solid Interactions</i>, revision 04-02 (2004), Section 1; first described in D. C. Joy, <i>Scanning</i> 17, 270 (1995). Values copied as published, without corrections; data sets marked ⚠ (dotted line) contain an apparent typo or a known caveat in the source, explained in the hover text. <span id="e-count"></span></p>
+      </div>
+      <div class="card" id="about-i" hidden>
+        <h3>Ion-induced electron yield γ(E)</h3>
+        <p>Electrons emitted per incident ion from clean metal surfaces (evaporated in situ in ultra-high vacuum, 5×10⁻¹¹–5×10⁻¹⁰ Torr) at normal incidence; total uncertainty ±4 % (as stated by the authors). The table values were interpolated by the authors between their measured points. For He⁺ a substantial part of the yield is potential emission. Values for gas-covered (technical) surfaces can differ considerably. The paper's Table I also lists H₂⁺ yields (per atom), not shown here.</p>
+        <p class="fine" id="i-src"></p>
+      </div>
+    </section>
+
+    <section id="tab-sp" hidden>
+      <div class="card"><div id="p-sp" class="plot"></div></div>
+      <div class="card">
+        <h3>Sputtering yield Y(E) at normal incidence</h3>
+        <p>Solid lines: the Yamamura–Tawara empirical formula (eq. 15 of the reference) with the best-fit target parameters U<sub>s</sub>, Q, W and s of its Table 1, evaluated for the chosen ion. The parameters were fitted by the authors to the measured yields published up to 1994; individual measurements scatter around the curve (compare with the points). Points: measured yields digitised from the figures of the same compilation (glyph centres, digitised twice independently and reconciled; reading uncertainty about ±10 % in E and Y; ambiguous or overlapping symbols omitted); the original papers are listed in the legend of each cited figure.</p>
+        <p class="warn fine">The formula is a fit, not a measurement: near the threshold energy the yield falls steeply and small parameter changes move it a lot; where a measured set is shown, compare with the points. Yields for compounds, oblique incidence, rough or hot surfaces differ.</p>
+        <p class="fine">Formula and parameters: Y. Yamamura and H. Tawara, <i>Energy dependence of ion-induced sputtering yields from monatomic solids at normal incidence</i>, NIFS-DATA-23 (National Institute for Fusion Science, 1995); published as <i>At. Data Nucl. Data Tables</i> 62, 149 (1996). Note: eq. (17) of the NIFS report prints the two α* branch conditions interchanged; the assignment used here (0.249(M<sub>2</sub>/M<sub>1</sub>)<sup>0.56</sup> + 0.0035(M<sub>2</sub>/M<sub>1</sub>)<sup>1.5</sup> for M<sub>1</sub> ≤ M<sub>2</sub>) reproduces the report's own worked example (1 keV He → Au, Y = 0.140 with the report's masses) and the report's α* plot (Fig. 1). Two entries of Table 1 are corrected here: Mo uses W = 0.45 U<sub>s</sub> = 3.07 (the value in every Mo figure caption and plotted curve; the table's 2.39 repeats vanadium's value), and U has Z = 92 (the table prints 93). <span id="sp-count"></span></p>
+      </div>
+    </section>
+
+    <div class="card">
+      <h3>References for the points on this plot</h3>
+      <ol class="refs" id="refs"></ol>
+    </div>
+    <p class="fine">Built by Bharat Singh Rawat from the cited public sources. Data extraction, transcription and digitisation were cross-checked independently; please report any error you find.</p>
+  </main>
+</div>
+<script>
+(async function () {
+  const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  const [E, I, S] = await Promise.all(['sey_electron', 'sey_ion', 'sputter'].map(n => fetch('data/' + n + '.json').then(r => r.json())));
+  const PAL = ['#0a84ff', '#ff375f', '#30d158', '#ff9f0a', '#bf5af2', '#64d2ff', '#ffd60a', '#ac8e68', '#5e5ce6', '#ff453a', '#32ade6', '#8e8e93'];
+  const SYM = ['circle', 'square', 'diamond', 'triangle-up', 'triangle-down', 'cross', 'x', 'star', 'pentagon', 'hexagon', 'circle-open', 'square-open', 'diamond-open', 'triangle-up-open'];
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const layoutBase = (xt, yt, logx, logy) => ({
+    paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: { family: css('--font'), color: css('--text'), size: 12 },
+    margin: { l: 64, r: 16, t: 14, b: 54 }, hovermode: 'closest', legend: { orientation: 'h', x: 0, y: -0.16, yanchor: 'top', bgcolor: 'rgba(0,0,0,0)', font: { size: 11.5 } },
+    xaxis: { title: xt, type: logx ? 'log' : 'linear', gridcolor: css('--sep2'), zeroline: false, exponentformat: 'power' },
+    yaxis: { title: yt, type: logy ? 'log' : 'linear', gridcolor: css('--sep2'), zeroline: false, exponentformat: 'power' } });
+  const cfg = { responsive: true, displaylogo: false, modeBarButtonsToRemove: ['lasso2d', 'select2d'], toImageButtonOptions: { format: 'png', scale: 2 } };
+  const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
+  // ---------- references list (numbered per plot) ----------
+  function showRefs(list) {
+    $('#refs').innerHTML = list.length ? list.map(r => `<li>${esc(r)}</li>`).join('') : '<li class="fine">Nothing plotted: select a material (and, for sputtering, the formula or the measured points).</li>';
+  }
+
+  // ---------- theme ----------
+  function setTheme(t) { if (t === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
+    try { localStorage.setItem('yields-theme', t); } catch (e) {} $$('#theme button').forEach(b => b.setAttribute('aria-pressed', b.dataset.t === t)); draw(); }
+  $$('#theme button').forEach(b => b.onclick = () => setTheme(b.dataset.t));
+  $$('#theme button').forEach(b => b.setAttribute('aria-pressed', b.dataset.t === (document.documentElement.dataset.theme || 'auto')));
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => draw());
+
+  // ---------- tabs ----------
+  let tab = 'sey';
+  $$('.tabs button').forEach(b => b.onclick = () => { tab = b.dataset.tab; $$('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
+    history.replaceState(null, '', tab === 'sp' ? '#sputter' : location.pathname + location.search);
+    $('#tab-sey').hidden = $('#side-sey').hidden = tab !== 'sey'; $('#tab-sp').hidden = $('#side-sp').hidden = tab !== 'sp'; draw(); });
+
+  // ---------- SEY: electrons ----------
+  const mats = E.materials.map((m, i) => ({ ...m, id: i, npts: m.sets.reduce((s, d) => s + d.E.length, 0) }));
+  const selE = new Set(mats.filter(m => ['Copper', 'Gold', 'Aluminum', 'Kapton (polymer sheet)'].includes(m.name)).map(m => m.id));
+  function listE() {
+    const q = $('#q-e').value.trim().toLowerCase();
+    $('#list-e').innerHTML = mats.filter(m => !q || m.display.toLowerCase().includes(q) || (m.sym && m.sym.toLowerCase() === q)).map(m =>
+      `<label><input type="checkbox" data-id="${m.id}" ${selE.has(m.id) ? 'checked' : ''}>${esc(m.display)}<small>${m.sym ? esc(m.sym) + ' · ' : ''}${m.Z ? 'Z ' + m.Z + ' · ' : ''}${m.sets.length} set${m.sets.length > 1 ? 's' : ''}</small></label>`).join('');
+    $$('#list-e input').forEach(c => c.onchange = () => { c.checked ? selE.add(+c.dataset.id) : selE.delete(+c.dataset.id); draw(); });
+  }
+  $('#q-e').oninput = listE;
+  $('#none-e').onclick = () => { selE.clear(); listE(); draw(); };
+  $('#el-e').onclick = () => { $('#q-e').value = ''; mats.forEach(m => { if (m.kind !== 'element') selE.delete(m.id); }); listE(); draw(); };
+  listE();
+  $('#e-count').textContent = `${mats.length} materials, ${mats.reduce((s, m) => s + m.sets.length, 0)} data sets, ${mats.reduce((s, m) => s + m.npts, 0)} points.`;
+
+  // ---------- SEY: ions ----------
+  const ionNames = [...new Set(I.sets.map(s => s.ion))];
+  let ionSel = ionNames[0];
+  const selI = new Set(['Cu', 'Au', 'Al']);
+  $('#seg-ion').innerHTML = ionNames.map(n => `<button data-n="${n}" aria-pressed="${n === ionSel}">${n.replace('+', '⁺')}</button>`).join('');
+  $$('#seg-ion button').forEach(b => b.onclick = () => { ionSel = b.dataset.n; $$('#seg-ion button').forEach(x => x.setAttribute('aria-pressed', x === b)); listI(); draw(); });
+  function listI() {
+    const tg = [...new Set(I.sets.filter(s => s.ion === ionSel).map(s => s.target))];
+    $('#list-i').innerHTML = tg.map(t => `<label><input type="checkbox" data-t="${t}" ${selI.has(t) ? 'checked' : ''}>${t}</label>`).join('');
+    $$('#list-i input').forEach(c => c.onchange = () => { c.checked ? selI.add(c.dataset.t) : selI.delete(c.dataset.t); draw(); });
+  }
+  listI();
+  let beam = 'e';
+  $$('#seg-beam button').forEach(b => b.onclick = () => { beam = b.dataset.b; $$('#seg-beam button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    $('#sey-e-ctrl').hidden = $('#about-e').hidden = beam !== 'e'; $('#sey-i-ctrl').hidden = $('#about-i').hidden = beam !== 'i'; draw(); });
+  ['#logx-sey', '#join-sey', '#sp-fit', '#sp-pts', '#logy-sp'].forEach(s => $(s).onchange = draw);
+  $('#i-src').textContent = 'Sources: ' + [...new Set(I.sets.map(s => s.cite))].join('; ') + '.';
+
+  function drawSEY() {
+    const join = $('#join-sey').checked, traces = [], refs = [];
+    const refNo = c => { let k = refs.indexOf(c); if (k < 0) { refs.push(c); k = refs.length - 1; } return k + 1; };
+    if (beam === 'e') {
+      mats.filter(m => selE.has(m.id)).forEach((m, k) => {
+        m.sets.forEach((d, j) => {
+          const n = refNo(d.cite || ('Joy database reference ' + d.ref));
+          const o = d.E.map((e, i) => [e * 1000, d.y[i]]).sort((a, b) => a[0] - b[0]);
+          traces.push({ x: o.map(p => p[0]), y: o.map(p => p[1]), type: 'scatter', mode: join ? 'lines+markers' : 'markers',
+            name: m.display, legendgroup: m.name, showlegend: j === 0, line: { color: PAL[k % PAL.length], width: 1, dash: d.flag ? 'dot' : 'solid' },
+            marker: { color: PAL[k % PAL.length], symbol: SYM[j % SYM.length], size: 6 },
+            hovertemplate: `<b>${esc(m.display)}</b><br>E = %{x:.4g} eV<br>δ = %{y:.3g}<br>ref. [${n}]${d.note ? '<br>' + esc(d.note.length > 90 ? d.note.slice(0, 89) + '…' : d.note) : ''}${d.flag ? '<br>⚠ ' + esc(d.flag) : ''}<extra></extra>` });
+        });
+      });
+      Plotly.react('p-sey', traces, layoutBase('Primary electron energy (eV)', 'Secondary electron yield δ', $('#logx-sey').checked, false), cfg);
+    } else {
+      I.sets.filter(s => s.ion === ionSel && selI.has(s.target)).forEach((s, k) => {
+        const n = refNo(s.cite);
+        traces.push({ x: s.E, y: s.y, type: 'scatter', mode: join ? 'lines+markers' : 'markers', name: `${s.target} [${n}]`,
+          line: { color: PAL[k % PAL.length], width: 1.2 }, marker: { color: PAL[k % PAL.length], size: 7, symbol: SYM[k % SYM.length] },
+          hovertemplate: `<b>${esc(s.ion)} → ${esc(s.target)}</b><br>E = %{x:.3g} keV<br>γ = %{y:.3g}<br>ref. [${n}]<extra></extra>` });
+      });
+      Plotly.react('p-sey', traces, layoutBase('Ion energy (keV)', 'Electrons per ion γ', $('#logx-sey').checked, false), cfg);
+    }
+    showRefs(refs);
+  }
+
+  // ---------- Sputtering: Yamamura–Tawara eq. (15) ----------
+  function snTF(eps) { const r = Math.sqrt(eps); return 3.441 * r * Math.log(eps + 2.718) / (1 + 6.355 * r + eps * (6.882 * r - 1.708)); }
+  function Yyt(E, Z1, M1, t) {
+    const Z2 = t.Z, M2 = t.M, z = Math.pow(Z1, 2 / 3) + Math.pow(Z2, 2 / 3);
+    const eps = 0.03255 / (Z1 * Z2 * Math.sqrt(z)) * M2 / (M1 + M2) * E;
+    const ke = 0.079 * Math.pow(M1 + M2, 1.5) / (Math.pow(M1, 1.5) * Math.sqrt(M2)) * Math.pow(Z1, 2 / 3) * Math.sqrt(Z2) / Math.pow(z, 0.75);
+    const Sn = 84.78 * Z1 * Z2 / Math.sqrt(z) * M1 / (M1 + M2) * snTF(eps);
+    const G = t.W / (1 + Math.pow(M1 / 7, 3)), r = M2 / M1;
+    const a = M1 <= M2 ? 0.249 * Math.pow(r, 0.56) + 0.0035 * Math.pow(r, 1.5) : 0.088 * Math.pow(r, -0.15) + 0.165 * r;
+    const g = 4 * M1 * M2 / Math.pow(M1 + M2, 2), Eth = t.Us * (M1 >= M2 ? 6.7 / g : (1 + 5.7 * M1 / M2) / g);
+    if (E <= Eth) return 0;
+    return 0.042 * t.Q * a / t.Us * Sn / (1 + G * ke * Math.pow(eps, 0.3)) * Math.pow(1 - Math.sqrt(Eth / E), t.s);
+  }
+  window.Yyt = (E, ion, tgt) => Yyt(E, S.ions[ion].Z, S.ions[ion].M, S.targets[tgt]);   // exposed for the cross-check script
+  const ionList = Object.keys(S.ions);
+  $('#sel-ion').innerHTML = ionList.map(k => `<option value="${k}" ${k === 'Ar' ? 'selected' : ''}>${k === '3He' ? '³He' : k}${'⁺'}</option>`).join('');
+  $('#sel-ion').onchange = draw;
+  const tgts = Object.keys(S.targets).sort((a, b) => S.targets[a].Z - S.targets[b].Z);
+  const DEF = ['C', 'Al', 'Cu', 'Mo', 'W'];
+  const selT = new Set(DEF);
+  function listT() {
+    const q = $('#q-t').value.trim().toLowerCase();
+    $('#list-t').innerHTML = tgts.filter(t => !q || t.toLowerCase().startsWith(q)).map(t =>
+      `<label><input type="checkbox" data-t="${t}" ${selT.has(t) ? 'checked' : ''}>${t}<small>Z ${S.targets[t].Z}</small></label>`).join('');
+    $$('#list-t input').forEach(c => c.onchange = () => { c.checked ? selT.add(c.dataset.t) : selT.delete(c.dataset.t); draw(); });
+  }
+  $('#q-t').oninput = listT; $('#none-t').onclick = () => { selT.clear(); listT(); draw(); };
+  $('#def-t').onclick = () => { $('#q-t').value = ''; selT.clear(); DEF.forEach(t => selT.add(t)); listT(); draw(); };
+  listT();
+
+  function drawSP() {
+    const ion = $('#sel-ion').value, I1 = S.ions[ion], traces = [], refs = [];
+    const refNo = c => { let k = refs.indexOf(c); if (k < 0) { refs.push(c); k = refs.length - 1; } return k + 1; };
+    const Es = []; for (let k = 0; k <= 400; k++) Es.push(Math.pow(10, 1 + 5 * k / 400));
+    const ionLbl = (ion === '3He' ? '³He' : ion) + '⁺';
+    [...selT].sort((a, b) => S.targets[a].Z - S.targets[b].Z).forEach((t, k) => {
+      const col = PAL[k % PAL.length];
+      if ($('#sp-fit').checked) {
+        const y = Es.map(e => Yyt(e, I1.Z, I1.M, S.targets[t]));
+        const n = refNo(S.cite + ' (empirical formula, eq. 15, Table 1 parameters)');
+        traces.push({ x: Es, y: y.map(v => v > 0 ? v : null), type: 'scatter', mode: 'lines', name: `${ionLbl} → ${t} (formula)`, legendgroup: t,
+          line: { color: col, width: 2 }, hovertemplate: `<b>${ionLbl} → ${t}</b> formula<br>E = %{x:.3g} eV<br>Y = %{y:.3g} atoms/ion<br>ref. [${n}]<extra></extra>` });
+      }
+      if ($('#sp-pts').checked) S.points.filter(p => p.ion === ion && p.target === t).forEach((p, j) => {
+        const n = refNo(p.cite);
+        traces.push({ x: p.E, y: p.y, customdata: p.status.map(st => st === 'confirmed' ? 'read independently twice' : 'single reading'), type: 'scatter', mode: 'markers', name: `${t}: ${p.short} [${n}]`, legendgroup: t,
+          marker: { color: col, symbol: SYM[(j + 1) % SYM.length], size: 7, line: { width: 0 } },
+          hovertemplate: `<b>${ionLbl} → ${t}</b> measured<br>E = %{x:.3g} eV<br>Y = %{y:.3g} atoms/ion<br>ref. [${n}] ${esc(p.short)}<br>%{customdata}<extra></extra>` });
+      });
+    });
+    const L = layoutBase('Ion energy (eV)', 'Sputtering yield Y (atoms/ion)', true, $('#logy-sp').checked);
+    if ($('#logy-sp').checked) L.yaxis.range = [-4, 1.5];
+    Plotly.react('p-sp', traces, L, cfg);
+    showRefs(refs);
+  }
+
+  function draw() { if (tab === 'sey') drawSEY(); else drawSP(); }
+  const pairs = [...new Set(S.points.map(p => `${p.ion}⁺→${p.target}`))];
+  $('#sp-count').textContent = `Measured points are shown for ${pairs.length} ion–target pairs where every symbol could be separated and checked by eye (${pairs.join(', ')}); ACAT simulation points of the report are excluded. For other pairs see the figures of the reference.`;
+  if (location.hash === '#sputter') $$('.tabs button')[1].click(); else draw();
+  addEventListener('hashchange', () => $$('.tabs button')[location.hash === '#sputter' ? 1 : 0].click());
+})();
+</script>
+</body>
+</html>

@@ -415,14 +415,16 @@
         consult: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>',
         mentor: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 9 12 4 2 9l10 5 10-5z"/><path d="M6 11v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg>',
         network: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17.5" cy="9" r="2.4"/><path d="M16.5 14.2c2.6.3 4.5 2.5 4.5 5.3"/></svg>',
-        talk: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/></svg>'
+        talk: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/></svg>',
+        data: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M6 17c2.5-7 5-10 7.5-10S18 11 20 15"/><circle cx="8.5" cy="12" r="1"/><circle cx="12" cy="8.2" r="1"/><circle cx="16.5" cy="9.5" r="1"/></svg>'
     };
-    const iconFor = t => /mentor/i.test(t) ? ICONS.mentor : /recruit|talent/i.test(t) ? ICONS.network : /talk|outreach/i.test(t) ? ICONS.talk : ICONS.consult;   // matched on the English title (o.key)
+    const iconFor = t => /data|tool/i.test(t) ? ICONS.data : /mentor/i.test(t) ? ICONS.mentor : /recruit|talent/i.test(t) ? ICONS.network : /talk|outreach/i.test(t) ? ICONS.talk : ICONS.consult;   // matched on the English title (o.key)
     $('offers').innerHTML = (P.offer || []).map(o => `
         <div class="offer">
             <div class="icon" aria-hidden="true">${iconFor(o.key || o.title)}</div>
             <h3>${esc(o.title)}</h3>
             <p>${esc(o.text)}</p>
+            ${(o.links || []).map((l, k) => `<a class="offer-link" href="${esc(l.href)}">${esc((o.linkTexts || [])[k] || l.text)} ›</a>`).join('')}
         </div>`).join('');
     if (!(P.offer || []).length) $('offer').remove();
     else rows.push(pinnedRow($('offer'), $('offers'), $('offer-bar')));

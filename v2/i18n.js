@@ -205,7 +205,8 @@
                 { title: 'Consultoría', text: 'Diseño de fuentes de iones, trampas de partículas y diagnóstico de haces, respaldado por software multifísico y flujos de trabajo computacionales propios (CST Studio, MAD-X, Python). Para start-ups de tecnología profunda, laboratorios gubernamentales y empresas especializadas.' },
                 { title: 'Mentoría', text: 'Orientación para candidatos a máster y doctorado: estrategia de solicitud, cartas de presentación y CV.' },
                 { title: 'Charlas y divulgación', text: 'Seminarios, conferencias especializadas y charlas en colegios sobre fuentes de iones, propulsión eléctrica y aceleradores de partículas.' },
-                { title: 'Apoyo en reclutamiento', text: 'Ayudo a empresas y grupos de investigación a encontrar talento cualificado en física de plasmas, fuentes de iones y física aplicada a través de mi red profesional.' }
+                { title: 'Apoyo en reclutamiento', text: 'Ayudo a empresas y grupos de investigación a encontrar talento cualificado en física de plasmas, fuentes de iones y física aplicada a través de mi red profesional.' },
+                { title: 'Herramientas de datos abiertos', text: 'Páginas de datos gratuitas e interactivas para el trabajo con haces: rendimientos de electrones secundarios y de pulverización (sputtering) frente a la energía para muchos haces y materiales, y un atlas de copas de Faraday publicadas por haz, energía y diseño; cada punto se puede rastrear hasta su fuente.', linkTexts: ['Explorador de rendimientos', 'Atlas de copas de Faraday'] }
             ],
             skills: [
                 { label: 'Idiomas', text: 'Inglés (fluido), hindi y guyaratí (nativo), español (B2), ruso (A1).' },
@@ -288,7 +289,8 @@
                 { title: 'Консалтинг', text: 'Проектирование ионных источников, ловушек частиц и систем диагностики пучков на основе мультифизического ПО и собственных расчётных конвейеров (CST Studio, MAD-X, Python). Для наукоёмких стартапов, государственных лабораторий и специализированных компаний.' },
                 { title: 'Наставничество', text: 'Помощь абитуриентам магистратуры и аспирантуры: стратегия поступления, мотивационные письма и резюме.' },
                 { title: 'Лекции и популяризация', text: 'Семинары, экспертные лекции и выступления в школах об ионных источниках, электрических двигателях и ускорителях частиц.' },
-                { title: 'Помощь в подборе кадров', text: 'Помогаю компаниям и исследовательским группам находить квалифицированных специалистов в физике плазмы, ионных источниках и прикладной физике через свою профессиональную сеть.' }
+                { title: 'Помощь в подборе кадров', text: 'Помогаю компаниям и исследовательским группам находить квалифицированных специалистов в физике плазмы, ионных источниках и прикладной физике через свою профессиональную сеть.' },
+                { title: 'Открытые данные', text: 'Бесплатные интерактивные страницы данных для работы с пучками: коэффициенты вторичной электронной эмиссии и распыления в зависимости от энергии для многих пучков и материалов, а также атлас опубликованных цилиндров Фарадея по пучку, энергии и конструкции; каждая точка прослеживается до источника.', linkTexts: ['Обозреватель коэффициентов', 'Атлас цилиндров Фарадея'] }
             ],
             skills: [
                 { label: 'Языки', text: 'английский (свободно), хинди и гуджарати (родные), испанский (B2), русский (A1).' },
@@ -371,7 +373,8 @@
                 { title: 'Conseil', text: 'Conception de sources d’ions, de pièges à particules et de diagnostics de faisceaux, appuyée par des logiciels multiphysiques et des chaînes de calcul que je développe (CST Studio, MAD-X, Python). Pour les start-up deep tech, les laboratoires publics et les entreprises spécialisées.' },
                 { title: 'Mentorat', text: 'Accompagnement des candidats au master et au doctorat : stratégie de candidature, lettres de motivation et CV.' },
                 { title: 'Conférences et vulgarisation', text: 'Séminaires, conférences d’expert et interventions en milieu scolaire sur les sources d’ions, la propulsion électrique et les accélérateurs de particules.' },
-                { title: 'Aide au recrutement', text: 'J’aide les entreprises et les groupes de recherche à trouver des talents qualifiés en physique des plasmas, sources d’ions et physique appliquée grâce à mon réseau professionnel.' }
+                { title: 'Aide au recrutement', text: 'J’aide les entreprises et les groupes de recherche à trouver des talents qualifiés en physique des plasmas, sources d’ions et physique appliquée grâce à mon réseau professionnel.' },
+                { title: 'Outils de données ouvertes', text: 'Des pages de données gratuites et interactives pour le travail sur les faisceaux : rendements d’électrons secondaires et de pulvérisation en fonction de l’énergie pour de nombreux faisceaux et matériaux, et un atlas des cages de Faraday publiées par faisceau, énergie et conception ; chaque point renvoie à sa source.', linkTexts: ['Explorateur de rendements', 'Atlas des cages de Faraday'] }
             ],
             skills: [
                 { label: 'Langues', text: 'Anglais (courant), hindi et gujarati (langues maternelles), espagnol (B2), russe (A1).' },
@@ -454,7 +457,8 @@
                 { title: 'કન્સલ્ટિંગ', text: 'મલ્ટિફિઝિક્સ સોફ્ટવેર અને મારા બનાવેલા કમ્પ્યુટેશનલ વર્કફ્લો (CST Studio, MAD-X, Python) વડે આયન સ્રોત, પાર્ટિકલ ટ્રેપ અને બીમ ડાયગ્નોસ્ટિક્સ ડિઝાઇન. ડીપ-ટેક સ્ટાર્ટ-અપ્સ, સરકારી પ્રયોગશાળાઓ અને વિશિષ્ટ કંપનીઓ માટે.' },
                 { title: 'માર્ગદર્શન', text: 'MS અને Ph.D. ઉમેદવારો માટે માર્ગદર્શન: અરજીની વ્યૂહરચના, કવર લેટર અને CV.' },
                 { title: 'વક્તવ્યો અને જનજાગૃતિ', text: 'આયન સ્રોતો, ઇલેક્ટ્રિક પ્રોપલ્શન અને પાર્ટિકલ એક્સિલરેટર પર સેમિનાર, નિષ્ણાત વ્યાખ્યાનો અને શાળાઓમાં વક્તવ્યો.' },
-                { title: 'ભરતીમાં સહાય', text: 'મારા વ્યાવસાયિક નેટવર્ક દ્વારા કંપનીઓ અને સંશોધન જૂથોને પ્લાઝ્મા ભૌતિકશાસ્ત્ર, આયન સ્રોતો અને પ્રયોજિત ભૌતિકશાસ્ત્રમાં લાયક પ્રતિભા શોધવામાં મદદ કરું છું.' }
+                { title: 'ભરતીમાં સહાય', text: 'મારા વ્યાવસાયિક નેટવર્ક દ્વારા કંપનીઓ અને સંશોધન જૂથોને પ્લાઝ્મા ભૌતિકશાસ્ત્ર, આયન સ્રોતો અને પ્રયોજિત ભૌતિકશાસ્ત્રમાં લાયક પ્રતિભા શોધવામાં મદદ કરું છું.' },
+                { title: 'ખુલ્લા ડેટા સાધનો', text: 'બીમ કાર્ય માટે મફત, ઇન્ટરેક્ટિવ ડેટા પૃષ્ઠો: ઘણા બીમ અને સામગ્રીઓ માટે ઊર્જા સામે સેકન્ડરી ઇલેક્ટ્રોન અને સ્પટરિંગ યીલ્ડ, અને બીમ, ઊર્જા અને ડિઝાઇન મુજબ પ્રકાશિત ફેરાડે કપનો એટલાસ; દરેક બિંદુ તેના સ્રોત સુધી શોધી શકાય છે.', linkTexts: ['યીલ્ડ એક્સપ્લોરર', 'ફેરાડે કપ એટલાસ'] }
             ],
             skills: [
                 { label: 'ભાષાઓ', text: 'અંગ્રેજી (અસ્ખલિત), હિન્દી અને ગુજરાતી (માતૃભાષા), સ્પેનિશ (B2), રશિયન (A1).' },
@@ -493,7 +497,7 @@
         (P.education || []).forEach((e, i) => set(e, L.education[i], ['role', 'org', 'bullets']));
         (P.projects || []).forEach((p, i) => set(p, L.projects[i], ['name', 'tag', 'text']));
         (P.gallery || []).forEach((g, i) => { if (L.gallery[i]) { g.title = L.gallery[i][0]; g.text = L.gallery[i][1]; } });
-        (P.offer || []).forEach((o, i) => { o.key = o.key || o.title; set(o, L.offer[i], ['title', 'text']); });
+        (P.offer || []).forEach((o, i) => { o.key = o.key || o.title; set(o, L.offer[i], ['title', 'text', 'linkTexts']); });
         (P.skills || []).forEach((s, i) => set(s, L.skills[i], ['label', 'text']));
         (P.hobbies || []).forEach((h, i) => { if (L.hobbies[i]) { h.name = L.hobbies[i][0]; h.detail = L.hobbies[i][1]; } });
         (P.talks || []).forEach(t => { t.typeLabel = L.talkTypes[t.type] || t.type; });
