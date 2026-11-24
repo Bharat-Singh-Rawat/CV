@@ -61,6 +61,12 @@ tr:hover td { background: color-mix(in srgb, var(--accent) 5%, transparent); }
 .gtip { position: absolute; pointer-events: none; background: var(--text); color: var(--bg); font-size: .78rem; font-weight: 600; padding: 4px 10px; border-radius: 980px; transform: translate(-50%, -150%); white-space: nowrap; }
 .ghint { position: absolute; bottom: 8px; margin: 0; font-size: .75rem; color: var(--muted); }
 .yearwrap { margin-top: 14px; }
+.thead { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.exp { display: flex; gap: 8px; }
+.fix { color: var(--muted); font-size: .76rem; margin-left: 6px; white-space: nowrap; opacity: 0; transition: opacity .2s var(--ease); }
+tr:hover .fix, .fix:focus { opacity: 1; }
+@media (hover: none) { .fix { opacity: 1; } }
+.tour[aria-pressed="true"] { background: var(--text); color: var(--bg); }
 @media (max-width: 900px) { #globe { height: 380px; } }
 .timeline { display: flex; align-items: center; gap: 12px; padding: 10px 14px 12px; border-top: 1px solid var(--line); }
 .tl-play { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer; background: var(--text); color: var(--bg); transition: transform .25s var(--ease); }
@@ -124,6 +130,7 @@ html { scroll-behavior: smooth; }
         <button class="tl-play" id="tl-play" aria-label="Play the timeline"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path id="tl-icon" d="M8 5v14l11-7z" fill="currentColor"/></svg></button>
         <input type="range" id="tl-range" aria-label="Year" min="1950" max="2026" step="1">
         <span class="tl-year" id="tl-year">All years</span><span class="tl-count" id="tl-count"></span>
+        <button class="chip tour" id="tour" aria-pressed="false" title="Fly past the busiest labs">Tour</button>
       </div></div>
     <div class="card plotwrap">
       <h3>Beam energy over the years</h3>
@@ -149,7 +156,7 @@ html { scroll-behavior: smooth; }
     </div>
   </div>
   <div class="card tablewrap">
-    <h3 id="t-title">Papers</h3>
+    <div class="thead"><h3 id="t-title">Papers</h3><div class="exp"><button class="chip" id="ex-csv" title="Download the papers in view as a spreadsheet">Export CSV</button><button class="chip" id="ex-bib" title="Download the papers in view for a reference manager">Export BibTeX</button></div></div>
     <p class="note">Beam, energy, material and design are read automatically from each paper’s title and abstract, so some are missing or approximate: the paper link is the reference.</p>
     <table><thead><tr><th data-k="y">Year</th><th data-k="t">Paper</th><th data-k="beam">Beam</th><th data-k="emin" class="hide-sm">Energy</th><th data-k="mat" class="hide-sm">Material</th><th data-k="kind" class="hide-sm">Design</th><th data-k="lab">Lab</th></tr></thead><tbody id="rows"></tbody></table>
     <button class="chip more" id="more">Show more</button>
@@ -308,6 +315,19 @@ html { scroll-behavior: smooth; }
     const step = now => { const k = Math.min(1, (now - t0) / 1200), e = 1 - Math.pow(1 - k, 3); gLon = l0 + dl * e; gLat = a0 + da * e; if (reduceM) gDraw(); if (k < 1) requestAnimationFrame(step); };
     requestAnimationFrame(step);
   }
+  // tour: fly past the busiest labs in view, a few seconds each; any drag or a second press stops it
+  let tourAt = -1, tourT = 0;
+  const tourBtn = document.getElementById('tour');
+  function stopTour() { clearTimeout(tourT); tourAt = -1; tourBtn.setAttribute('aria-pressed', 'false'); gtip.hidden = true; gHold = performance.now() + 2500; }   // the spin resumes shortly after
+  tourBtn.onclick = () => {
+    sound('click'); if (tourAt >= 0 || tourBtn.getAttribute('aria-pressed') === 'true') return stopTour();
+    const top = gLabs.map((L, i) => [L, i]).sort((a, b) => b[0].n - a[0].n).slice(0, 8);
+    if (!top.length) return;
+    tourBtn.setAttribute('aria-pressed', 'true'); let k = 0;
+    const next = () => { if (k >= top.length) return stopTour(); const [L, i] = top[k++]; tourAt = i; turnTo(L.lat, L.lon); gHold = performance.now() + 1e9; if (reduceM) gDraw();
+      tourT = setTimeout(next, reduceM ? 1800 : 3000); };
+    next();
+  };
   let GS = 0, gdpr = 1;
   const gResize = () => { gdpr = Math.min(2, devicePixelRatio || 1); GS = gcv.clientWidth; gcv.width = gcv.height = Math.round(GS * gdpr); };
   addEventListener('resize', () => { gResize(); if (reduceM) gDraw(); });
@@ -320,6 +340,10 @@ html { scroll-behavior: smooth; }
   function gDraw() {
     const c = gctx, dk = dark(); c.setTransform(gdpr, 0, 0, gdpr, 0, 0); c.clearRect(0, 0, GS, GS);
     const r = GS * 0.46;
+    // a soft atmosphere just outside the globe
+    const atm = c.createRadialGradient(GS / 2, GS / 2, r * 0.96, GS / 2, GS / 2, r * 1.085);
+    atm.addColorStop(0, dk ? 'rgba(41,151,255,.28)' : 'rgba(0,113,227,.16)'); atm.addColorStop(1, 'rgba(0,113,227,0)');
+    c.fillStyle = atm; c.beginPath(); c.arc(GS / 2, GS / 2, r * 1.085, 0, 7); c.fill();
     const grd = c.createRadialGradient(GS * .42, GS * .38, r * .1, GS / 2, GS / 2, r);
     grd.addColorStop(0, dk ? '#2c2c2e' : '#ffffff'); grd.addColorStop(1, dk ? '#1c1c1e' : '#ececf0');
     c.fillStyle = grd; c.beginPath(); c.arc(GS / 2, GS / 2, r, 0, 7); c.fill();
@@ -330,7 +354,8 @@ html { scroll-behavior: smooth; }
     // labs, back to front
     const pts = gLabs.map((L, i) => { const [x, y, z] = gProj(L.lat, L.lon); return { L, i, x, y, z }; }).filter(p => p.z > 0.02).sort((a, b) => a.z - b.z);
     for (const p of pts) {
-      const rr = (2.2 + Math.min(8, Math.sqrt(p.L.n) * 1.5)) * (0.6 + 0.4 * p.z);
+      const beat = reduceM ? 0 : 0.14 * Math.min(1, p.L.n / 25) * Math.sin(performance.now() / 520 + p.i * 1.7);   // busy labs breathe gently
+      const rr = (2.2 + Math.min(8, Math.sqrt(p.L.n) * 1.5)) * (0.6 + 0.4 * p.z) * (1 + beat) * (p.i === tourAt ? 1.5 : 1);
       c.globalAlpha = 0.35 + 0.65 * p.z; c.fillStyle = COL[p.L.beam]; c.beginPath(); c.arc(p.x, p.y, rr, 0, 7); c.fill();
       c.lineWidth = p.i === gHover ? 2 : 1; c.strokeStyle = p.i === gHover ? (dk ? '#fff' : '#1d1d1f') : (dk ? 'rgba(0,0,0,.5)' : '#fff'); c.stroke();
     }
@@ -339,6 +364,9 @@ html { scroll-behavior: smooth; }
     for (const g of gRings) { const [x, y, z] = gProj(g.lat, g.lon); if (z <= 0) continue; const k = (now - g.t) / 900;
       c.globalAlpha = 0.9 * (1 - k); c.strokeStyle = COL[g.beam]; c.lineWidth = 2; c.beginPath(); c.arc(x, y, 4 + k * 18, 0, 7); c.stroke(); }
     c.globalAlpha = 1; gPts = pts;
+    // tour: keep the name next to the lab being visited
+    if (tourAt >= 0) { const p = pts.find(q => q.i === tourAt), b = gcv.getBoundingClientRect(), host = document.getElementById('globe').getBoundingClientRect();
+      if (p) { gtip.hidden = false; gtip.textContent = `${gLabs[tourAt].lab} · ${gLabs[tourAt].n} papers`; gtip.style.left = (b.left - host.left + p.x * b.width / GS) + 'px'; gtip.style.top = (b.top - host.top + p.y * b.height / GS) + 'px'; } }
   }
   let gPts = [];
   function gLoop() {
@@ -347,7 +375,7 @@ html { scroll-behavior: smooth; }
     if (reduceM) gDraw(); else gRaf = requestAnimationFrame(step);
   }
   const gXY = e => { const b = gcv.getBoundingClientRect(); return [(e.clientX - b.left) * GS / b.width, (e.clientY - b.top) * GS / b.height]; };
-  gcv.addEventListener('pointerdown', e => { gDrag = { x: e.clientX, y: e.clientY, lon: gLon, lat: gLat, moved: false }; gcv.setPointerCapture(e.pointerId); });
+  gcv.addEventListener('pointerdown', e => { if (tourAt >= 0) { stopTour(); gHold = 0; } gDrag = { x: e.clientX, y: e.clientY, lon: gLon, lat: gLat, moved: false }; gcv.setPointerCapture(e.pointerId); });
   gcv.addEventListener('pointermove', e => {
     if (gDrag) { const dx = e.clientX - gDrag.x, dy = e.clientY - gDrag.y; if (Math.abs(dx) + Math.abs(dy) > 3) gDrag.moved = true;
       gLon = gDrag.lon - dx * 0.35; gLat = Math.max(-60, Math.min(70, gDrag.lat + dy * 0.3)); if (reduceM) gDraw(); return; }
@@ -406,9 +434,34 @@ html { scroll-behavior: smooth; }
     const step = now => { const k = Math.min(1, (now - t0) / 500), e = 1 - Math.pow(1 - k, 3); el.textContent = Math.round(from + (n - from) * e).toLocaleString('en'); if (k < 1) requestAnimationFrame(step); };
     requestAnimationFrame(step); }
   const fadeIn = el => { el.classList.remove('fade'); void el.offsetWidth; el.classList.add('fade'); };
+  // ---------- export the papers in view, and corrections by email ----------
+  const MAIL = 'bharat.bharat22@gmail.com';
+  const eMeV = v => v == null ? '' : +v.toPrecision(4);
+  function fixLink(o) {
+    const body = `Paper: ${o.t} (${o.y || ''})\nLink: ${link(o)}\n\nWhat the atlas shows now:\n  Beam: ${o.beam}\n  Energy: ${fmtE(o.emin, o.emax) || 'not stated'}\n  Cup material: ${o.mat.join(', ') || 'not stated'}\n  Design: ${o.kind.join(', ') || 'not stated'}\n  Lab: ${o.lab || 'not placed'}\n\nThe correct values are:\n  `;
+    return `mailto:${MAIL}?subject=${encodeURIComponent('Faraday Cup Atlas correction: ' + o.t.slice(0, 80))}&body=${encodeURIComponent(body)}`;
+  }
+  function download(name, text, type) {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name;
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+  let lastR = [];
+  const csvCell = v => { v = String(v ?? ''); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+  document.getElementById('ex-csv').onclick = () => { sound('click');
+    const head = ['year', 'title', 'journal', 'link', 'beam', 'energy_min_MeV', 'energy_max_MeV', 'cup_material', 'design', 'lab', 'country', 'source'];
+    const rows = lastR.map(o => [o.y, o.t, o.j, link(o), o.beam, eMeV(o.emin), eMeV(o.emax), o.mat.join('; '), o.kind.join('; '), o.lab, o.cc, o.src || 'OpenAlex']);
+    download('faraday-cup-atlas.csv', [head, ...rows].map(r => r.map(csvCell).join(',')).join('\n'), 'text/csv;charset=utf-8'); };
+  document.getElementById('ex-bib').onclick = () => { sound('click');
+    const used = {};
+    const bib = lastR.map(o => {
+      const w = (o.t.match(/[A-Za-z]{4,}/) || ['paper'])[0].toLowerCase(); let k = `fc${o.y || ''}${w}`; used[k] = (used[k] || 0) + 1; if (used[k] > 1) k += String.fromCharCode(96 + used[k]);
+      const f = [['title', `{${o.t.replace(/[{}]/g, '')}}`], ['year', o.y], ['journal', o.j && `{${o.j}}`], ['doi', o.doi && o.doi.replace('https://doi.org/', '')], ['url', link(o)]].filter(([, v]) => v);
+      return `@article{${k},\n${f.map(([n, v]) => `  ${n} = ${String(v).startsWith('{') ? v : '{' + v + '}'}`).join(',\n')}\n}`;
+    }).join('\n\n');
+    download('faraday-cup-atlas.bib', bib + '\n', 'application/x-bibtex;charset=utf-8'); };
   function render() {
     fadeIn(document.getElementById('rows')); fadeIn(svg);
-    const R = D.filter(pass);
+    const R = D.filter(pass); lastR = R;
     // stats
     const labs = new Set(R.filter(o => o.lab).map(o => o.lab)), cc = new Set(R.filter(o => o.cc).map(o => o.cc));
     const stats = [[R.length, 'papers'], [labs.size, 'labs'], [cc.size, 'countries'], [R.filter(o => o.emin != null).length, 'quote a beam energy']];
@@ -430,7 +483,7 @@ html { scroll-behavior: smooth; }
       <td><a href="${esc(link(o))}" target="_blank" rel="noopener">${title(o.t)}</a>${o.j ? `<br><span style="color:var(--muted);font-size:.78rem">${esc(o.j)}</span>` : ''}${o.mine ? ' <span class="tag me">my paper</span>' : ''}${o.rev ? ' <span class="tag rv">cited in my review</span>' : ''}${o.src && o.src !== 'OpenAlex' ? ` <span class="tag">${esc(o.src)}</span>` : ''}</td>
       <td><span class="tag" style="background:${COL[o.beam]}22;color:var(--text)">${esc(o.beam)}</span></td>
       <td class="num hide-sm">${fmtE(o.emin, o.emax)}${o.species ? ` <span style="color:var(--muted)">${esc(o.species)}</span>` : ''}${o.checked ? ' <span class="tag ok" title="Checked by hand">✓ checked</span>' : ''}</td><td class="hide-sm">${tags(o.mat)}</td><td class="hide-sm">${tags(o.kind)}</td>
-      <td>${o.lab ? `<a href="#" data-lat="${o.lat}" data-lon="${o.lon}" class="go">${esc(o.lab)}</a>` : '<span style="color:var(--muted)">–</span>'}</td></tr>`).join('');
+      <td>${o.lab ? `<a href="#" data-lat="${o.lat}" data-lon="${o.lon}" class="go">${esc(o.lab)}</a>` : '<span style="color:var(--muted)">–</span>'}<a class="fix" href="${fixLink(o)}" title="Suggest a correction for this paper">✎ Suggest a correction</a></td></tr>`).join('');
     document.getElementById('more').hidden = R.length <= shown;
     drawMat(R); drawHeat(R); drawYears(R);
   }
