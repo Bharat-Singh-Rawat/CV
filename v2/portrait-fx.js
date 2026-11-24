@@ -6,6 +6,7 @@
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const CUTOUT = '/CV/v2/img/profile-cutout.webp';   // profile.webp with the background removed, same framing
     const NEAR = 60;                                    // px around the photo that counts as "near"
+    const LENS2 = 2 * 46 * 46;                          // cursor lens: gaussian radius ~46 px
     const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
     const ease = x => 1 - Math.pow(1 - clamp(x), 4);
     const rnd = (a, b) => a + Math.random() * (b - a);
@@ -69,14 +70,26 @@
                 const s = Math.max(cols / src.naturalWidth, rows / src.naturalHeight), dw = src.naturalWidth * s, dh = src.naturalHeight * s;
                 gx.drawImage(src, (cols - dw) / 2, (rows - dh) / 2, dw, dh);
                 const d = gx.getImageData(0, 0, cols, rows).data, cw = W / cols, ch = H / rows;
+                const lum = i => 0.299 * d[i * 4] + 0.587 * d[i * 4 + 1] + 0.114 * d[i * 4 + 2];
                 dots = [];
                 for (let i = 0; i < cols * rows; i++) {
                     if (d[i * 4 + 3] < 128) continue;
                     const R = d[i * 4], G = d[i * 4 + 1], B = d[i * 4 + 2], L = 0.299 * R + 0.587 * G + 0.114 * B;
                     const w = clamp((235 - L) / 200);                      // darker = slightly denser and bigger
                     if (Math.random() > 0.78 + 0.22 * w) continue;
-                    const x = ((i % cols) + rnd(0.15, 0.85)) * cw, y = ((i / cols | 0) + rnd(0.15, 0.85)) * ch;
-                    dots.push({ R, G, B, L, w, x, y, ph: rnd(0, 6.283), d: x / W * 0.9 + rnd(0, 0.35), dr: rnd(0.25, 0.6), ox: 0, oy: 0, vx: 0, vy: 0, a: 1 });
+                    const cx = i % cols, cy = i / cols | 0;
+                    // detail: local contrast (eyes, brows, mouth, hairline, shirt checks), weighted to the face in the upper middle
+                    const n = (a, b) => (a >= 0 && a < cols && b >= 0 && b < rows && d[(b * cols + a) * 4 + 3] > 128) ? lum(b * cols + a) : L;
+                    const edge = clamp((Math.abs(n(cx + 1, cy) - n(cx - 1, cy)) + Math.abs(n(cx, cy + 1) - n(cx, cy - 1))) / 90);
+                    const face = clamp(1 - Math.hypot((cx / cols - 0.5) / 0.22, (cy / rows - 0.36) / 0.26));
+                    const f = clamp(edge * (0.45 + 0.55 * face) + 0.35 * face);   // 0 = background-ish, 1 = a feature
+                    const x = (cx + rnd(0.15, 0.85)) * cw, y = (cy + rnd(0.15, 0.85)) * ch;
+                    dots.push({ R, G, B, L, w, f, x, y, ph: rnd(0, 6.283),
+                        d: 0.15 * x / W + 0.75 * f + rnd(0, 0.25),          // dissolve order: outline and shirt first, the face last
+                        g: 0.75 * (1 - f) + rnd(0, 0.25),                     // gather order: the face first, then the rest
+                        dr: rnd(0.25, 0.6) * (1 - 0.45 * f),                  // features don't wander as far
+                        big: f > 0.6 && Math.random() < 0.14 || Math.random() < 0.015,   // accent dots: a little larger and richer
+                        ox: 0, oy: 0, vx: 0, vy: 0, a: 1 });
                 }
             };
 
@@ -86,29 +99,35 @@
                 hov = near; if (hov) ht += dt;
                 const tc = ht % 9;                                          // near: dissolve 0.3-4.5 s, gather back 4.5-9 s
                 const colour = clamp(parseFloat(fig.style.getPropertyValue('--colour')) || 0);
-                const dark = document.documentElement.dataset.theme === 'dark', k = dark ? 1.15 : 0.92, sat = 1.15;
+                const dark = document.documentElement.dataset.theme === 'dark', k = dark ? 1.15 : 0.82, sat = dark ? 1.15 : 1.4;   // light mode: darker and richer, so it reads as a portrait, not grey static
                 ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
                 let sumA = 0, moving = false;
                 if (tilt.on) { tilt.x += (tilt.tx - tilt.x) * 0.12; tilt.y += (tilt.ty - tilt.y) * 0.12; }
                 if (!hov) tilt.base = null;                                    // re-level the next time the dust appears
                 for (const p of dots) {
-                    const tgt = !hov ? 1 : tc < 4.5 ? 1 - ease((tc - 0.3 - p.d * 1.2) / 2.2) : ease((tc - 4.5 - p.d * 1.2) / 2.4);
+                    const tgt = !hov ? 1 : tc < 4.5 ? 1 - ease((tc - 0.3 - p.d * 1.2) / 2.2) : ease((tc - 4.5 - p.g * 1.2) / 2.4);
                     p.a += (tgt - p.a) * (1 - Math.exp(-dt / (hov ? 0.05 : 0.3)));   // frame-rate independent; leaving: dots glide home
                     sumA += p.a;
-                    if (mouse.in) { const dx = p.x + p.ox - mouse.x, dy = p.y + p.oy - mouse.y, d2 = dx * dx + dy * dy; if (d2 < 2500) { const f = 40 / (d2 + 80); p.vx += dx * f; p.vy += dy * f; } }
                     if (tilt.on && hov) { const f = (1 - p.a) * 3.6 * (0.55 + p.dr); p.vx += tilt.x * f; p.vy += tilt.y * f; }
                     p.vx = (p.vx - p.ox * 0.04) * 0.9; p.vy = (p.vy - p.oy * 0.04) * 0.9; p.ox += p.vx; p.oy += p.vy;
                     if (Math.abs(p.ox) + Math.abs(p.oy) > 1) moving = true;
                     if (photoA >= 1) continue;
                     const fl = (1 - p.a) * (1 - p.a);
-                    const x = p.x + p.ox + fl * W * (0.35 * p.dr + 0.06 * Math.sin(t * 0.7 + p.ph + p.y * 0.03));
-                    const y = p.y + p.oy - fl * W * (0.22 * p.dr + 0.05 * Math.cos(t * 0.6 + p.ph + p.x * 0.025));
+                    let x = p.x + p.ox + fl * W * (0.35 * p.dr + 0.06 * Math.sin(t * 0.7 + p.ph + p.y * 0.03));
+                    let y = p.y + p.oy - fl * W * (0.22 * p.dr + 0.05 * Math.cos(t * 0.6 + p.ph + p.x * 0.025));
+                    // the cursor is a soft lens: dots near it ease outwards a little and swell, with a smooth falloff (no ring, no hole)
+                    let lens = 0;
+                    if (mouse.in) { const dx = x - mouse.x, dy = y - mouse.y, d2 = dx * dx + dy * dy; lens = Math.exp(-d2 / LENS2); if (lens > 0.01) { const k2 = 10 * lens / (Math.sqrt(d2) + 6); x += dx * k2; y += dy * k2; } }
                     // grey -> colour following the scroll fade, then a little richer and theme-balanced
                     const s2 = colour * sat, c = v => clamp((p.L + (v - p.L) * s2) * k / 255) * 255;
                     let R = c(p.R), G = c(p.G), B = c(p.B);
                     if (!dark) { const mx = Math.max(R, G, B); if (mx > 226) { const f = 226 / mx; R *= f; G *= f; B *= f; } }   // light mode: no dot brighter than the off-white page (no "glowing" specks)
-                    ctx.fillStyle = `rgba(${R | 0},${G | 0},${B | 0},${0.3 + 0.7 * p.a})`;
-                    const r = 1.3 + 0.6 * p.w; ctx.fillRect(x, y, r, r);
+                    const al = Math.min(1, (dark ? 0.3 : 0.42) + (dark ? 0.7 : 0.58) * p.a + 0.15 * lens);
+                    ctx.fillStyle = `rgba(${R | 0},${G | 0},${B | 0},${al})`;
+                    const r = (dark ? 1.3 : 1.55) + (dark ? 0.6 : 0.75) * p.w;
+                    if (p.big) { ctx.beginPath(); ctx.arc(x, y, (r * 0.72 + 0.3) * (1 + 0.35 * lens), 0, 6.2832); ctx.fill(); }   // accent dots: round and a size up
+                    else if (lens > 0.05) { ctx.beginPath(); ctx.arc(x, y, r * 0.58 * (1 + 0.4 * lens), 0, 6.2832); ctx.fill(); }
+                    else ctx.fillRect(x - r / 2, y - r / 2, r, r);
                 }
                 // photo fades out at once on approach, and back in only once the dots are home
                 // the photo comes back *while* the dots arrive (no wait-then-pop): it follows how assembled they are
