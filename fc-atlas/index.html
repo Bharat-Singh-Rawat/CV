@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Faraday Cup Atlas — Bharat Singh Rawat</title>
+<meta name="description" content="Every published Faraday cup on one map: beam type, energy, cup material and design, with links to each paper.">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root { --bg: #f7f7f8; --card: #ffffff; --text: #1d1d1f; --body: #424245; --muted: #6e6e73; --line: rgba(0,0,0,.08); --accent: #0071e3; --warm: #bf4800;
+  --ease: cubic-bezier(.16,1,.3,1); --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #000; --card: #1c1c1e; --text: #f5f5f7; --body: #d2d2d7; --muted: #a1a1a6; --line: rgba(255,255,255,.12); --accent: #2997ff; --warm: #ff9f0a; } }
+:root[data-theme="dark"] { --bg: #000; --card: #1c1c1e; --text: #f5f5f7; --body: #d2d2d7; --muted: #a1a1a6; --line: rgba(255,255,255,.12); --accent: #2997ff; --warm: #ff9f0a; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); -webkit-font-smoothing: antialiased; line-height: 1.45; }
+a { color: var(--accent); text-decoration: none; } a:hover { text-decoration: underline; }
+.bar { position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; height: 52px; padding: 0 22px;
+  background: color-mix(in srgb, var(--bg) 80%, transparent); backdrop-filter: saturate(1.8) blur(20px); -webkit-backdrop-filter: saturate(1.8) blur(20px); border-bottom: 1px solid var(--line); font-size: .92rem; }
+.bar a { color: var(--text); }
+main { max-width: 1240px; margin: 0 auto; padding: 0 22px 100px; }
+header { padding: 72px 0 28px; max-width: 820px; }
+.eyebrow { margin: 0 0 8px; color: var(--warm); font-weight: 600; }
+h1 { margin: 0; font-size: clamp(2.6rem, 6vw, 4.4rem); letter-spacing: -.035em; line-height: 1.04; text-wrap: balance; }
+.sub { margin: 16px 0 0; color: var(--muted); font-size: clamp(1.1rem, 1.8vw, 1.3rem); font-weight: 500; text-wrap: pretty; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 26px 0 22px; }
+.stat { background: var(--card); border-radius: 18px; padding: 16px 18px; }
+.stat b { display: block; font-size: 1.8rem; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--muted); font-size: .85rem; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 14px; }
+.chip { border: 1px solid var(--line); background: var(--card); color: var(--text); font: inherit; font-size: .84rem; font-weight: 500; padding: 6px 13px; border-radius: 980px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; transition: background .25s var(--ease), opacity .25s; }
+.chip i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.chip[aria-pressed="false"] { opacity: .4; }
+.flabel { color: var(--muted); font-size: .8rem; font-weight: 600; margin-right: 2px; }
+select, input[type=search] { font: inherit; font-size: .86rem; padding: 7px 12px; border-radius: 980px; border: 1px solid var(--line); background: var(--card); color: var(--text); }
+input[type=search] { min-width: 220px; }
+.grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 14px; }
+.card { background: var(--card); border-radius: 22px; overflow: hidden; position: relative; }
+#map { height: 520px; background: var(--card); }
+.plotwrap { padding: 16px 18px 10px; }
+.plotwrap h3, .tablewrap h3 { margin: 0 0 4px; font-size: 1.05rem; letter-spacing: -.01em; }
+.note { color: var(--muted); font-size: .8rem; margin: 0 0 8px; }
+#plot, .chart { display: block; width: 100%; height: auto; }
+#plot text, .chart text { fill: var(--muted); font: 11px var(--font); }
+.grid2 { margin-top: 14px; grid-template-columns: 1fr 1fr; }
+.cell { cursor: pointer; transition: opacity .25s var(--ease), stroke-width .2s; }
+.cell:hover { stroke: var(--text); stroke-width: 1.5; }
+.chart .lbl { fill: var(--text); font-weight: 500; }
+.dot { transition: r .2s; cursor: pointer; }
+.dot:hover { r: 6; }
+.tablewrap { margin-top: 14px; padding: 18px 18px 6px; }
+table { width: 100%; border-collapse: collapse; font-size: .86rem; }
+th { text-align: left; color: var(--muted); font-weight: 600; font-size: .78rem; padding: 8px 8px; border-bottom: 1px solid var(--line); cursor: pointer; white-space: nowrap; user-select: none; }
+td { padding: 9px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr:hover td { background: color-mix(in srgb, var(--accent) 5%, transparent); }
+.tag { display: inline-block; font-size: .72rem; padding: 1px 7px; border-radius: 980px; margin: 1px 3px 1px 0; background: color-mix(in srgb, var(--text) 7%, transparent); color: var(--body); white-space: nowrap; }
+.more { display: block; margin: 10px auto 12px; }
+.leaflet-container { font-family: var(--font); }
+.leaflet-popup-content { margin: 12px 14px; font-size: .84rem; max-height: 260px; overflow: auto; }
+.leaflet-popup-content b { font-size: .92rem; }
+.leaflet-popup-content ul { margin: 6px 0 0; padding-left: 16px; }
+.leaflet-popup-content li { margin: 3px 0; }
+.foot { color: var(--muted); font-size: .8rem; margin-top: 22px; }
+.mapcard { display: flex; flex-direction: column; }
+.timeline { display: flex; align-items: center; gap: 12px; padding: 10px 14px 12px; border-top: 1px solid var(--line); }
+.tl-play { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer; background: var(--text); color: var(--bg); transition: transform .25s var(--ease); }
+.tl-play:hover { transform: scale(1.06); } .tl-play:active { transform: scale(.94); }
+#tl-range { flex: 1; accent-color: var(--accent); }
+.tl-year { font-weight: 700; font-size: 1.05rem; letter-spacing: -.02em; min-width: 5.5em; font-variant-numeric: tabular-nums; }
+.tl-count { color: var(--muted); font-size: .8rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+@media (max-width: 600px) { .tl-count { display: none; } }
+/* review card */
+.review { display: grid; gap: 6px; background: var(--card); border-radius: 22px; padding: 20px 24px; margin: 6px 0 0; border: 1px solid var(--line); }
+.rv-eyebrow { color: var(--warm); font-weight: 600; font-size: .85rem; }
+.rv-title { font-size: clamp(1.15rem, 2vw, 1.45rem); font-weight: 700; letter-spacing: -.02em; color: var(--text); line-height: 1.25; text-wrap: balance; }
+.rv-note { color: var(--muted); font-size: .9rem; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.tag.me { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
+.tag.ok { background: color-mix(in srgb, #34c759 16%, transparent); color: #248a3d; }
+.tag.rv { background: color-mix(in srgb, var(--warm) 14%, transparent); color: var(--warm); }
+/* smoothness */
+.chip { transition: background .3s var(--ease), color .3s var(--ease), opacity .3s var(--ease), transform .25s var(--ease), box-shadow .3s var(--ease); }
+.chip:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,.08); }
+.chip:active { transform: scale(.96); }
+.chip.seg[aria-pressed="true"], #rv-only[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: transparent; }
+.chip.seg[aria-pressed="false"] { opacity: 1; }
+.fade { animation: fade .45s var(--ease); }
+@keyframes fade { from { opacity: .25; transform: translateY(4px); } }
+tr td { transition: background .25s var(--ease); }
+.card, .stat, .review { transition: transform .5s var(--ease), box-shadow .5s var(--ease); }
+.stat:hover, .review:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,.06); }
+.leaflet-fade-anim .leaflet-popup { transition: opacity .25s var(--ease); }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { *, .fade { animation: none !important; transition: none !important; } html { scroll-behavior: auto; } }
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .stats { grid-template-columns: repeat(2, 1fr); } #map { height: 380px; } .hide-sm { display: none; } }
+</style>
+</head>
+<body>
+<nav class="bar"><a href="/CV/">‹ Bharat Singh Rawat</a><strong>Faraday Cup Atlas</strong><a href="/CV/#contact">Contact</a></nav>
+<main>
+  <header>
+    <p class="eyebrow">Beam diagnostics</p>
+    <h1>Every Faraday cup, on one map.</h1>
+    <p class="sub">Over two and a half thousand papers that build or use a Faraday cup, placed at the lab they came from, with the beam, energy, cup material and design each one reports. Filter, zoom in, and open any paper.</p>
+  </header>
+  <div class="stats" id="stats"></div>
+  <div class="filters" id="f-scope"><span class="flabel">Papers</span>
+    <button class="chip seg" data-s="all" aria-pressed="true">All</button>
+    <button class="chip seg" data-s="about" aria-pressed="false">About a Faraday cup</button>
+    <button class="chip seg" data-s="uses" aria-pressed="false">Use one in an experiment</button>
+    <button class="chip seg" data-s="text" aria-pressed="false">Mentioned in the text</button>
+    <button class="chip seg" data-s="rev" aria-pressed="false">Cited in my review</button>
+    <button class="chip seg" data-s="mine" aria-pressed="false">My papers</button>
+  </div>
+  <div class="filters" id="f-beam"><span class="flabel">Beam</span></div>
+  <div class="filters">
+    <span class="flabel">Material</span><select id="f-mat"><option value="">Any</option></select>
+    <span class="flabel">Design</span><select id="f-kind"><option value="">Any</option></select>
+    <span class="flabel">From</span><select id="f-y0"></select><span class="flabel">to</span><select id="f-y1"></select>
+    <input type="search" id="f-q" placeholder="Search title, lab or journal">
+  </div>
+  <div class="grid">
+    <div class="card mapcard"><div id="map" aria-label="Map of labs that published Faraday cup papers"></div>
+      <div class="timeline" id="timeline">
+        <button class="tl-play" id="tl-play" aria-label="Play the timeline"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path id="tl-icon" d="M8 5v14l11-7z" fill="currentColor"/></svg></button>
+        <input type="range" id="tl-range" aria-label="Year" min="1950" max="2026" step="1">
+        <span class="tl-year" id="tl-year">All years</span><span class="tl-count" id="tl-count"></span>
+      </div></div>
+    <div class="card plotwrap">
+      <h3>Beam energy over the years</h3>
+      <p class="note">Papers that quote a beam energy (log scale; earlier papers sit on the 1950 edge). Ringed dots are cited in my review. Hover a dot for the paper, click to open it.</p>
+      <svg id="plot" viewBox="0 0 520 440" role="img" aria-label="Beam energy against publication year"></svg>
+    </div>
+  </div>
+  <div class="grid grid2">
+    <div class="card plotwrap">
+      <h3>Cup material against beam energy</h3>
+      <p class="note" id="mat-note"></p>
+      <svg id="matplot" class="chart" viewBox="0 0 560 360" role="img" aria-label="Cup material against beam energy"></svg>
+    </div>
+    <div class="card plotwrap">
+      <h3>Beam against cup material</h3>
+      <p class="note" id="heat-note"></p>
+      <svg id="heat" class="chart" viewBox="0 0 560 360" role="img" aria-label="Heatmap of beam type against cup material"></svg>
+    </div>
+  </div>
+  <div class="card tablewrap">
+    <h3 id="t-title">Papers</h3>
+    <p class="note">Beam, energy, material and design are read automatically from each paper’s title and abstract, so some are missing or approximate: the paper link is the reference.</p>
+    <table><thead><tr><th data-k="y">Year</th><th data-k="t">Paper</th><th data-k="beam">Beam</th><th data-k="emin" class="hide-sm">Energy</th><th data-k="mat" class="hide-sm">Material</th><th data-k="kind" class="hide-sm">Design</th><th data-k="lab">Lab</th></tr></thead><tbody id="rows"></tbody></table>
+    <button class="chip more" id="more">Show more</button>
+  </div>
+  <p class="foot">Data: <a href="https://openalex.org" target="_blank" rel="noopener">OpenAlex</a> (CC0), <a href="https://inspirehep.net" target="_blank" rel="noopener">INSPIRE-HEP</a> and <a href="https://pubmed.ncbi.nlm.nih.gov" target="_blank" rel="noopener">PubMed</a>: only papers that say “Faraday cup” in their title or abstract. Cup materials are also read from the full text of open-access papers; labs are the first author’s institution with known coordinates. Country outlines: <a href="https://www.naturalearthdata.com" target="_blank" rel="noopener">Natural Earth</a> (public domain). Built by <a href="/CV/">Bharat Singh Rawat</a>.</p>
+</main>
+<script src="/CV/v2/sfx.js?v=20261117z"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script>
+(async () => {
+  const J = await (await fetch('/CV/fc-atlas/atlas.json?v=20261124d')).json();
+  let D = J.papers.map(o => ({ mat: [], kind: [], ...o }));
+  let textLoaded = false;
+
+  const COL = { 'Antiprotons': '#ff375f', 'Laser plasma': '#ff9f0a', 'Plasma / space': '#5e5ce6', 'Protons': '#0071e3', 'Electrons': '#30b0c7', 'Heavy ions': '#af52de', 'Ions': '#34c759', 'Neutrals / other': '#8e8e93', 'Not stated': '#c7c7cc' };
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const title = t => esc(t.length > 120 ? t.slice(0, 117) + '…' : t).replace(/\b([A-Z]{4,}[A-Z ]*)\b/g, m => m.charAt(0) + m.slice(1).toLowerCase());
+  const link = o => o.doi || o.link || `https://openalex.org/${o.oa}`;
+  const fmtE = (a, b) => { if (a == null) return ''; const f = v => v >= 1e3 ? +(v / 1e3).toPrecision(3) + ' GeV' : v >= 1 ? +v.toPrecision(3) + ' MeV' : v >= 1e-3 ? +(v * 1e3).toPrecision(3) + ' keV' : +(v * 1e6).toPrecision(3) + ' eV'; return a === b ? f(a) : f(a) + ' – ' + f(b); };
+  const dark = () => document.documentElement.dataset.theme ? document.documentElement.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+
+  // ---------- filters ----------
+  const beams = Object.keys(COL).filter(b => D.some(o => o.beam === b));
+  const on = new Set(beams), fb = document.getElementById('f-beam');
+  beams.forEach(b => { const c = document.createElement('button'); c.className = 'chip'; c.setAttribute('aria-pressed', 'true');
+    c.innerHTML = `<i style="background:${COL[b]}"></i>${b} <span style="color:var(--muted)">${D.filter(o => o.beam === b).length}</span>`;
+    c.onclick = () => { on.has(b) ? on.delete(b) : on.add(b); c.setAttribute('aria-pressed', on.has(b)); render(); }; fb.appendChild(c); });
+  const fill = (id, vals) => { const s = document.getElementById(id); vals.forEach(v => { const o = document.createElement('option'); o.value = o.textContent = v; s.appendChild(o); }); s.onchange = render; };
+  const count = k => { const m = {}; D.forEach(o => o[k].forEach(v => m[v] = (m[v] || 0) + 1)); return Object.keys(m).sort((a, b) => m[b] - m[a]); };
+  fill('f-mat', count('mat')); fill('f-kind', count('kind'));
+  const years = D.map(o => o.y).filter(Boolean), Y0 = Math.min(...years), Y1 = Math.max(...years);
+  const dec = []; for (let y = Math.floor(Y0 / 10) * 10; y <= Y1; y += 10) dec.push(y);
+  ['f-y0', 'f-y1'].forEach((id, k) => { const s = document.getElementById(id); dec.forEach(y => { const o = document.createElement('option'); o.value = k ? y + 9 : y; o.textContent = k ? Math.min(y + 9, Y1) : y; s.appendChild(o); }); s.value = k ? dec[dec.length - 1] + 9 : dec[0]; s.onchange = render; });
+  let qt = 0; document.getElementById('f-q').oninput = () => { clearTimeout(qt); qt = setTimeout(render, 160); };
+  let scope = 'all';
+  const sound = k => { try { window.cvSfx && window.cvSfx[k] && window.cvSfx[k](); } catch (e) {} };
+  // the ~17,000 papers that mention a cup only inside the text: fetched the first time that filter is chosen
+  async function loadText(btn) {
+    if (textLoaded) return; textLoaded = true; const was = btn.textContent; btn.textContent = 'Loading…';
+    const T = await (await fetch('/CV/fc-atlas/atlas-text.json?v=20261124d')).json();
+    D = D.concat(T.map(o => ({ mat: [], kind: [], ...o }))); btn.textContent = was;
+  }
+  document.querySelectorAll('#f-scope .seg').forEach(b => b.onclick = async () => { if (b.dataset.s === 'text') await loadText(b); scope = b.dataset.s;
+    document.querySelectorAll('#f-scope .seg').forEach(x => x.setAttribute('aria-pressed', x === b)); render(); });
+  let cell = null;   // { beam, mat } chosen on the heatmap
+  const pass = o => on.has(o.beam)
+    && (!cell || (o.beam === cell.beam && o.mat.includes(cell.mat)))
+    && ((scope === 'all' && !o.txt) || (scope === 'about' && o.about) || (scope === 'uses' && !o.about && !o.txt) || (scope === 'text' && o.txt) || (scope === 'rev' && o.rev) || (scope === 'mine' && o.mine))
+    && (!fmat.value || o.mat.includes(fmat.value)) && (!fkind.value || o.kind.includes(fkind.value))
+    && o.y >= +fy0.value && o.y <= +fy1.value
+    && (!fq.value || (o.t + ' ' + (o.lab || '') + ' ' + (o.j || '')).toLowerCase().includes(fq.value.toLowerCase()));
+  const fmat = document.getElementById('f-mat'), fkind = document.getElementById('f-kind'), fy0 = document.getElementById('f-y0'), fy1 = document.getElementById('f-y1'), fq = document.getElementById('f-q');
+
+  // ---------- map: one marker per lab, sized by its papers, coloured by its main beam ----------
+  const map = L.map('map', { preferCanvas: true, zoomControl: true, scrollWheelZoom: false, minZoom: 1, maxZoom: 9, attributionControl: true, zoomSnap: 0.25, zoomDelta: 0.5, wheelPxPerZoomLevel: 120, inertia: true }).setView([30, 10], 1.5);
+  map.attributionControl.setPrefix('').addAttribution('Outlines: <a href="https://www.naturalearthdata.com" target="_blank" rel="noopener">Natural Earth</a>');
+  map.on('focus', () => map.scrollWheelZoom.enable()); map.on('blur', () => map.scrollWheelZoom.disable());
+  // the world drawn from Natural Earth outlines (public domain): no tile service, follows light / dark exactly
+  const land = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json')).json();
+  // countries that cross the 180° line (Russia, Fiji): put their far-east parts past +180 so no stripe is drawn across the map
+  const geo = topojson.feature(land, land.objects.countries);
+  const unwrap = ring => { if (ring.some(p => p[0] > 160) && ring.some(p => p[0] < -160)) ring.forEach(p => { if (p[0] < 0) p[0] += 360; }); };
+  geo.features.forEach(f => { const g = f.geometry; if (!g) return; (g.type === 'Polygon' ? [g.coordinates] : g.coordinates).forEach(poly => poly.forEach(unwrap)); });
+  const countries = L.geoJSON(geo, { interactive: false, style: () => landStyle() }).addTo(map);
+  function landStyle() { return dark() ? { color: '#3a3a3c', weight: 0.6, fillColor: '#2c2c2e', fillOpacity: 1 } : { color: '#ffffff', weight: 0.8, fillColor: '#e3e3e8', fillOpacity: 1 }; }
+  const restyle = () => { countries.setStyle(landStyle()); document.getElementById('map').style.background = dark() ? '#1c1c1e' : '#ffffff'; };
+  restyle(); matchMedia('(prefers-color-scheme: dark)').addEventListener('change', restyle);
+  const layer = L.layerGroup().addTo(map);
+  // ---------- timeline: play the labs appearing year by year ----------
+  const reduceM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const tlR = document.getElementById('tl-range'), tlP = document.getElementById('tl-play'), tlI = document.getElementById('tl-icon');
+  const firstY = 1950; tlR.min = firstY; tlR.max = Y1; tlR.value = Y1;
+  let timer = 0;
+  const setY = y => { playY = y >= Y1 ? null : y; tlR.value = y; if (playY == null) seen = new Set(); drawMap(); };
+  const stop = () => { clearInterval(timer); timer = 0; tlI.setAttribute('d', 'M8 5v14l11-7z'); tlP.setAttribute('aria-label', 'Play the timeline'); };
+  tlP.onclick = () => {
+    sound('click');
+    if (timer) return stop();
+    let y = playY == null ? firstY : playY; if (y >= Y1) y = firstY;
+    if (y === firstY) seen = new Set(MR.filter(o => o.lat != null && o.y && o.y < firstY).map(o => o.lab));   // labs from before 1950 are already there
+    tlI.setAttribute('d', 'M7 5h4v14H7zM13 5h4v14h-4z'); tlP.setAttribute('aria-label', 'Pause the timeline');
+    setY(y);
+    timer = setInterval(() => { y++; if (y >= Y1) { stop(); setY(Y1); return; } setY(y); }, reduceM ? 0 : 240);
+    if (reduceM) { stop(); setY(Y1); }
+  };
+  tlR.oninput = () => { stop(); if (+tlR.value < Y1 && playY == null) seen = new Set(); setY(+tlR.value); };
+
+  // ---------- plot: energy vs year (log) ----------
+  const svg = document.getElementById('plot'), PW = 520, PH = 440, m = { l: 52, r: 14, t: 10, b: 34 };
+  const PY0 = Math.max(Y0, 1950), EMIN = 1e-6, EMAX = 1e5, lx = y => m.l + (Math.max(y, PY0) - PY0) / (Y1 - PY0) * (PW - m.l - m.r), ly = e => PH - m.b - (Math.log10(e) - Math.log10(EMIN)) / (Math.log10(EMAX) - Math.log10(EMIN)) * (PH - m.t - m.b);
+  const axes = () => { let s = '';
+    [[1e-6, '1 eV'], [1e-3, '1 keV'], [1, '1 MeV'], [1e3, '1 GeV'], [1e5, '100 GeV']].forEach(([e, l]) => s += `<line x1="${m.l}" x2="${PW - m.r}" y1="${ly(e)}" y2="${ly(e)}" stroke="currentColor" stroke-opacity=".08"/><text x="${m.l - 6}" y="${ly(e) + 4}" text-anchor="end">${l}</text>`);
+    for (let y = Math.ceil(PY0 / 10) * 10; y <= Y1; y += 10) s += `<text x="${lx(y)}" y="${PH - 12}" text-anchor="middle">${y}</text>`;
+    return s; };
+
+  // ---------- table ----------
+  let sortK = 'y', sortD = -1, shown = 40;
+  document.querySelectorAll('th').forEach(th => th.onclick = () => { const k = th.dataset.k; sortD = sortK === k ? -sortD : (k === 'y' || k === 'emin' ? -1 : 1); sortK = k; render(); });
+  document.getElementById('more').onclick = () => { shown += 60; render(); };
+  document.getElementById('rows').addEventListener('pointerover', e => { if (e.target.closest('a')) sound('hover'); });
+  const tags = a => a.map(v => `<span class="tag">${esc(v)}</span>`).join('');
+
+  // ---------- material vs energy: one row per material, log energy across, a little vertical jitter ----------
+  const MATS = count('mat').slice(0, 8), mat2 = document.getElementById('matplot');
+  const jit = o => { let h = 0; for (const c of o.oa) h = (h * 31 + c.charCodeAt(0)) >>> 0; return (h % 1000) / 1000 - 0.5; };   // stable per paper
+  function drawMat(R) {
+    fadeIn(mat2);
+    const W = 560, H = 360, l = 118, r = 30, t = 8, b = 30, row = (H - t - b) / MATS.length;
+    const x = e => l + (Math.log10(e) + 6) / 11 * (W - l - r);
+    let g = '';
+    [[1e-6, '1 eV'], [1e-3, '1 keV'], [1, '1 MeV'], [1e3, '1 GeV'], [1e5, '100 GeV']].forEach(([e, s]) => g += `<line x1="${x(e)}" x2="${x(e)}" y1="${t}" y2="${H - b}" stroke="currentColor" stroke-opacity=".08"/><text x="${x(e)}" y="${H - 10}" text-anchor="middle">${s}</text>`);
+    MATS.forEach((m, i) => { const y = t + row * (i + 0.5); g += `<line x1="${l}" x2="${W - r}" y1="${y}" y2="${y}" stroke="currentColor" stroke-opacity=".05"/><text class="lbl" x="${l - 10}" y="${y + 4}" text-anchor="end">${esc(m)}</text>`; });
+    R.filter(o => o.emin != null).forEach(o => o.mat.filter(m => MATS.includes(m)).forEach(m => {
+      const e = Math.min(1e5, Math.max(1e-6, Math.sqrt(o.emin * o.emax))), y = t + row * (MATS.indexOf(m) + 0.5 + jit(o) * 0.7);
+      g += `<a href="${esc(link(o))}" target="_blank" rel="noopener"><circle class="dot" cx="${x(e).toFixed(1)}" cy="${y.toFixed(1)}" r="${o.rev ? 4.4 : 3.6}" fill="${COL[o.beam]}" fill-opacity=".8" stroke="${o.rev ? 'var(--text)' : 'var(--card)'}" stroke-width="${o.rev ? 1.3 : .8}"><title>${esc(o.t)} (${o.y}) · ${esc(m)} · ${o.beam} · ${fmtE(o.emin, o.emax)}</title></circle></a>`;
+    }));
+    mat2.innerHTML = g;
+    const nm = R.filter(o => o.mat.length).length, ne = R.filter(o => o.mat.length && o.emin != null).length;
+    const dup = R.filter(o => o.emin != null && o.mat.filter(m => MATS.includes(m)).length > 1).length;
+    document.getElementById('mat-note').textContent = `${ne} of the ${nm} papers that name a cup material also quote a beam energy${dup ? ` (${dup} name two materials, so they show in two rows)` : ''}; dots are coloured by beam. Hover for the paper, click to open it.`;
+  }
+  // ---------- beam x material heatmap ----------
+  const heat = document.getElementById('heat');
+  heat.addEventListener('click', e => { const c = e.target.closest('.cell'); if (!c) return; sound('click');
+    cell = cell && cell.beam === c.dataset.b && cell.mat === c.dataset.m ? null : { beam: c.dataset.b, mat: c.dataset.m }; render(); });
+  heat.addEventListener('pointerover', e => { if (e.target.closest('.cell')) sound('hover'); });
+  function drawHeat(R) {
+    fadeIn(heat);
+    // counts ignore the heatmap's own choice, so the grid stays put while you filter with it
+    const base = D.filter(o => { const c = cell; cell = null; const ok = pass(o); cell = c; return ok; });
+    const B = beams.filter(b => base.some(o => o.beam === b && o.mat.length)), M = MATS;
+    const W = 560, H = 360, l = 118, t = 70, r = 46, b = 8, cw = (W - l - r) / M.length, ch = (H - t - b) / B.length;
+    const n = {}; let mx = 1;
+    base.forEach(o => o.mat.forEach(m => { const k = o.beam + '|' + m; n[k] = (n[k] || 0) + 1; mx = Math.max(mx, n[k]); }));
+    let g = '';
+    M.forEach((m, j) => g += `<text class="lbl" transform="translate(${l + cw * (j + 0.5)},${t - 8}) rotate(-38)" text-anchor="start">${esc(m)}</text>`);
+    B.forEach((bm, i) => {
+      g += `<text class="lbl" x="${l - 10}" y="${t + ch * (i + 0.5) + 4}" text-anchor="end">${esc(bm)}</text>`;
+      M.forEach((m, j) => {
+        const v = n[bm + '|' + m] || 0, a = v ? 0.12 + 0.88 * Math.sqrt(v / mx) : 0.04, sel = cell && cell.beam === bm && cell.mat === m, dim = cell && !sel;
+        g += `<g class="cell" data-b="${esc(bm)}" data-m="${esc(m)}" style="opacity:${dim ? .35 : 1}"><rect x="${(l + cw * j + 2).toFixed(1)}" y="${(t + ch * i + 2).toFixed(1)}" width="${(cw - 4).toFixed(1)}" height="${(ch - 4).toFixed(1)}" rx="7"
+          fill="${v ? COL[bm] : 'currentColor'}" fill-opacity="${a.toFixed(2)}" stroke="${sel ? 'var(--text)' : 'none'}" stroke-width="2"><title>${esc(bm)} on ${esc(m)}: ${v} paper${v === 1 ? '' : 's'}</title></rect>
+          ${v ? `<text x="${(l + cw * (j + 0.5)).toFixed(1)}" y="${(t + ch * (i + 0.5) + 4).toFixed(1)}" text-anchor="middle" style="fill:${a > .55 ? '#fff' : 'var(--text)'};font-weight:600;pointer-events:none">${v}</text>` : ''}</g>`;
+      });
+    });
+    heat.innerHTML = g;
+    const withMat = base.filter(o => o.mat.length), two = withMat.filter(o => o.mat.length > 1).length;
+    document.getElementById('heat-note').textContent = `${withMat.length} papers name a cup material${two ? ` (${two} name two, so they appear in two squares)` : ''}; each square counts papers. Click a square to filter the whole page to it; click again to clear.`;
+  }
+  // ---------- the map (and the timeline: playY limits it to papers up to that year) ----------
+  let MR = [], playY = null, seen = new Set();
+  function drawMap() {
+    layer.clearLayers();
+    const byLab = new Map(); MR.filter(o => o.lat != null && (playY == null || (o.y && o.y <= playY))).forEach(o => { const k = o.lab; if (!byLab.has(k)) byLab.set(k, []); byLab.get(k).push(o); });
+    byLab.forEach((ps, lab) => {
+      const top = Object.entries(ps.reduce((a, o) => (a[o.beam] = (a[o.beam] || 0) + 1, a), {})).sort((a, b) => b[1] - a[1])[0][0];
+      const cited = ps.some(o => o.rev);
+      const mk = L.circleMarker([ps[0].lat, ps[0].lon], { radius: 4 + Math.min(14, Math.sqrt(ps.length) * 2.2), color: cited ? (dark() ? '#f5f5f7' : '#1d1d1f') : '#fff', weight: cited ? 2 : 1.2, fillColor: COL[top], fillOpacity: .82 });
+      mk.on('click', () => sound('click')); mk.on('mouseover', () => sound('hover'));
+      mk.bindPopup(`<b>${esc(lab)}</b><br><span style="color:var(--muted)">${esc([ps[0].city, ps[0].cc].filter(Boolean).join(', '))} · ${ps.length} paper${ps.length > 1 ? 's' : ''}</span><ul>${ps.sort((a, b) => b.y - a.y).map(o =>
+        `<li><a href="${esc(link(o))}" target="_blank" rel="noopener">${title(o.t)}</a> <span style="color:var(--muted)">(${o.y}${o.emin != null ? ', ' + fmtE(o.emin, o.emax) : ''})</span>${o.rev ? ' <span class="tag">cited in my review</span>' : ''}</li>`).join('')}</ul>`, { maxWidth: 340 });
+      mk.bindTooltip(`${esc(lab)} · ${ps.length}`, { direction: 'top', offset: [0, -6] });
+      layer.addLayer(mk);
+    });
+    // timeline: labs that appear this year get a short pulse ring
+    if (playY != null) byLab.forEach((ps, lab) => { if (!seen.has(lab)) { seen.add(lab);
+      const ring = L.circleMarker([ps[0].lat, ps[0].lon], { radius: 6, color: COL[ps[0].beam], weight: 2, fill: false, opacity: .9, interactive: false }).addTo(layer);
+      let k = 0; const grow = () => { k += 0.08; ring.setRadius(6 + k * 22); ring.setStyle({ opacity: .9 * (1 - k) }); if (k < 1) requestAnimationFrame(grow); else layer.removeLayer(ring); };
+      if (!reduceM) requestAnimationFrame(grow); else layer.removeLayer(ring); } });
+    document.getElementById('tl-year').textContent = playY == null ? 'All years' : playY;
+    document.getElementById('tl-count').textContent = playY == null ? '' : `${byLab.size} labs · ${MR.filter(o => o.y && o.y <= playY).length} papers`;
+  }
+  // numbers glide to their new value
+  function countTo(el, n) { const from = +el.dataset.n || 0; el.dataset.n = n; const t0 = performance.now();
+    const step = now => { const k = Math.min(1, (now - t0) / 500), e = 1 - Math.pow(1 - k, 3); el.textContent = Math.round(from + (n - from) * e).toLocaleString('en'); if (k < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step); }
+  const fadeIn = el => { el.classList.remove('fade'); void el.offsetWidth; el.classList.add('fade'); };
+  function render() {
+    fadeIn(document.getElementById('rows')); fadeIn(svg);
+    const R = D.filter(pass);
+    // stats
+    const labs = new Set(R.filter(o => o.lab).map(o => o.lab)), cc = new Set(R.filter(o => o.cc).map(o => o.cc));
+    const stats = [[R.length, 'papers'], [labs.size, 'labs'], [cc.size, 'countries'], [R.filter(o => o.emin != null).length, 'quote a beam energy']];
+    const st = document.getElementById('stats');
+    if (!st.children.length) st.innerHTML = stats.map(([n, l]) => `<div class="stat"><b data-n="0">0</b><span>${l}</span></div>`).join('');
+    stats.forEach(([n], i) => countTo(st.children[i].querySelector('b'), n));
+    // map
+    MR = R; drawMap();
+    // plot
+    const P = R.filter(o => o.emin != null && o.y);
+    svg.innerHTML = axes() + P.map(o => { const e = Math.sqrt(o.emin * o.emax), x = lx(o.y), y = ly(Math.min(EMAX, Math.max(EMIN, e)));
+      return `<a href="${esc(link(o))}" target="_blank" rel="noopener"><circle class="dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${o.rev ? 4.6 : 3.6}" fill="${COL[o.beam]}" fill-opacity=".8" stroke="${o.rev ? 'var(--text)' : 'var(--card)'}" stroke-width="${o.rev ? 1.4 : .8}"><title>${esc(o.t)} (${o.y}) · ${o.beam} · ${fmtE(o.emin, o.emax)}${o.lab ? ' · ' + esc(o.lab) : ''}</title></circle></a>`; }).join('');
+    // table
+    const val = (o, k) => Array.isArray(o[k]) ? o[k].join(', ') : o[k] ?? (k === 'emin' ? -1 : '');
+    R.sort((a, b) => { const A = val(a, sortK), B = val(b, sortK); return (A > B ? 1 : A < B ? -1 : 0) * sortD; });
+    document.getElementById('t-title').textContent = `Papers (${R.length})`;
+    document.getElementById('rows').innerHTML = R.slice(0, shown).map(o => `<tr>
+      <td class="num">${o.y ?? ''}</td>
+      <td><a href="${esc(link(o))}" target="_blank" rel="noopener">${title(o.t)}</a>${o.j ? `<br><span style="color:var(--muted);font-size:.78rem">${esc(o.j)}</span>` : ''}${o.mine ? ' <span class="tag me">my paper</span>' : ''}${o.rev ? ' <span class="tag rv">cited in my review</span>' : ''}${o.src && o.src !== 'OpenAlex' ? ` <span class="tag">${esc(o.src)}</span>` : ''}</td>
+      <td><span class="tag" style="background:${COL[o.beam]}22;color:var(--text)">${esc(o.beam)}</span></td>
+      <td class="num hide-sm">${fmtE(o.emin, o.emax)}${o.species ? ` <span style="color:var(--muted)">${esc(o.species)}</span>` : ''}${o.checked ? ' <span class="tag ok" title="Checked by hand">✓ checked</span>' : ''}</td><td class="hide-sm">${tags(o.mat)}</td><td class="hide-sm">${tags(o.kind)}</td>
+      <td>${o.lab ? `<a href="#" data-lat="${o.lat}" data-lon="${o.lon}" class="go">${esc(o.lab)}</a>` : '<span style="color:var(--muted)">–</span>'}</td></tr>`).join('');
+    document.getElementById('more').hidden = R.length <= shown;
+    drawMat(R); drawHeat(R);
+  }
+  document.getElementById('rows').addEventListener('click', e => { const a = e.target.closest('.go'); if (!a) return; e.preventDefault();
+    sound('click'); map.flyTo([+a.dataset.lat, +a.dataset.lon], 8, { duration: 1.6, easeLinearity: 0.15 }); document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+  render();
+})();
+</script>
+</body>
+</html>

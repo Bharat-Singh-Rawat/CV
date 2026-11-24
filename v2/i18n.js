@@ -185,6 +185,7 @@
                 { name: 'Gemelo digital de AEgIS', tag: 'CERN · antimateria', text: 'Modelos de orden reducido que combinan física de primeros principios con aprendizaje automático para predecir el comportamiento de la trampa de Penning–Malmberg y optimizar el confinamiento de antiprotones.' },
                 { name: 'Fuente de iones de cúspide anular', tag: 'Doctorado · propulsión espacial y fusión', text: 'Diseñé, construí y caractericé una fuente multicúspide con haces de Ar⁺ de 1–2 keV / hasta 100 mA y hasta un 100 % de neutralización de la carga espacial.' },
                 { name: 'Copa de Faraday de 10 kW', tag: 'Máster · diagnóstico de haces', text: 'Copa de Faraday refrigerada por agua para haces de 20–30 mA, 20 veces más potente que el sistema anterior de 1 kW, con supresión optimizada mediante SIMION y LORENTZ.' },
+                { name: 'Atlas de copas de Faraday', tag: 'Datos abiertos · diagnóstico de haces', text: 'Copas de Faraday publicadas por laboratorios de todo el mundo en un mapa interactivo, con el haz, la energía, el material y el diseño que indica cada artículo, con filtros y enlace a cada artículo.' },
                 { name: 'Calentador de cátodo por inducción', tag: 'Simulación · Elmer FEM', text: 'Modelo 3D acoplado electromagnético y térmico de un cátodo de LaB₆ calentado por inducción desde temperatura ambiente, hecho con el código abierto Elmer FEM y contrastado con un modelo 2D.' },
             ],
             gallery: [
@@ -267,6 +268,7 @@
                 { name: 'Цифровой двойник AEgIS', tag: 'ЦЕРН · антиматерия', text: 'Модели пониженного порядка, объединяющие физику из первых принципов и машинное обучение, для прогнозирования поведения ловушки Пеннинга–Мальмберга и оптимизации удержания антипротонов.' },
                 { name: 'Ионный источник с кольцевым каспом', tag: 'PhD · космические двигатели и термоядерный синтез', text: 'Спроектировал, построил и исследовал многокаспный источник с пучками Ar⁺ 1–2 кэВ / до 100 мА и нейтрализацией пространственного заряда до 100%.' },
                 { name: 'Цилиндр Фарадея на 10 кВт', tag: 'Магистратура · диагностика пучков', text: 'Цилиндр Фарадея с водяным охлаждением для пучков 20–30 мА — в 20 раз мощнее прежней системы на 1 кВт, с подавлением, оптимизированным в SIMION и LORENTZ.' },
+                { name: 'Атлас цилиндров Фарадея', tag: 'Открытые данные · диагностика пучков', text: 'Опубликованные цилиндры Фарадея из лабораторий всего мира на одной интерактивной карте: пучок, энергия, материал и конструкция из каждой статьи, с фильтрами и ссылкой на каждую статью.' },
                 { name: 'Индукционный нагреватель катода', tag: 'Моделирование · Elmer FEM', text: 'Связанная трёхмерная электромагнитная и тепловая модель катода из LaB₆ с индукционным нагревом при прогреве от комнатной температуры, построенная в открытом пакете Elmer FEM и сверенная с двумерной моделью.' },
             ],
             gallery: [
@@ -349,6 +351,7 @@
                 { name: 'Jumeau numérique d’AEgIS', tag: 'CERN · antimatière', text: 'Modèles d’ordre réduit combinant physique des premiers principes et apprentissage automatique pour prédire le comportement du piège de Penning–Malmberg et optimiser le confinement des antiprotons.' },
                 { name: 'Source d’ions à cuspide annulaire', tag: 'Doctorat · propulsion spatiale et fusion', text: 'Conception, construction et caractérisation d’une source multicuspide produisant des faisceaux d’Ar⁺ de 1–2 keV / jusqu’à 100 mA, avec jusqu’à 100 % de neutralisation de la charge d’espace.' },
                 { name: 'Cage de Faraday de 10 kW', tag: 'Master · diagnostic de faisceaux', text: 'Cage de Faraday refroidie par eau pour des faisceaux de 20–30 mA, 20 fois plus puissante que l’ancien système de 1 kW, avec une suppression optimisée via SIMION et LORENTZ.' },
+                { name: 'Atlas des cages de Faraday', tag: 'Données ouvertes · diagnostic de faisceaux', text: 'Les cages de Faraday publiées par des laboratoires du monde entier sur une carte interactive, avec le faisceau, l’énergie, le matériau et la conception indiqués par chaque article, filtrables et liées à chaque article.' },
                 { name: 'Chauffage de cathode par induction', tag: 'Simulation · Elmer FEM', text: 'Modèle 3D couplé électromagnétique et thermique d\u2019une cathode en LaB₆ chauffée par induction depuis la température ambiante, réalisé avec le code libre Elmer FEM et comparé à un modèle 2D.' },
             ],
             gallery: [
@@ -431,6 +434,7 @@
                 { name: 'AEgIS ડિજિટલ ટ્વિન', tag: 'CERN · પ્રતિદ્રવ્ય', text: 'પેનિંગ–માલ્મબર્ગ ટ્રેપના વર્તનની આગાહી અને એન્ટિપ્રોટોન બંધનના ઑપ્ટિમાઇઝેશન માટે મૂળભૂત ભૌતિકશાસ્ત્ર અને મશીન લર્નિંગને જોડતાં રિડ્યુસ્ડ-ઑર્ડર મોડેલ.' },
                 { name: 'રિંગ-કસ્પ આયન સ્રોત', tag: 'Ph.D. · અવકાશ પ્રોપલ્શન અને ફ્યુઝન', text: '1–2 keV / 100 mA સુધીના Ar⁺ બીમ અને 100% સુધી સ્પેસ-ચાર્જ ન્યુટ્રલાઇઝેશન ધરાવતો મલ્ટિકસ્પ સ્રોત ડિઝાઇન કર્યો, બનાવ્યો અને લાક્ષણિકૃત કર્યો.' },
                 { name: '10 kW ફેરાડે કપ', tag: 'M.Tech · બીમ ડાયગ્નોસ્ટિક્સ', text: '20–30 mA બીમ માટે પાણીથી ઠંડો થતો ફેરાડે કપ — જૂની 1 kW સિસ્ટમ કરતાં 20 ગણો સક્ષમ, SIMION અને LORENTZ વડે ઑપ્ટિમાઇઝ કરેલા સપ્રેશન સાથે.' },
+                { name: 'ફેરાડે કપ એટલાસ', tag: 'ઓપન ડેટા · બીમ ડાયગ્નોસ્ટિક્સ', text: 'વિશ્વભરની પ્રયોગશાળાઓના પ્રકાશિત ફેરાડે કપ એક ઇન્ટરેક્ટિવ નકશા પર, દરેક પેપરમાં જણાવેલ બીમ, ઊર્જા, કપનું મટીરિયલ અને ડિઝાઇન સાથે, ફિલ્ટર કરી શકાય તેવા અને દરેક પેપરની લિંક સાથે.' },
                 { name: 'ઇન્ડક્શન કેથોડ હીટર', tag: 'સિમ્યુલેશન · Elmer FEM', text: 'ઓરડાના તાપમાનથી ગરમ થતા ઇન્ડક્શન-હીટેડ LaB₆ કેથોડનું 3D વિદ્યુતચુંબકીય અને થર્મલ સંયુક્ત મોડેલ, ઓપન-સોર્સ Elmer FEM માં બનાવેલું અને 2D મોડેલ સાથે ચકાસેલું.' },
             ],
             gallery: [
