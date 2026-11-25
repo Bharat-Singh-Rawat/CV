@@ -110,7 +110,7 @@ h1 { margin: 8px 0 0; font-size: 26px; letter-spacing: -.025em; }
 .lnch { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin: 10px 0 2px; padding: 9px 12px; border-radius: 10px; background: var(--accent-soft); font-size: 12.5px; }
 .lnch div { flex: 1 1 100%; } .lnch .lgo { border: 0; border-radius: 980px; background: var(--accent); color: #fff; font: 600 12px var(--font); padding: 5px 12px; cursor: pointer; }
 .lnch a { color: var(--accent); font-size: 12px; text-decoration: none; } .lnch small { flex: 1 1 100%; color: var(--muted); font-size: 11px; }
-.tip { position: absolute; pointer-events: none; background: rgba(20,22,30,.9); color: #fff; font-size: 12px; padding: 5px 8px; border-radius: 7px; transform: translate(12px, -50%); white-space: nowrap; }
+.tip .tsub { color: #aeb6c8; font-size: 11px; } .tip { max-width: min(360px, 70%); white-space: normal !important; line-height: 1.35; } .tip { position: absolute; pointer-events: none; background: rgba(20,22,30,.9); color: #fff; font-size: 12px; padding: 5px 8px; border-radius: 7px; transform: translate(12px, -50%); white-space: nowrap; }
 .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--sep); padding: 16px 18px; margin-top: 14px; }
 .card h2 { margin: 0; font-size: 19px; letter-spacing: -.02em; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .card h3 { margin: 14px 0 6px; font-size: 13px; color: var(--muted); font-weight: 600; }
@@ -955,7 +955,7 @@ function realCopy(k, sc) { const c = REAL[k], r = sc.clone(true), w = new THREE.
 // detailed model of a mission: its own shape when known, else the generic bus
 function craftModel(m, type, col, hz, noReal = false) {
   const k = Object.keys(SHAPES).find(n => m && m.name.startsWith(n)), rk = noReal && k ? null : realKey(m);
-  if (!k && !rk) { const g = spacecraft(type, col, hz, busClass(m), /^ATS-[24](?! \/)/.test(m.name)); g.userData.cls = busClass(m); g.userData.booms = /^ATS-[24](?! \/)/.test(m.name);   // series entries mix spinners (ATS-3, -5) with boom craft: no booms there return g; }
+  if (!k && !rk) { const g = spacecraft(type, col, hz, busClass(m), /^ATS-[24](?! \/)/.test(m.name)); g.userData.cls = busClass(m); g.userData.booms = /^ATS-[24](?! \/)/.test(m.name);   /* series entries mix spinners (ATS-3, -5) with boom craft: no booms there */ return g; }
   let s, o;
   if (k) { s = new THREE.Group(); o = SHAPES[k](s); if (FIXED_ARRAYS.has(k)) s.traverse(c => { c.userData.sadm = false; }); } else { s = spacecraft(type, col, hz); s.remove(s.userData.thr); o = { x: -0.17, scale: 1 }; }
   const t = thruster(type, col, hz); t.position.x = o.x; t.scale.setScalar(Math.min(1, 0.75 / o.scale)); s.add(t); s.userData.thr = t; s.userData.shape = k || rk; s.userData.k = o.scale;
@@ -1188,9 +1188,10 @@ for (const m of ms) {
   }
   o.dot = o.items[0].hit;
   if (m.kind === 'cluster' && rec.cluster_tles && rec.cluster_tles.length && window.satellite) {
-    o.swarmSats = rec.cluster_tles.map(([l1, l2]) => { try { return satellite.twoline2satrec(l1, l2); } catch (e) { return null; } }).filter(Boolean);
+    const ok = rec.cluster_tles.map(([l1, l2, nm]) => { try { return [satellite.twoline2satrec(l1, l2), nm || '', +l1.slice(2, 7)]; } catch (e) { return null; } }).filter(Boolean);
+    o.swarmSats = ok.map(x => x[0]); o.swarmNames = ok.map(x => x[1]); o.swarmIds = ok.map(x => x[2]); o.swarmN = rec.cluster_source || '';
     o.swarm = new THREE.Points(new THREE.BufferGeometry(), new THREE.PointsMaterial({ color: COL[famOf(m)], size: 0.03, map: SOFT, alphaTest: 0.05, transparent: true, opacity: 0.95, depthWrite: false }));
-    o.swarm.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(o.swarmSats.length * 3), 3)); scene.add(o.swarm); o.swarmK = 0;
+    o.swarm.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(o.swarmSats.length * 3), 3)); o.swarm.userData = { o, swarm: true }; scene.add(o.swarm); o.swarmK = 0;
   }
   o.dest = m.orbit === 'Deep space' ? destLabel(m) : null;
   objs.push(o);
@@ -1675,16 +1676,22 @@ addEventListener('resize', insetSize); insetSize();
 
 // ---------- picking / hover ----------
 const ray = new THREE.Raycaster(), mouse = new THREE.Vector2(); ray.params.Points = { threshold: 0.05 };
-const curPick = () => VIEW === 'launch' || VIEW === 'impact' ? [] : VIEW === 'earth' ? pick.filter(p => p.visible && !p.userData.it.clHidden) : spick.filter(p => p.visible);
+const curPick = () => VIEW === 'launch' || VIEW === 'impact' ? [] : VIEW === 'earth' ? pick.filter(p => p.visible && !p.userData.it.clHidden).concat(objs.filter(o => o.swarm && o.swarm.visible).map(o => o.swarm)) : spick.filter(p => p.visible);
+// pick radius for the constellation dots: ~7 px at the distance of the view centre
+const short = t => { t = String(t || ''); return t.length > 70 ? t.slice(0, 68).replace(/[\s,;(]+\S*$/, '') + '…' : t; };
+const pickRay = () => { ray.setFromCamera(mouse, VIEW === 'earth' ? camera : scam); ray.params.Points.threshold = 7 * 2 * camera.position.distanceTo(controls.target) * Math.tan(camera.fov * Math.PI / 360) / stage.clientHeight; return ray.intersectObjects(curPick())[0]; };
 renderer.domElement.addEventListener('pointermove', e => {
   const r = renderer.domElement.getBoundingClientRect(); mouse.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
-  ray.setFromCamera(mouse, VIEW === 'earth' ? camera : scam); const hit = ray.intersectObjects(curPick())[0];
-  const tip = $('#tip');
-  if (hit) { const { o, it } = hit.object.userData, m = o.m; tip.hidden = false; tip.style.left = (e.clientX - r.left) + 'px'; tip.style.top = (e.clientY - r.top) + 'px';
-    tip.innerHTML = `${flag(m.country)} ${esc(it && it.ob && m.kind !== 'single' ? it.ob.member : m.name)} · ${esc(m.thruster)}`; renderer.domElement.style.cursor = 'pointer'; }
+  const hit = pickRay(), tip = $('#tip');
+  if (hit) { const { o, it, swarm } = hit.object.userData, m = o.m; tip.hidden = false;
+    tip.innerHTML = swarm ? `${flag(m.country)} <b>${esc(o.swarmNames[hit.index] || 'NORAD ' + o.swarmIds[hit.index])}</b> · ${esc(m.name)}<br><span class="tsub">NORAD ${o.swarmIds[hit.index]} · ${esc(short(m.thruster))} · one of ${o.swarmSats.length} sampled</span>`
+      : `${flag(m.country)} ${esc(it && it.ob && m.kind !== 'single' ? it.ob.member : m.name)} · ${esc(short(m.thruster))}`;
+    const x = e.clientX - r.left, y = e.clientY - r.top, w = tip.offsetWidth;   // keep the label inside the globe on both sides
+    tip.style.left = (x + 12 + w > r.width - 8 ? Math.max(8, x - 12 - w) : x + 12) + 'px'; tip.style.top = y + 'px'; tip.style.transform = 'translateY(-50%)';
+    renderer.domElement.style.cursor = 'pointer'; }
   else { tip.hidden = true; renderer.domElement.style.cursor = ''; }
 });
-renderer.domElement.addEventListener('click', () => { ray.setFromCamera(mouse, VIEW === 'earth' ? camera : scam); const hit = ray.intersectObjects(curPick())[0]; if (hit) { const { o, it } = hit.object.userData; select(o.m.id, it ? o.items.indexOf(it) : 0); follow(true); } });
+renderer.domElement.addEventListener('click', () => { const hit = pickRay(); if (hit) { const { o, it, swarm } = hit.object.userData; select(o.m.id, it ? o.items.indexOf(it) : 0); if (!swarm) follow(true); } });
 
 // ---------- view, scale and time controls ----------
 function setView(v) {

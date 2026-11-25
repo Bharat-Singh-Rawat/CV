@@ -25,7 +25,8 @@ def get(q, min_sets=1):
             sets = {}
             for i in range(len(L) - 2):
                 if L[i + 1].startswith('1 ') and L[i + 2].startswith('2 ') and L[i + 1][2:7] == L[i + 2][2:7]:
-                    sets[int(L[i + 1][2:7])] = [L[i + 1], L[i + 2]]
+                    nm = '' if L[i][:2] in ('1 ', '2 ') else L[i].strip()
+                    sets[int(L[i + 1][2:7])] = [L[i + 1], L[i + 2], nm]   # line 1, line 2, object name
             if len(sets) >= min_sets or 'No GP data found' in txt:
                 return sets
             raise ValueError(f'only {len(sets)} element sets')
@@ -64,17 +65,17 @@ def main():
                 n_lost += 1
                 print(f'{name}: NORAD {n} no longer listed by CelesTrak -> catalogued orbit')
             else:
-                n_new += o['tle'] != t
-                o['tle'] = t
+                n_new += o['tle'][:2] != t[:2]
+                o['tle'] = t[:2]   # mission objects keep two lines (their names come from the mission record)
         g = next((v for k, v in GROUPS.items() if name.startswith(k)), None)
         if g and ent.get('cluster_tles'):
             pool = groups[g]
-            old = [int(l1[2:7]) for l1, _ in ent['cluster_tles']]
+            old = [int(t[0][2:7]) for t in ent['cluster_tles']]
             keep = [n for n in old if n in pool]
             rest = sorted(set(pool) - set(keep))
             random.Random(f'{name}{len(keep)}').shuffle(rest)
             keep += rest[:len(old) - len(keep)]
-            ent['cluster_tles'] = [pool[n] for n in keep]
+            ent['cluster_tles'] = [pool[n] for n in keep]   # [line 1, line 2, name]
             ent['cluster_source'] = f'CelesTrak GP group "{g}" ({len(pool)} objects in orbit, sample of {len(keep)})'
     D['generated'] = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%MZ')
     FILE.write_text(json.dumps(D))
