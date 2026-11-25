@@ -168,7 +168,7 @@ td.ck { text-align: center; } td.ck input { accent-color: var(--cmpc); cursor: p
         <div class="vseg" id="v-fire"><button data-f="always" aria-pressed="true">Plumes always on</button><button data-f="schedule" aria-pressed="false">Firing schedule</button></div>
         <div class="vseg" id="v-gt"><button aria-pressed="true">Ground track</button></div>
         <div class="vseg" id="v-follow"><button aria-pressed="false" title="Keep the camera on the selected spacecraft (Esc to stop)">◎ Follow</button></div>
-        <div class="vseg" id="v-speed"><button data-s="1">Real time</button><button data-s="60">×60</button><button data-s="600" aria-pressed="true">×600</button><button data-s="3600">×3600</button></div>
+        <div class="vseg" id="v-speed"><button data-s="1">Real time</button><button data-s="60">×60</button><button data-s="600" aria-pressed="true">×600</button><button data-s="3600">×3600</button><button id="v-now" title="Jump the clock to the current time">⟲ Now</button></div>
         <div class="vseg" id="v-solar" hidden><input type="range" id="v-replay" min="0" max="1000" value="0" aria-label="Replay date"><button id="dart-go" hidden>DART impact close-up ▶</button></div>
         <div class="vseg" id="v-ss" hidden><button data-s="0">⏸</button><button data-s="5">5 d/s</button><button data-s="25" aria-pressed="true">25 d/s</button><button data-s="100">100 d/s</button><button id="v-alltr" aria-pressed="false">All trajectories</button></div>
         <div class="vseg" id="v-dart" hidden><button id="dart-back">◀ Solar system</button><button id="dart-video">▶ NASA replay video</button></div>
@@ -1496,7 +1496,10 @@ $$('#v-ss button[data-s]').forEach(b => b.onclick = () => { SSPEED = +b.dataset.
 $('#v-alltr').onclick = e => { ALLTR = !ALLTR; e.target.setAttribute('aria-pressed', ALLTR); };
 $$('#v-fire button').forEach(b => b.onclick = () => { FIRE = b.dataset.f; $$('#v-fire button').forEach(x => x.setAttribute('aria-pressed', x === b)); });
 $('#v-gt button').onclick = e => { GROUND = !GROUND; e.target.setAttribute('aria-pressed', GROUND); };
-$$('#v-speed button').forEach(b => b.onclick = () => { SPEED = +b.dataset.s; $$('#v-speed button').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+$$('#v-speed button[data-s]').forEach(b => b.onclick = () => { SPEED = +b.dataset.s; if (SPEED === 1) syncNow(); $$('#v-speed button[data-s]').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+// 'Real time' and 'Now' put the clock back on the actual current time (the fast speeds run ahead of it)
+function syncNow() { simMs = Date.now(); lastGuide = 0; gtT = 0; }
+$('#v-now').onclick = syncNow;
 $('#v-replay').oninput = e => { solarMs = T_MIN + (T_MAX - T_MIN) * e.target.value / 1000; };
 
 // ---------- loop ----------
