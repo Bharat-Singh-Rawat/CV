@@ -78,7 +78,7 @@ h1 { margin: 8px 0 0; font-size: 26px; letter-spacing: -.025em; }
 .vseg button[aria-pressed="true"] { background: rgba(255,255,255,.16); color: #fff; font-weight: 600; }
 .vseg input { width: 220px; accent-color: #8fa6ff; margin: 0 8px; }
 .hud .clk { color: #aeb6c8; font-size: 11.5px; }
-.legend { bottom: 88px !important; } @media (max-width: 860px) { .legend { bottom: 128px !important; } }
+.legend { left: auto !important; right: 14px; bottom: 56px !important; flex-direction: column; align-items: flex-end; gap: 3px !important; } @media (max-width: 860px) { .legend { display: none !important; } }
 @media (max-width: 860px) { .vseg button { padding: 4px 6px; font-size: 11px; } .vseg input { width: 140px; } }
 .tip { position: absolute; pointer-events: none; background: rgba(20,22,30,.9); color: #fff; font-size: 12px; padding: 5px 8px; border-radius: 7px; transform: translate(12px, -50%); white-space: nowrap; }
 .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--sep); padding: 16px 18px; margin-top: 14px; }
@@ -102,6 +102,27 @@ table.models tr:hover td { background: var(--input); } .tblwrap { max-height: 42
   .counter { display: none; } .legend span:last-child { display: none; }
   .list { max-height: 230px; flex: none; } main { padding: 14px 12px 40px; overflow: visible; } .stage { height: 440px; } h1 { font-size: 22px; }
 }
+
+/* validated categorical family colours (dataviz reference slots 1-6), light / dark */
+:root { --f-ion: #2a78d6; --f-hall: #eb6834; --f-electrothermal: #1baf7a; --f-electrospray: #eda100; --f-pulsed: #e87ba4; --f-plasma: #008300; --ctx: #a3a29b; --hi: #2a78d6; --cmpc: #eb6834; }
+@media (prefers-color-scheme: dark) { :root:where(:not([data-theme="light"])) { --f-ion: #3987e5; --f-hall: #d95926; --f-electrothermal: #199e70; --f-electrospray: #c98500; --f-pulsed: #d55181; --f-plasma: #0ca30c; --ctx: #6d6c66; --hi: #3987e5; --cmpc: #d95926; } }
+:root[data-theme="dark"] { --f-ion: #3987e5; --f-hall: #d95926; --f-electrothermal: #199e70; --f-electrospray: #c98500; --f-pulsed: #d55181; --f-plasma: #0ca30c; --ctx: #6d6c66; --hi: #3987e5; --cmpc: #d95926; }
+.sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; } .sw.cmpk { background: var(--cmpc); border-radius: 50%; margin-left: 10px; }
+.vlegend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); margin: 6px 0 2px; }
+.chart svg { display: block; overflow: visible; } .chart .grid { stroke: var(--sep); stroke-width: 1; } .chart .base { stroke: var(--sep2); stroke-width: 1; }
+.chart .tick { fill: var(--muted); font-size: 10.5px; font-variant-numeric: tabular-nums; } .chart .axl { fill: var(--muted); font-size: 11.5px; }
+.chart .pt circle:not(.hit) { fill: var(--ctx); stroke: var(--card-solid); stroke-width: 2; } .chart .pt.hi circle:not(.hit) { fill: var(--hi); } .chart .pt.cmp circle:not(.hit) { fill: var(--cmpc); }
+.chart .rng { stroke: var(--ctx); stroke-width: 1.5; opacity: .55; } .chart .pt.hi .rng { stroke: var(--hi); } .chart .pt.cmp .rng { stroke: var(--cmpc); opacity: .8; }
+.chart .hit { fill: transparent; stroke: none; cursor: pointer; } .chart .pt:hover circle:not(.hit), .chart .pt:focus circle:not(.hit) { stroke: var(--text); }
+.chart .dlab { fill: var(--text); font-size: 11px; font-weight: 600; paint-order: stroke; stroke: var(--card-solid); stroke-width: 3px; pointer-events: none; }
+.chart .bar:hover rect:not(.hit) { filter: brightness(1.12); } .chart .bar .hit { cursor: default; }
+.ctip { position: fixed; z-index: 99; pointer-events: none; background: var(--card-solid); color: var(--text); border: 1px solid var(--sep2); border-radius: 9px; padding: 7px 9px; font-size: 12px; line-height: 1.45; box-shadow: var(--shadow); max-width: 300px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; } @media (max-width: 860px) { .two { grid-template-columns: 1fr; } }
+.hirow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0 6px; } .hirow .seg { margin: 0; }
+table.cmp td:first-child { color: var(--muted); white-space: normal; min-width: 140px; } table.cmp th { white-space: normal; min-width: 150px; } table.cmp td { white-space: normal; vertical-align: top; }
+button.x { border: 0; background: var(--input); color: var(--text); border-radius: 50%; width: 18px; height: 18px; line-height: 16px; cursor: pointer; font-size: 12px; padding: 0; }
+button.cmpb { border: 1px solid var(--sep2); background: none; color: var(--accent); border-radius: 7px; font: inherit; font-size: 11.5px; padding: 1px 8px; cursor: pointer; margin-left: 6px; }
+td.ck { text-align: center; } td.ck input { accent-color: var(--cmpc); cursor: pointer; }
 </style>
 <script src="vendor/satellite.min.js"></script>
 <script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
@@ -130,18 +151,40 @@ table.models tr:hover td { background: var(--input); } .tblwrap { max-height: 42
     <p class="sub">Each spacecraft (or series, or constellation) that has flown an electric thruster, placed on its orbit around an animated Earth: gridded ion engines, Hall thrusters, electrothermal (resistojet, arcjet), electrospray and FEEP, pulsed (PTFE pulsed plasma, vacuum arc, pulsed MPD) and other plasma thrusters (HEMPT, RF, hollow cathode, quad confinement). Pulsed thrusters are drawn firing discrete pulses. Air-breathing electric propulsion has not flown (as of November 2026). Click a spacecraft or a list entry for its thruster, the thruster's key parameters and the sources.</p>
     <div class="stage" id="stage">
       <div class="hud" id="hud"></div>
-      <div class="legend"><span><i style="background:#0a84ff"></i>Ion</span><span><i style="background:#bf5af2"></i>Hall</span><span><i style="background:#ff9f0a"></i>Electrothermal</span><span><i style="background:#30d158"></i>Electrospray / FEEP</span><span><i style="background:#ffd60a"></i>Pulsed</span><span><i style="background:#64d2ff"></i>Other plasma</span><span>Plume colour = propellant</span></div>
+      <div class="legend"><span><i style="background:#3987e5"></i>Ion</span><span><i style="background:#d95926"></i>Hall</span><span><i style="background:#199e70"></i>Electrothermal</span><span><i style="background:#c98500"></i>Electrospray / FEEP</span><span><i style="background:#d55181"></i>Pulsed</span><span><i style="background:#0ca30c"></i>Other plasma</span><span>Plume colour = propellant</span></div>
       <div class="counter" id="counter"></div>
       <div class="tip" id="tip" hidden></div>
       <div class="inset" id="inset"><span id="inset-l"></span></div>
       <div class="vbar">
         <div class="vseg" id="v-view"><button data-v="earth" aria-pressed="true">Earth</button><button data-v="solar" aria-pressed="false">Solar system</button></div>
         <div class="vseg" id="v-scale"><button data-p="overview" aria-pressed="true">Overview</button><button data-p="leo" aria-pressed="false">True scale: LEO</button><button data-p="geo" aria-pressed="false">GEO</button><button data-p="moon" aria-pressed="false">Moon</button></div>
+        <div class="vseg" id="v-fire"><button data-f="always" aria-pressed="true">Plumes always on</button><button data-f="schedule" aria-pressed="false">Firing schedule</button></div>
+        <div class="vseg" id="v-gt"><button aria-pressed="true">Ground track</button></div>
         <div class="vseg" id="v-speed"><button data-s="1">Real time</button><button data-s="60">×60</button><button data-s="600" aria-pressed="true">×600</button><button data-s="3600">×3600</button></div>
-        <div class="vseg" id="v-solar" hidden><input type="range" id="v-replay" min="0" max="1000" value="0" aria-label="Replay date"></div>
+        <div class="vseg" id="v-solar" hidden><input type="range" id="v-replay" min="0" max="1000" value="0" aria-label="Replay date"><button id="dart-go" hidden>DART impact close-up ▶</button></div>
+        <div class="vseg" id="v-dart" hidden><button id="dart-back">◀ Solar system</button></div>
       </div>
     </div>
     <section class="card" id="detail"></section>
+    <section class="card" id="compare-card">
+      <h2>Compare thrusters <span class="tag" id="cmp-n"></span></h2>
+      <div id="cmp"></div>
+    </section>
+    <section class="card viz">
+      <h2>Charts</h2>
+      <h3>Flown entries per first launch year, by family</h3>
+      <p class="fine">A series or a constellation counts once, in the year of its first launch.</p>
+      <div class="vlegend"><span><i class="sw" style="background:var(--f-ion)"></i>Gridded ion</span><span><i class="sw" style="background:var(--f-hall)"></i>Hall</span><span><i class="sw" style="background:var(--f-electrothermal)"></i>Electrothermal</span><span><i class="sw" style="background:var(--f-electrospray)"></i>Electrospray / FEEP</span><span><i class="sw" style="background:var(--f-pulsed)"></i>Pulsed</span><span><i class="sw" style="background:var(--f-plasma)"></i>Other plasma</span></div>
+      <div id="ch-years" class="chart"></div>
+      <details class="fine"><summary>Table view</summary><div class="tblwrap"><table class="models" id="yr-table"></table></div></details>
+      <h3>Thruster models</h3>
+      <div class="hirow"><span class="fine">Highlight a family:</span> <div class="seg" id="hi-fam"></div><span class="fine"><i class="sw cmpk"></i>compared models (click a point)</span></div>
+      <div class="two">
+        <div><h3>Specific impulse vs thrust</h3><div id="ch-isp" class="chart"></div><p class="fine"></p></div>
+        <div><h3>Thrust vs input power</h3><div id="ch-pow" class="chart"></div><p class="fine"></p></div>
+      </div>
+    </section>
+    <div class="ctip" id="ctip" hidden></div>
     <section class="card">
       <h2>Thruster models and key parameters</h2>
       <p class="fine">Nominal operating point unless noted; ranges show the throttle range. Ion engines: beam voltage = energy per singly charged beam ion (eV). Hall thrusters: discharge voltage and current. Every value links to its source; empty cells were not found in a citable source.</p>
@@ -151,7 +194,9 @@ table.models tr:hover td { background: var(--input); } .tblwrap { max-height: 42
       <h2>About the data</h2>
       <p id="about"></p>
       <p class="fine">Compiled from agency, manufacturer and peer-reviewed sources (IEPC, AIAA and journal papers), listed on every entry. Constellations are shown as one entry tagged <b>cluster</b>; families of near-identical satellites as one entry tagged <b>series</b>. Positions: spacecraft still in orbit are at their real current position, propagated with SGP4 (satellite.js) from CelesTrak orbital elements refreshed daily; retired spacecraft fly their catalogued orbit (CelesTrak SATCAT inclination, perigee, apogee; for decayed low orbits the final pre-decay altitude is replaced by 450 km); spacecraft without a catalogue match use a representative orbit for their class. Constellations show a sample of 240 of their real satellites. Deep-space trajectories: JPL Horizons. Sun and Moon positions and Earth's rotation are computed for the displayed time. The Overview scale compresses distances (log-like); the True scale buttons show real distances. Images: Earth day map NASA Goddard (Blue Marble; R. Stöckli, R. Simmon) via Wikimedia Commons, CC BY-SA 3.0; city lights NASA Earth Observatory (Black Marble 2016), public domain; clouds and Moon maps Solar System Scope, CC BY 4.0. Please report any error.</p>
+          <p class="fine"><b>Views and models.</b> Earth's shadow uses the true geometry (cylindrical umbra, real Sun direction). The firing schedule is an illustration of typical practice, not mission telemetry: no firing in eclipse (solar-electric power), GEO north–south station keeping in two windows a day centred on right ascension 90° and 270°, GOCE firing continuously (drag-free control), other spacecraft firing in sunlight; pulsed thrusters always pulse (at the published flight pulse rate where one exists). The ground track is drawn from the same orbit model as the position. Spacecraft shapes for GOCE, Starlink, SMART-1, Dawn, Deep Space 1, Hayabusa2, Psyche, BepiColombo and LISA Pathfinder are simplified, with proportions taken from public images. DART close-up: trajectory from JPL Horizons (DART −135, Didymos, Dimorphos 120065803), drawn as a straight final approach along the Horizons direction; derived impact 23:14:24.18 UTC (NASA: 23:14:24 UTC), 6.14 km/s; body sizes from Daly et al. 2023 (Nature 616, 443); the ejecta are an illustration. Charts: thruster parameters as in the table; a range is drawn as a bar with the point at its upper end.</p>
     </section>
+    <footer style="text-align:center;color:var(--muted,#6e6e73);font-size:12.5px;margin:22px 0 6px">Created and conceptualised by Dr. Bharat Singh Rawat</footer>
   </main>
 </div>
 <script type="module">
@@ -162,7 +207,7 @@ const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '
 const [M, MOD] = await Promise.all(['missions', 'models'].map(n => fetch('data/' + n + '.json').then(r => r.json())));
 const MODELS = Object.fromEntries(MOD.models.map(m => [m.model, m]));
 const ORBITS = ['LEO', 'MEO', 'GEO', 'HEO', 'Lunar', 'Deep space', 'Suborbital'];
-const COL = { ion: 0x0a84ff, hall: 0xbf5af2, electrothermal: 0xff9f0a, electrospray: 0x30d158, pulsed: 0xffd60a, plasma: 0x64d2ff };
+const COL = { ion: 0x3987e5, hall: 0xd95926, electrothermal: 0x199e70, electrospray: 0xc98500, pulsed: 0xd55181, plasma: 0x0ca30c };   // dark steps of the validated slots (the 3D view is always dark)
 const FAM = { ion: 'Gridded ion', hall: 'Hall', electrothermal: 'Electrothermal', electrospray: 'Electrospray / FEEP', pulsed: 'Pulsed', plasma: 'Other plasma' };
 const VIS_LABEL = { resistojet: 'Resistojet', arcjet: 'Arcjet', feep: 'FEEP', electrospray: 'Electrospray', ppt: 'Pulsed plasma (PPT)', vat: 'Vacuum arc',
   mpd: 'Pulsed MPD', hempt: 'HEMPT', rf: 'RF plasma', hct: 'Hollow cathode', qct: 'Quad confinement' };
@@ -471,10 +516,10 @@ function thruster(type, col, hz) {   // built along +Y (exhaust direction); the 
     u.add(pp); parts.push(pp);
   }
   g.userData.update = (dt, time) => {
-    const f = 0.93 + 0.04 * Math.sin(time * 7.1) + 0.03 * Math.sin(time * 12.7 + 1.3);
+    const on = !g.userData.off, f = (0.93 + 0.04 * Math.sin(time * 7.1) + 0.03 * Math.sin(time * 12.7 + 1.3)) * (on ? 1 : 0);
     plumes.forEach(p => p.material.uniforms.uF.value = f);
-    glows.forEach(([m, base]) => m.material.opacity = base * (0.9 + 0.1 * f));
-    parts.forEach(p => p.userData.step(dt));
+    glows.forEach(([m, base]) => m.material.opacity = base * (on ? 0.9 + 0.1 * f : 0.08));
+    parts.forEach(p => { p.visible = on; if (on) p.userData.step(dt); });
   };
   return g;
 }
@@ -680,13 +725,13 @@ function thrusterFam(vis, col, hz) {
   let clock = Math.random() * (pulse ? pulse.period : 1), next = pulse ? pulse.period : 0;
   g.userData.pulsed = !!pulse;
   g.userData.update = (dt, time) => {
-    const f = 0.93 + 0.04 * Math.sin(time * 7.1) + 0.03 * Math.sin(time * 12.7 + 1.3);
+    const on = !g.userData.off, f = (0.93 + 0.04 * Math.sin(time * 7.1) + 0.03 * Math.sin(time * 12.7 + 1.3)) * (on ? 1 : 0);
     plumes.forEach(p => p.material.uniforms.uF.value = f);
-    glows.forEach(([m, base]) => m.material.opacity = base * (0.9 + 0.1 * f));
-    parts.forEach(p => p.userData.step(dt));
+    glows.forEach(([m, base]) => m.material.opacity = base * (on ? 0.9 + 0.1 * f : 0.08));
+    parts.forEach(p => { p.visible = on; if (on) p.userData.step(dt); });
     if (pulse) {
       clock += dt; let fired = false;
-      if (clock >= next) { clock = 0; next = pulse.period * (1 + (Math.random() - 0.5) * 2 * pulse.jitter); puffs.forEach(p => p.userData.fire()); fired = true; }
+      if (clock >= next && on) { clock = 0; next = pulse.period * (1 + (Math.random() - 0.5) * 2 * pulse.jitter); puffs.forEach(p => p.userData.fire()); fired = true; }
       const e = clock < 0.012 ? clock / 0.012 : Math.exp(-(clock - 0.012) / (pulse.period < 0.5 ? 0.035 : 0.08));
       onPulse(e, fired); puffs.forEach(p => p.userData.step(dt));
     }
@@ -716,6 +761,128 @@ function spacecraft(type, col, hz) {
   return s;
 }
 
+// ---------- simplified shapes of well-known EP spacecraft (proportions from public images; thruster at -X, +Y = nadir/top deck) ----------
+const cellMat = new THREE.MeshStandardMaterial({ map: PANEL, metalness: 0.35, roughness: 0.38, emissive: 0x050a1c, envMapIntensity: 0.8 });
+const whitePaint = new THREE.MeshStandardMaterial({ color: 0xe9eaee, metalness: 0.1, roughness: 0.55 });
+// solar wing along +Z (side = +1) or -Z (side = -1): yoke + n panels of size w (x) by L (z), first panel starting at z0
+function wing(parent, side, n, w, L, z0, y = 0, x = 0, tilt = 0) {
+  const g = new THREE.Group(); g.position.set(x, y, 0); g.rotation.z = tilt; parent.add(g);
+  const yoke = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, z0, 8), alu); yoke.rotation.x = Math.PI / 2; yoke.position.z = side * z0 / 2; g.add(yoke);
+  for (let k = 0; k < n; k++) { const p = new THREE.Mesh(rbox(w, 0.008, L * 0.97, 0.002), cellMat); p.position.z = side * (z0 + L * (k + 0.5)); g.add(p); }
+  return g;
+}
+function dish(parent, r, x, y, z, rx = Math.PI, rz = 0) {
+  const d = new THREE.Mesh(new THREE.SphereGeometry(r, 32, 12, 0, Math.PI * 2, 0, Math.PI / 3.4), new THREE.MeshStandardMaterial({ color: 0xf0f0f2, roughness: 0.55, side: THREE.DoubleSide }));
+  d.position.set(x, y, z); d.rotation.set(rx, 0, rz); parent.add(d);
+  const f = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, r * 0.8, 8), steel); f.position.set(x, y - Math.sign(Math.cos(rx)) * r * 0.35, z); parent.add(f);
+}
+const SHAPES = {
+  'GOCE': (s) => {   // 5.3 m x 1 m octagonal arrow, body-mounted cells, two fixed rear wings, ion engine in the tail
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 1.15, 8), whitePaint); body.rotation.z = Math.PI / 2; s.add(body);
+    for (const sd of [-1, 1]) { const w = new THREE.Mesh(rbox(0.42, 0.01, 0.2, 0.003), cellMat); w.position.set(-0.32, 0, sd * 0.2); w.rotation.y = sd * 0.18; s.add(w);
+      const fin = new THREE.Mesh(rbox(0.25, 0.008, 0.12, 0.003), cellMat); fin.position.set(-0.5, 0, sd * 0.16); s.add(fin); }
+    const top = new THREE.Mesh(rbox(1.0, 0.004, 0.16, 0.002), cellMat); top.position.y = 0.112; s.add(top);
+    return { x: -0.6, scale: 0.75 }; },
+  'SpaceX Starlink': (s) => {   // flat-pack bus with one long solar array
+    const bus = new THREE.Mesh(rbox(0.55, 0.06, 0.32, 0.01), whitePaint); s.add(bus);
+    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.12, 8), alu); arm.rotation.x = Math.PI / 2; arm.position.set(0.1, 0.03, -0.2); s.add(arm);
+    const arr = new THREE.Mesh(rbox(0.36, 0.006, 1.5, 0.003), cellMat); arr.position.set(0.1, 0.06, -1.0); arr.rotation.z = 0.35; s.add(arr);
+    for (const x of [-0.18, 0, 0.18]) { const a = new THREE.Mesh(rbox(0.12, 0.012, 0.12, 0.003), anodized); a.position.set(x, -0.036, 0.08); s.add(a); }   // phased-array antennas
+    return { x: -0.29, scale: 0.6 }; },
+  'SMART-1': (s) => {   // ~1 m cube, two 3-panel wings, PPS-1350 at the back
+    s.add(new THREE.Mesh(rbox(0.3, 0.3, 0.3, 0.012), mli));
+    for (const sd of [-1, 1]) wing(s, sd, 3, 0.2, 0.26, 0.2);
+    dish(s, 0.06, 0.08, 0.17, 0.05);
+    return { x: -0.16, scale: 1 }; },
+  'Dawn': (s) => {   // 1.6 m bus, two 5-panel wings (19.7 m span), 1.5 m HGA, three NSTAR engines
+    s.add(new THREE.Mesh(rbox(0.32, 0.26, 0.26, 0.012), mli));
+    for (const sd of [-1, 1]) wing(s, sd, 5, 0.22, 0.22, 0.18);
+    dish(s, 0.15, 0.06, 0.22, 0, Math.PI);
+    return { x: -0.17, scale: 0.8 }; },
+  'Deep Space 1': (s) => {   // bus, two SCARLET concentrator wings (4 panels each), HGA
+    s.add(new THREE.Mesh(rbox(0.26, 0.24, 0.24, 0.012), mli));
+    for (const sd of [-1, 1]) { const g = wing(s, sd, 4, 0.2, 0.2, 0.17); g.children.slice(1).forEach(p => { for (let k = 0; k < 4; k++) { const l = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.004, 0.012), new THREE.MeshStandardMaterial({ color: 0xcfd6e2, metalness: 0.6, roughness: 0.2 })); l.position.set(0, 0.008, (k - 1.5) * 0.045); p.add(l); } }); }
+    dish(s, 0.07, 0.05, 0.17, 0);
+    return { x: -0.14, scale: 1 }; },
+  'Hayabusa2': (s) => {   // 1 x 1.6 x 1.25 m bus, two 3-panel wings, flat HGA, sampler horn
+    s.add(new THREE.Mesh(rbox(0.3, 0.24, 0.38, 0.012), mli));
+    for (const sd of [-1, 1]) wing(s, sd, 3, 0.22, 0.24, 0.22);
+    const hga = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.012, 32), whitePaint); hga.position.set(0.06, 0.13, 0); s.add(hga);
+    const horn = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.03, 0.2, 16), alu); horn.position.set(0.02, -0.22, 0); s.add(horn);
+    return { x: -0.16, scale: 1 }; },
+  'NASA Psyche': (s) => {   // bus with two large cross-shaped 5-panel arrays, HGA, SPT-140
+    s.add(new THREE.Mesh(rbox(0.3, 0.3, 0.3, 0.012), mli));
+    for (const sd of [-1, 1]) { const g = wing(s, sd, 3, 0.26, 0.26, 0.2);
+      for (const dx of [-1, 1]) { const p = new THREE.Mesh(rbox(0.25, 0.008, 0.25, 0.002), cellMat); p.position.set(dx * 0.26, 0, sd * (0.2 + 0.26 * 1.5)); g.add(p); } }
+    dish(s, 0.1, 0.06, 0.2, 0);
+    return { x: -0.16, scale: 0.8 }; },
+  'BepiColombo': (s) => {   // stack: MTM (two long wings, T6 engines) + MPO (one wing, radiator) + Mio (octagon)
+    const mtm = new THREE.Mesh(rbox(0.22, 0.32, 0.32, 0.01), mli); mtm.position.x = -0.1; s.add(mtm);
+    for (const sd of [-1, 1]) wing(s, sd, 5, 0.2, 0.24, 0.18, 0, -0.1);
+    const mpo = new THREE.Mesh(rbox(0.26, 0.3, 0.3, 0.01), mli); mpo.position.x = 0.14; s.add(mpo);
+    const rad = new THREE.Mesh(rbox(0.24, 0.006, 0.28, 0.002), new THREE.MeshStandardMaterial({ color: 0xdfe6ee, metalness: 0.9, roughness: 0.12 })); rad.position.set(0.14, 0.155, 0); s.add(rad);
+    const g = new THREE.Group(); g.rotation.x = Math.PI / 2; s.add(g); wing(g, 1, 3, 0.18, 0.22, 0.17, 0, 0.14);
+    const mio = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.12, 8), cellMat); mio.rotation.z = Math.PI / 2; mio.position.x = 0.36; s.add(mio);
+    return { x: -0.21, scale: 0.8 }; },
+  'LISA Pathfinder': (s) => {   // flat octagonal science module with the solar array on top
+    const d = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.12, 8), mli); s.add(d);
+    const top = new THREE.Mesh(new THREE.CylinderGeometry(0.29, 0.29, 0.006, 8), cellMat); top.position.y = 0.064; s.add(top);
+    return { x: -0.3, scale: 0.9 }; },
+};
+const shapeKey = m => m && Object.keys(SHAPES).find(k => m.name.startsWith(k));
+// detailed model of a mission: its own shape when known, else the generic bus
+function craftModel(m, type, col, hz) {
+  const k = shapeKey(m); if (!k) return spacecraft(type, col, hz);
+  const s = new THREE.Group(), o = SHAPES[k](s), t = thruster(type, col, hz);
+  t.position.x = o.x; t.scale.setScalar(Math.min(1, 0.75 / o.scale)); s.add(t); s.userData.thr = t; s.userData.shape = k; s.userData.k = o.scale; return s;
+}
+// darker copies of materials for spacecraft in the Earth's shadow
+function shadeModel(obj) { obj.traverse(o => { if (o.isMesh && o.material && o.material.isMeshStandardMaterial) { o.material = o.material.clone();
+  o.userData.lit = { c: o.material.color.clone(), e: o.material.envMapIntensity ?? 1 }; } }); }
+function setShade(obj, inShadow) { if (obj.userData.inShadow === inShadow) return; obj.userData.inShadow = inShadow;
+  obj.traverse(o => { const l = o.userData.lit; if (!l) return; o.material.color.copy(l.c).multiplyScalar(inShadow ? 0.1 : 1); o.material.envMapIntensity = l.e * (inShadow ? 0.15 : 1); }); }
+
+// ---------- Earth shadow (cylindrical umbra, true geometry) and the illustrative firing schedule ----------
+// it.eci = ECI position in km (set by itemScene). In shadow when behind the Earth and within one Earth radius of the Sun-Earth line.
+function inShadow(it) { if (!it.eci) return false; const r = it.eci.length(), d = it.eci.dot(SUN_ECI) / r; return d < 0 && r * Math.sqrt(1 - d * d) < RE; }
+const SUN_ECI = new THREE.Vector3();
+let FIRE = 'always';   // 'always' | 'schedule'
+// Illustrative rules (not mission telemetry): no firing in eclipse (solar-electric power); GEO north-south station keeping in two
+// windows a day centred on right ascension 90 and 270 deg (where the luni-solar inclination drift is corrected); GOCE continuous
+// (drag-free control); pulsed thrusters keep pulsing; other spacecraft fire in sunlight.
+function firing(o, it) {
+  if (FIRE === 'always') return [true, ''];
+  if (inShadow(it)) return [false, 'off: in the Earth’s shadow'];
+  if (o.m.name.startsWith('GOCE')) return [true, 'firing: continuous drag compensation'];
+  if (o.m.orbit === 'GEO' && it.eci) { const ra = (Math.atan2(it.eci.y, it.eci.x) * 180 / Math.PI + 360) % 360, w = Math.min(Math.abs(ra - 90), Math.abs(ra - 270));
+    return w < 20 ? [true, 'firing: station-keeping window'] : [false, 'off: outside the station-keeping windows']; }
+  return [true, 'firing: in sunlight'];
+}
+
+// ---------- ground track of the selected spacecraft (drawn on the rotating Earth) ----------
+const gtMat = new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.9, depthWrite: false });
+let gtLine = null, gtDot = null, gtKey = '', gtT = 0, GROUND = true;
+function earthFixed(v, ms, out) {   // scene direction at time ms -> Earth-fixed point on the surface (Earth mesh local frame)
+  const a = -gmst(ms), c = Math.cos(a), s = Math.sin(a), x = v.x * c + v.z * s, z = -v.x * s + v.z * c, n = Math.hypot(x, v.y, z) || 1;
+  return out.set(x / n * 1.004, v.y / n * 1.004, z / n * 1.004);
+}
+function periodMs(it) { if (it.satrec) return 2 * Math.PI / it.satrec.no * 60000; if (!it.kep) it.kep = kepFor(it.o.m, it.ob); return 2 * Math.PI / it.kep.n * 1000; }
+function updateGround(it, now) {
+  const key = it ? it.o.m.name + (it.ob ? it.ob.norad : '') : '';
+  if (!GROUND || !it || it.o.m.orbit === 'Lunar' || it.o.m.orbit === 'Deep space') { if (gtLine) gtLine.visible = gtDot.visible = false; return; }
+  if (!gtLine) { gtLine = new THREE.LineSegments(new THREE.BufferGeometry(), gtMat); gtDot = new THREE.Mesh(new THREE.SphereGeometry(0.012, 12, 8), new THREE.MeshBasicMaterial({ color: 0xffffff })); earth.add(gtLine, gtDot); }
+  gtLine.visible = gtDot.visible = true;
+  const v = new THREE.Vector3(), p = new THREE.Vector3();
+  earthFixed(itemScene(it, simMs, v), simMs, gtDot.position);
+  if (key === gtKey && now - gtT < 1000) return; gtKey = key; gtT = now;
+  // half an orbit back (dim) and one orbit ahead; segments, so nothing is drawn across a gap
+  const T = Math.min(periodMs(it), 86400000 * 1.0027), n = 300, pos = [], col = [], prev = new THREE.Vector3();
+  for (let k = 0; k <= n; k++) { const t_ = simMs + (k / n * 1.5 - 0.5) * T; itemScene(it, t_, v); earthFixed(v, t_, p);
+    if (k && p.distanceTo(prev) < 0.3) { const f = k / n < 1 / 3 ? 0.35 : 1; pos.push(prev.x, prev.y, prev.z, p.x, p.y, p.z); col.push(f, 0.84 * f, 0.4 * f, f, 0.84 * f, 0.4 * f); }
+    prev.copy(p); }
+  gtLine.geometry.dispose(); gtLine.geometry = new THREE.BufferGeometry(); gtLine.geometry.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); gtLine.geometry.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+}
+
 // ---------- plume colour from the propellant (approximate visible glow of the plasma, for display only) ----------
 const PROP_COL = [[/iodine/i, 0xffcf5a], [/argon/i, 0x8fa6ff], [/krypton/i, 0xbcd2ff], [/mercury/i, 0x8fe6ff], [/caesium|cesium/i, 0x7fa0ff],
   [/water/i, 0xff9fbf], [/hydrazine|ammonia/i, 0xffa45c], [/xenon/i, 0x6f86ff],
@@ -732,6 +899,8 @@ const MINI = {
   bus: new THREE.BoxGeometry(0.05, 0.042, 0.042), wing: new THREE.BoxGeometry(0.03, 0.0025, 0.085),
   busMat: new THREE.MeshStandardMaterial({ color: 0xd9a63a, metalness: 0.7, roughness: 0.4 }),
   wingMat: new THREE.MeshStandardMaterial({ color: 0x2a4da8, metalness: 0.4, roughness: 0.35, emissive: 0x0a1638 }),
+  busMatD: new THREE.MeshStandardMaterial({ color: 0x2a2110, metalness: 0.7, roughness: 0.4, envMapIntensity: 0.15 }),
+  wingMatD: new THREE.MeshStandardMaterial({ color: 0x0b1530, metalness: 0.4, roughness: 0.35, emissive: 0x02050c, envMapIntensity: 0.15 }),
   plume: (() => { const g = new THREE.CylinderGeometry(0.03, 0.009, 0.13, 24, 6, true); g.translate(0, 0.065, 0); g.rotateZ(Math.PI / 2); g.translate(-0.025, 0, 0); return g; })(),
   plumeMat: {}
 };
@@ -802,9 +971,9 @@ function itemScene(it, ms, out) {                     // scene position of one s
   const m = it.o.m;
   if (m.orbit === 'Lunar') { const a = (ms - EPOCH0) / 1000 * 2 * Math.PI / 7200 + hash(m.name) * 6.28, r = TRUE_SCALE ? 0.42 : 0.5;
     return out.copy(moon.position).add(_e.set(r * Math.cos(a), 0.3 * r * Math.sin(a * 1.3), r * Math.sin(a))); }
-  if (it.satrec) { const p = satellite.propagate(it.satrec, new Date(ms)).position; if (p && isFinite(p.x)) return eciToScene(p.x, p.y, p.z, out); }
+  if (it.satrec) { const p = satellite.propagate(it.satrec, new Date(ms)).position; if (p && isFinite(p.x)) { if (ms === simMs) (it.eci ??= new THREE.Vector3()).set(p.x, p.y, p.z); return eciToScene(p.x, p.y, p.z, out); } }
   if (!it.kep) it.kep = kepFor(m, it.ob);
-  kepECI(it.kep, ms, _e); return eciToScene(_e.x, _e.y, _e.z, out);
+  kepECI(it.kep, ms, _e); if (ms === simMs) (it.eci ??= new THREE.Vector3()).copy(_e); return eciToScene(_e.x, _e.y, _e.z, out);
 }
 const objs = [], pick = [];
 const HITGEO = new THREE.SphereGeometry(0.075, 10, 8), HITMAT = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
@@ -837,7 +1006,7 @@ const HALF = 0.11, MODEL_R = 0.95;
 function declutter(mdl) {
   const L = [];
   for (const o of objs) if (o.earth && o.items[0].hit.visible) for (const it of o.items) if (it.craft.visible) L.push(it);
-  const Rm = mdl ? MODEL_R * mdl.scale.x : 0;
+  const Rm = mdl ? (mdl.userData.R ?? MODEL_R) * mdl.scale.x : 0;
   for (let i = 0; i < L.length; i++) {
     const a = L[i].pos; let lim = L[i].base;
     for (let j = 0; j < L.length; j++) if (j !== i) { const d = a.distanceTo(L[j].pos); if (d < 2.2 * HALF * lim) lim = Math.min(lim, 0.45 * d / HALF); }
@@ -850,7 +1019,9 @@ const hl = new THREE.Mesh(new THREE.RingGeometry(0.1, 0.125, 48), new THREE.Mesh
 hl.renderOrder = 10; scene.add(hl);
 // the detailed model follows the selected spacecraft
 let model = null, modelType = null;
-function setModel(type, col, hz) { if (model) scene.remove(model); model = spacecraft(type, col, hz); model.scale.setScalar(0.42); scene.add(model); }
+let FIRE_TXT = '', SHADOW_NOW = false;
+function setModel(type, col, hz, m) { if (model) scene.remove(model); model = craftModel(m, type, col, hz); shadeModel(model);
+  model.userData.R = new THREE.Box3().setFromObject(model).getBoundingSphere(new THREE.Sphere()).radius; if (!model.userData.k) model.userData.R = Math.min(model.userData.R, MODEL_R); model.scale.setScalar(0.42); scene.add(model); }
 
 // ---------- solar-system view (JPL Horizons: heliocentric ecliptic J2000, 1 AU = 4 scene units) ----------
 const sscene = new THREE.Scene(), scam = new THREE.PerspectiveCamera(40, 1, 0.01, 4000); scam.position.set(0, 18, 26);
@@ -893,6 +1064,80 @@ for (const [name, d] of Object.entries(SOL.craft)) {
   SC.push({ o, tr, line, craft, hit, lab: slabel(name.replace(' (MUSES-C)', '').replace('NASA ', ''), 'rgba(255,255,255,.95)'), note: (SOL.notes || {})[name] });
 }
 const spick = SC.map(s => s.hit);
+sscene.environment = studioEnv(renderer);
+let solarModel = null;   // detailed model of the selected deep-space craft, placed on its Horizons trajectory
+// ---------- DART impact close-up (JPL Horizons: DART -135, Didymos, Dimorphos; km, ecliptic J2000, Didymos-centred) ----------
+const DI = await fetch('data/dart_impact.json').then(r => r.json()).catch(() => null);
+const dscene = new THREE.Scene(), dcamr = new THREE.PerspectiveCamera(40, 1, 0.001, 5000);
+const dctl = new OrbitControls(dcamr, renderer.domElement); dctl.enableDamping = true; dctl.enabled = false; dctl.minDistance = 0.3; dctl.maxDistance = 1500;
+dctl.addEventListener('start', () => { dUser = true; });
+let DT = -60, dUser = false, dSide = new THREE.Vector3(), dartObj = null, dartTrail = null, dLab = {}, dFlash = null, dEjecta = null, dAim = new THREE.Vector3();
+if (DI) {
+  const S_ = v => new THREE.Vector3(v[0], v[2], -v[1]);   // ecliptic -> scene (same convention as the Earth view)
+  dscene.environment = studioEnv(renderer);
+  dscene.add(new THREE.AmbientLight(0xffffff, 0.06));
+  const dl = new THREE.DirectionalLight(0xfff6ea, 3.2); dl.position.copy(S_(DI.sun_dir)).multiplyScalar(10); dscene.add(dl);
+  { const g = new THREE.BufferGeometry(), p = new Float32Array(2400 * 3); for (let i = 0; i < 2400; i++) { const t = Math.random() * 6.283, u = Math.acos(2 * Math.random() - 1); p.set([3000 * Math.sin(u) * Math.cos(t), 3000 * Math.cos(u), 3000 * Math.sin(u) * Math.sin(t)], i * 3); }
+    g.setAttribute('position', new THREE.BufferAttribute(p, 3)); dscene.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0xaab3c8, size: 1.1, sizeAttenuation: false }))); }
+  // rubble-pile look: displaced sphere with a speckled grey texture
+  const ROCK = canvasTex(512, 256, x => { x.fillStyle = '#6d6a64'; x.fillRect(0, 0, 512, 256); for (let k = 0; k < 2600; k++) { const l = 60 + Math.random() * 90 | 0; x.fillStyle = `rgba(${l},${l - 4},${l - 10},.55)`; x.beginPath(); x.arc(Math.random() * 512, Math.random() * 256, 0.5 + Math.random() * 3.5, 0, 7); x.fill(); } });
+  ROCK.colorSpace = THREE.SRGBColorSpace;
+  const rock = (rx, ry, rz, seed) => { const g = new THREE.IcosahedronGeometry(1, 5), p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) { const v = new THREE.Vector3().fromBufferAttribute(p, i), n = 1 + 0.06 * Math.sin(v.x * 7 + seed) * Math.cos(v.y * 6 - seed) + 0.04 * Math.sin(v.z * 11 + 2 * seed);
+      p.setXYZ(i, v.x * rx * n, v.y * ry * n, v.z * rz * n); } g.computeVertexNormals();
+    return new THREE.Mesh(g, new THREE.MeshStandardMaterial({ map: ROCK, bumpMap: ROCK, bumpScale: 2, roughness: 0.95, metalness: 0, envMapIntensity: 0.15 })); };
+  const R1 = DI.sizes_km.didymos_diameter / 2, [a, b, c] = DI.sizes_km.dimorphos_axes.map(x => x / 2);
+  const didy = rock(R1, R1 * 0.92, R1, 1.3); dscene.add(didy);
+  const dimoPos = S_(DI.dimo_at_impact_km), dimo = rock(a, c, b, 4.1); dimo.position.copy(dimoPos); dimo.lookAt(0, 0, 0); dscene.add(dimo);
+  dscene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(DI.dimo_orbit_km.map(S_)), new THREE.LineBasicMaterial({ color: 0x8896b8, transparent: true, opacity: 0.45 })));
+  dAim.copy(dimoPos).add(S_(DI.site_km));
+  // DART: box bus + two roll-out (ROSA) arrays, drawn 20x enlarged (true span ~19 m would be invisible at this scale)
+  dartObj = new THREE.Group(); { const bus = new THREE.Mesh(rbox(0.0018, 0.0019, 0.0026, 0.0002), mli); dartObj.add(bus);
+    for (const sd of [-1, 1]) { const arr = new THREE.Mesh(rbox(0.0024, 0.0001, 0.0085, 0.00005), cellMat); arr.position.z = sd * 0.0058; dartObj.add(arr); }
+    const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.0006, 0.0006, 0.0002, 16), whitePaint); ant.position.y = 0.001; dartObj.add(ant); }
+  dartObj.scale.setScalar(20); dscene.add(dartObj);
+  dartTrail = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0x3987e5, transparent: true, opacity: 0.9 })); dscene.add(dartTrail);
+  const lab = (t, col) => { const c = document.createElement('canvas'); c.width = 512; c.height = 64; const x = c.getContext('2d'); x.font = '600 30px -apple-system, Segoe UI, sans-serif'; x.fillStyle = col; x.fillText(t, 6, 42);
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, depthTest: false, sizeAttenuation: false })); s.scale.set(0.18, 0.0225, 1); s.center.set(0, 0.5); dscene.add(s); return s; };
+  dLab.didy = lab('Didymos (761 m)', 'rgba(220,226,240,.9)'); dLab.didy.position.set(R1 * 1.1, R1 * 0.9, 0);
+  dLab.dimo = lab('Dimorphos (177 m)', 'rgba(220,226,240,.9)'); dLab.dimo.position.copy(dimoPos).add(new THREE.Vector3(0.12, 0.1, 0));
+  dLab.dart = lab('DART (drawn 20× larger)', 'rgba(120,180,255,.95)');
+  dFlash = glowSprite(1, [[0, 'rgba(255,255,255,1)'], [0.3, 'rgba(255,236,190,.9)'], [1, 'rgba(255,170,80,0)']]); dFlash.material.sizeAttenuation = true; dFlash.position.copy(dAim); dscene.add(dFlash);
+  // ejecta (illustration): grains thrown back along the incoming direction in a wide cone
+  dEjecta = puff(900, 0xd9cdb8, 0.006, q => { q.p.copy(dAim); const back = S_(DI.approach_dir).multiplyScalar(-1), a_ = Math.random() * 6.283, th = 0.35 + Math.random() * 0.6;
+    const t1 = new THREE.Vector3(1, 0, 0).cross(back).normalize(), t2 = back.clone().cross(t1);
+    q.v.copy(back).multiplyScalar(Math.cos(th)).addScaledVector(t1, Math.sin(th) * Math.cos(a_)).addScaledVector(t2, Math.sin(th) * Math.sin(a_)).multiplyScalar(0.01 + Math.random() * 0.05); q.tau = 4 + Math.random() * 4; });
+  dEjecta.material.sizeAttenuation = true; dscene.add(dEjecta);
+}
+// DART position at time T (s from contact): straight line along the Horizons approach direction (asteroid gravity negligible over minutes)
+function dartAt(T, out) { return out.copy(dAim).addScaledVector(new THREE.Vector3(DI.approach_dir[0], DI.approach_dir[2], -DI.approach_dir[1]), T * DI.impact.speed_km_s); }
+function enterImpact() { VIEW = 'impact'; DT = -60; dEjecta.userData.fired = false; controls.enabled = sctl.enabled = false; dctl.enabled = true;
+  dUser = false; const inc = dartAt(-1, new THREE.Vector3()).sub(dAim).normalize();
+  dSide.copy(new THREE.Vector3(0, 1, 0).cross(inc)).normalize().multiplyScalar(0.8).addScaledVector(inc, 0.45).add(new THREE.Vector3(0, 0.35, 0)).normalize();
+  dctl.target.copy(dAim); dcamr.position.copy(dAim).addScaledVector(dSide, 60); dctl.update();
+  $$('#v-view button').forEach(b => b.setAttribute('aria-pressed', false)); $('#v-scale').hidden = $('#v-speed').hidden = $('#v-fire').hidden = $('#v-gt').hidden = true; $('#v-solar').hidden = true; $('#v-dart').hidden = false; }
+function stepImpact(dt) {
+  // time runs ~10x near the start, slowing to real time over the last 5 s; holds 10 s after contact, then repeats
+  DT += dt * (DT < -5 ? Math.min(12, -DT / 4) : 1); if (DT > 10) { DT = -60; dEjecta.userData.fired = false; }
+  const p = dartAt(Math.min(DT, 0), new THREE.Vector3());
+  dartObj.visible = DT < 0; dartObj.position.copy(p); dartObj.lookAt(dAim); dLab.dart.visible = DT < 0; dLab.dart.position.copy(p).add(new THREE.Vector3(0.05, 0.05, 0));
+  const pts = []; for (let k = 0; k <= 40; k++) pts.push(dartAt(-60 + k / 40 * (Math.min(DT, 0) + 60), new THREE.Vector3()));
+  dartTrail.geometry.dispose(); dartTrail.geometry = new THREE.BufferGeometry().setFromPoints(pts);
+  const f = DT >= 0 ? Math.exp(-DT / 0.6) : 0; dFlash.visible = f > 0.01; dFlash.scale.setScalar(0.05 + 0.6 * (1 - f)); dFlash.material.opacity = f;
+  if (DT >= 0 && !dEjecta.userData.fired) { dEjecta.userData.fire(); dEjecta.userData.fired = true; } dEjecta.visible = DT >= 0; if (DT >= 0) dEjecta.userData.step(dt);
+  if (!dUser) {   // automatic dolly: frame DART and Dimorphos while they close, then hold ~2.5 km from the impact site
+    const d = Math.max(0, -DT) * DI.impact.speed_km_s, D = Math.max(2.5, 1.6 * d);
+    dctl.target.lerp(DT < 0 ? dAim.clone().lerp(p, Math.min(0.5, d / (d + 3))) : dAim, 0.2); dcamr.position.copy(dctl.target).addScaledVector(dSide, D); }
+  dctl.update(); renderer.render(dscene, dcamr);
+}
+function impactHUD() {
+  const d = Math.max(0, -DT * DI.impact.speed_km_s);
+  return `<b>🇺🇸 DART → Dimorphos (Didymos system)</b><br>NEXT-C ion engine on board · kinetic impact test<br>` +
+    `<span class="clk">${DT < 0 ? `T−${(-DT).toFixed(1)} s · ${d >= 10 ? d.toFixed(0) : d.toFixed(2)} km · ${DI.impact.speed_km_s} km/s` : `Impact ${DI.impact.utc} (JPL Horizons; NASA: 23:14:24 UTC)`}</span>` +
+    `<br><span class="clk">trajectory: JPL Horizons · sizes: Daly et al. 2023 · ejecta: illustration</span>`;
+}
+
+function setSolarModel(m, type, col, hz) { if (solarModel) sscene.remove(solarModel); solarModel = null; if (!SC.some(s => s.o.m === m)) return; solarModel = craftModel(m, type, col, hz); sscene.add(solarModel); }
 const T_MIN = Math.min(...SC.map(s => s.tr.t[0])), T_MAX = Math.max(...SC.map(s => s.tr.t[s.tr.t.length - 1]));
 let solarMs = T_MIN, VIEW = 'earth';
 
@@ -901,7 +1146,7 @@ const visible = m => (S.type === 'all' || famOf(m) === S.type) && S.orbits.has(m
   && (!S.q || `${m.name} ${(m.members || []).join(' ')} ${m.thruster} ${(m.models || []).map(k => `${k} ${(MODELS[k] || {}).manufacturer || ''}`).join(' ')} ${cname(m.country)} ${m.thruster_country ? cname(m.thruster_country) : ''} ${m.agency_or_operator || ''}`.toLowerCase().includes(S.q));
 function renderList() {
   const vis = ms.filter(visible);
-  $('#list').innerHTML = vis.map(m => `<div class="item${S.sel === m.id ? ' sel' : ''}" data-id="${m.id}"><i class="dot" style="background:${hex(COL[famOf(m)])}"></i>${flag(m.country)} <span class="nm" title="${esc(m.name)}">${esc(m.name)}</span>${m.kind !== 'single' ? ` <span class="tag">${m.kind}${m.count ? ' ×' + m.count.toLocaleString('en') : ''}</span>` : ''}<small>${m.year || ''} · ${esc(m.orbit)}</small></div>`).join('') || '<div class="fine" style="padding:8px">No mission matches the filters.</div>';
+  $('#list').innerHTML = vis.map(m => `<div class="item${S.sel === m.id ? ' sel' : ''}" data-id="${m.id}"><i class="dot" style="background:var(--f-${famOf(m)})"></i>${flag(m.country)} <span class="nm" title="${esc(m.name)}">${esc(m.name)}</span>${m.kind !== 'single' ? ` <span class="tag">${m.kind}${m.count ? ' ×' + m.count.toLocaleString('en') : ''}</span>` : ''}<small>${m.year || ''} · ${esc(m.orbit)}</small></div>`).join('') || '<div class="fine" style="padding:8px">No mission matches the filters.</div>';
   $$('#list .item').forEach(e => e.onclick = () => select(+e.dataset.id));
   const nF = Object.keys(FAM).map(f => [f, vis.filter(m => famOf(m) === f).length]).filter(x => x[1]);
   $('#n-shown').textContent = `${vis.length} shown`;
@@ -940,9 +1185,10 @@ function pulseHz(m) { for (const d of modelsOf(m)) { const p = (d.params || {}).
 function modelsOf(m) { return (m.models || []).map(k => MODELS[k]).filter(Boolean); }
 function select(id) {
   S.sel = id; const m = ms.find(x => x.id === id); renderList();
+  $('#dart-go').hidden = !(m.name.startsWith('DART') && DI);
   const md = modelsOf(m);
   const pc = propColor(m);
-  const hz = pulseHz(m); if (modelType !== visOf(m) + pc + hz) { setModel(visOf(m), pc, hz); setInset(visOf(m), pc, hz); modelType = visOf(m) + pc + hz; }
+  const hz = pulseHz(m), mk = visOf(m) + pc + hz + (shapeKey(m) || ''); if (modelType !== mk) { setModel(visOf(m), pc, hz, m); setInset(visOf(m), pc, hz); setSolarModel(m, visOf(m), pc, hz); modelType = mk; }
   if (typeof setView === 'function') setView(m.orbit === 'Deep space' ? 'solar' : 'earth');
   let html = `<h2>${flag(m.country)} ${esc(m.name)} <span class="tag">${FAM[famOf(m)]}${VIS_LABEL[visOf(m)] && VIS_LABEL[visOf(m)] !== FAM[famOf(m)] ? ' · ' + VIS_LABEL[visOf(m)] : ''}</span>${m.kind !== 'single' ? `<span class="tag">${m.kind}${m.count ? ' · ' + m.count.toLocaleString('en') + ' spacecraft' : ''}</span>` : ''}<span class="conf ${esc(m.confidence)}">${esc(m.confidence)} confidence</span></h2>
     <div class="kv"><div><span>Country</span><b>${esc(cname(m.country))}</b></div><div><span>Operator / agency</span><b>${esc(m.agency_or_operator)}</b></div>
@@ -952,26 +1198,123 @@ function select(id) {
     ${m.kind !== 'single' && m.members && m.members.length ? `<p class="fine"><b>${m.kind === 'cluster' ? 'Constellation' : 'Members'}:</b> ${m.members.map(esc).join(', ')}</p>` : ''}
     ${m.notes ? `<p class="fine">${esc(m.notes)}</p>` : ''}`;
   for (const d of md) {
-    html += `<h3>${esc(d.model)} — ${esc(d.manufacturer || '')} ${flag(d.country)} · ${esc(d.propellant || '')}</h3><div class="kv">` +
+    html += `<h3>${esc(d.model)} — ${esc(d.manufacturer || '')} ${flag(d.country)} · ${esc(d.propellant || '')}<button class="cmpb" data-k="${esc(d.model)}">${CMP.has(d.model) ? 'In compare ✓' : 'Compare'}</button></h3><div class="kv">` +
       PARAMS.filter(([k]) => d.params && d.params[k]).map(([k, lab, u]) => { const p = d.params[k];
         return `<div><span>${lab}</span><b>${esc(fmtV(p))}${u && k !== 'demonstrated_life' ? ' ' + u : ''}</b> <sup class="s"><a href="${esc(d.sources[p.src] || '#')}" target="_blank" rel="noopener">[${(p.src ?? 0) + 1}]</a></sup>${p.note ? `<div class="fine">${esc(p.note)}</div>` : ''}</div>`; }).join('') +
       `</div><ol class="src">${(d.sources || []).map(u => `<li><a href="${esc(u)}" target="_blank" rel="noopener">${esc(u)}</a></li>`).join('')}</ol>`;
   }
   if (!md.length) html += `<p class="fine">No parameter record: the exact thruster model is not confirmed in the sources, or no citable parameter set was found for it.</p>`;
   html += `<h3>Mission sources</h3><ol class="src">${(m.sources || []).map(u => `<li><a href="${esc(u)}" target="_blank" rel="noopener">${esc(u)}</a></li>`).join('')}</ol>`;
-  $('#detail').innerHTML = html;
+  $('#detail').innerHTML = html; $$('#detail .cmpb').forEach(b => b.onclick = () => { toggleCmp(b.dataset.k); b.textContent = CMP.has(b.dataset.k) ? 'In compare ✓' : 'Compare'; });
 }
 
 // ---------- models table ----------
 const COLS = [['model', 'Model'], ['type', 'Type'], ['country', ''], ['propellant', 'Prop.'], ['power_W', 'P (W)'], ['thrust_mN', 'F (mN)'], ['isp_s', 'Isp (s)'], ['efficiency_pct', 'η (%)'],
   ['beam_voltage_V', 'V_beam (V)'], ['beam_current_A', 'I_beam (A)'], ['discharge_voltage_V', 'V_d (V)'], ['discharge_current_A', 'I_d (A)'], ['mass_kg', 'Mass (kg)']];
 function renderModels() {
-  $('#models').innerHTML = `<tr>${COLS.map(([, l]) => `<th>${l}</th>`).join('')}</tr>` + MOD.models.map(d => `<tr>${COLS.map(([k]) => {
-    if (k === 'model') return `<td><b>${esc(d.model)}</b></td>`; if (k === 'type') return `<td>${d.type === 'ion' ? 'Ion' : 'Hall'}</td>`;
+  $('#models').innerHTML = `<tr><th title="Compare">⇄</th>${COLS.map(([, l]) => `<th>${l}</th>`).join('')}</tr>` + MOD.models.map(d => `<tr><td class="ck"><input type="checkbox" data-k="${esc(d.model)}" ${CMP.has(d.model) ? 'checked' : ''} aria-label="Compare ${esc(d.model)}"></td>${COLS.map(([k]) => {
+    if (k === 'model') return `<td><b>${esc(d.model)}</b></td>`; if (k === 'type') return `<td><i class="sw" style="background:var(--f-${modelFam[d.model]})"></i>${esc(d.type === 'ion' ? 'Ion' : d.type === 'hall' ? 'Hall' : d.type || '')}</td>`;
     if (k === 'country') return `<td>${flag(d.country)}</td>`; if (k === 'propellant') return `<td>${esc(d.propellant || '')}</td>`;
     const p = d.params && d.params[k]; return `<td>${p ? `<a href="${esc(d.sources[p.src] || '#')}" target="_blank" rel="noopener" style="color:inherit">${esc(fmtV(p))}</a>` : ''}</td>`; }).join('')}</tr>`).join('');
 }
-renderModels();
+// ---------- charts + compare (SVG, validated palette: families = reference categorical slots 1-6; scatter = grey context + blue/orange highlights) ----------
+const FAM_ORDER = ['ion', 'hall', 'electrothermal', 'electrospray', 'pulsed', 'plasma'];
+const modelFam = {};
+for (const m of ms) for (const k of (m.models || [])) modelFam[k] ??= famOf(m);
+for (const d of MOD.models) modelFam[d.model] ??= /hall/i.test(d.type || '') ? 'hall' : /ion/i.test(d.type || '') ? 'ion' : 'plasma';
+// numeric value of a parameter: a number, or the upper end of a range (single values are mostly full-power nominal points; the range is drawn as a bar)
+function num(p) {
+  if (!p) return null; let v = p.v;
+  if (Array.isArray(v)) { const [a, b] = v.map(Number); return a > 0 && b > 0 ? { x: Math.max(a, b), lo: Math.min(a, b), hi: Math.max(a, b) } : null; }
+  if (typeof v === 'number') return v > 0 ? { x: v } : null;
+  const n = String(v).replace(/,/g, '').match(/\d+(?:\.\d+)?(?:e[-+]?\d+)?/gi); if (!n) return null;
+  const a = +n[0], b = n[1] != null && /\d\s*[-–]\s*\d/.test(String(v)) ? +n[1] : null;
+  return b && b > a ? { x: b, lo: a, hi: b } : a > 0 ? { x: a } : null;
+}
+const CMP = new Set();   // models picked for comparison (max 4)
+let HI_FAM = 'all';
+const svgEl = (t, a = {}) => { const e = document.createElementNS('http://www.w3.org/2000/svg', t); for (const k in a) e.setAttribute(k, a[k]); return e; };
+const ctip = $('#ctip');
+function showTip(ev, html) { ctip.innerHTML = html; ctip.hidden = false; const r = ctip.getBoundingClientRect();
+  let x = ev.clientX + 14, y = ev.clientY + 14; if (x + r.width > innerWidth - 8) x = ev.clientX - r.width - 14; if (y + r.height > innerHeight - 8) y = ev.clientY - r.height - 14;
+  ctip.style.left = x + 'px'; ctip.style.top = y + 'px'; }
+const hideTip = () => { ctip.hidden = true; };
+const fmtN = x => x >= 100 ? Math.round(x).toLocaleString('en') : x >= 1 ? (+x.toPrecision(3)).toString() : (+x.toPrecision(2)).toString();
+function logTicks(lo, hi) { const t = []; for (let e = Math.floor(Math.log10(lo)); e <= Math.ceil(Math.log10(hi)); e++) t.push(10 ** e); return t; }
+
+// scatter: log-log, every model a grey point; highlighted family blue; compared models orange + direct label
+function scatter(host, kx, ky, lx, ly) {
+  const W = host.clientWidth || 520, H = 330, L = 56, Rr = 14, T = 14, B = 44, svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, width: '100%', height: H, role: 'img', 'aria-label': `${ly} against ${lx}, log scales` });
+  const pts = MOD.models.map(d => ({ d, x: num((d.params || {})[kx]), y: num((d.params || {})[ky]) })).filter(p => p.x && p.y);
+  if (!pts.length) { host.innerHTML = '<p class="fine">No models with both values.</p>'; return; }
+  const xs = pts.flatMap(p => [p.x.lo ?? p.x.x, p.x.hi ?? p.x.x]), ys = pts.flatMap(p => [p.y.lo ?? p.y.x, p.y.hi ?? p.y.x]);
+  const x0 = 10 ** Math.floor(Math.log10(Math.min(...xs))), x1 = 10 ** Math.ceil(Math.log10(Math.max(...xs))), y0 = 10 ** Math.floor(Math.log10(Math.min(...ys))), y1 = 10 ** Math.ceil(Math.log10(Math.max(...ys)));
+  const X = v => L + (Math.log10(v) - Math.log10(x0)) / (Math.log10(x1) - Math.log10(x0)) * (W - L - Rr), Y = v => H - B - (Math.log10(v) - Math.log10(y0)) / (Math.log10(y1) - Math.log10(y0)) * (H - B - T);
+  for (const t of logTicks(x0, x1)) { svg.append(svgEl('line', { x1: X(t), x2: X(t), y1: T, y2: H - B, class: 'grid' })); const tx = svgEl('text', { x: X(t), y: H - B + 16, class: 'tick', 'text-anchor': 'middle' }); tx.textContent = fmtN(t); svg.append(tx); }
+  for (const t of logTicks(y0, y1)) { svg.append(svgEl('line', { x1: L, x2: W - Rr, y1: Y(t), y2: Y(t), class: 'grid' })); const ty = svgEl('text', { x: L - 8, y: Y(t) + 4, class: 'tick', 'text-anchor': 'end' }); ty.textContent = fmtN(t); svg.append(ty); }
+  const ax = svgEl('text', { x: (L + W - Rr) / 2, y: H - 8, class: 'axl', 'text-anchor': 'middle' }); ax.textContent = lx; svg.append(ax);
+  const ay = svgEl('text', { x: 14, y: (T + H - B) / 2, class: 'axl', 'text-anchor': 'middle', transform: `rotate(-90 14 ${(T + H - B) / 2})` }); ay.textContent = ly; svg.append(ay);
+  const order = p => CMP.has(p.d.model) ? 2 : (HI_FAM !== 'all' && modelFam[p.d.model] === HI_FAM) ? 1 : 0;
+  for (const p of pts.sort((a, b) => order(a) - order(b))) {
+    const o = order(p), cls = o === 2 ? 'pt cmp' : o === 1 ? 'pt hi' : 'pt', g = svgEl('g', { class: cls, tabindex: 0 });
+    if (p.x.lo) g.append(svgEl('line', { x1: X(p.x.lo), x2: X(p.x.hi), y1: Y(p.y.x), y2: Y(p.y.x), class: 'rng' }));
+    if (p.y.lo) g.append(svgEl('line', { x1: X(p.x.x), x2: X(p.x.x), y1: Y(p.y.lo), y2: Y(p.y.hi), class: 'rng' }));
+    g.append(svgEl('circle', { cx: X(p.x.x), cy: Y(p.y.x), r: o ? 5.5 : 4.5 }));
+    g.append(svgEl('circle', { cx: X(p.x.x), cy: Y(p.y.x), r: 12, class: 'hit' }));
+    if (o === 2) { const t = svgEl('text', { x: X(p.x.x) + 8, y: Y(p.y.x) - 8, class: 'dlab' }); t.textContent = p.d.model.length > 28 ? p.d.model.slice(0, 27) + '…' : p.d.model; g.append(t); }
+    const tip = `<b>${esc(p.d.model)}</b><br>${esc(FAM[modelFam[p.d.model]] || '')} · ${esc(p.d.manufacturer || '')}<br>${esc(lx)}: ${esc(fmtV(p.d.params[kx]))}<br>${esc(ly)}: ${esc(fmtV(p.d.params[ky]))}${p.x.lo || p.y.lo ? '<br><span class="fine">range: point at the upper end (bar = full range)</span>' : ''}<br><span class="fine">click to ${CMP.has(p.d.model) ? 'remove from' : 'add to'} compare</span>`;
+    g.onmousemove = e => showTip(e, tip); g.onmouseleave = hideTip; g.onclick = () => toggleCmp(p.d.model);
+    g.onkeydown = e => { if (e.key === 'Enter') toggleCmp(p.d.model); };
+    svg.append(g);
+  }
+  host.replaceChildren(svg);
+  host.nextElementSibling.textContent = `${pts.length} of ${MOD.models.length} models have both values (sources in the table below). Ranges are drawn as bars, with the point at the upper end (most single values are full-power nominal points).`;
+}
+// stacked bars: entries per first launch year, by family (2 px surface gaps between segments)
+function yearBars(host) {
+  const W = host.clientWidth || 1000, H = 260, L = 34, Rr = 8, T = 10, B = 26, svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, width: '100%', height: H, role: 'img', 'aria-label': 'Flown EP entries per first launch year, stacked by family' });
+  const yrs = []; for (let y = Y0; y <= Y1; y++) yrs.push(y);
+  const cnt = Object.fromEntries(yrs.map(y => [y, Object.fromEntries(FAM_ORDER.map(f => [f, 0]))]));
+  for (const m of ms) if (m.year && cnt[m.year]) cnt[m.year][famOf(m)]++;
+  const tot = y => FAM_ORDER.reduce((s, f) => s + cnt[y][f], 0), ymax = Math.max(...yrs.map(tot)), step = ymax > 12 ? 5 : 2, top = Math.ceil(ymax / step) * step;
+  const bw = (W - L - Rr) / yrs.length, Yv = v => H - B - v / top * (H - B - T);
+  for (let v = 0; v <= top; v += step) { svg.append(svgEl('line', { x1: L, x2: W - Rr, y1: Yv(v), y2: Yv(v), class: v ? 'grid' : 'base' })); const t = svgEl('text', { x: L - 6, y: Yv(v) + 4, class: 'tick', 'text-anchor': 'end' }); t.textContent = v; svg.append(t); }
+  yrs.forEach((y, i) => {
+    const x = L + i * bw, g = svgEl('g', { class: 'bar' }); let acc = 0;
+    if (y % 10 === 0) { const t = svgEl('text', { x: x + bw / 2, y: H - 8, class: 'tick', 'text-anchor': 'middle' }); t.textContent = y; svg.append(t); }
+    const fams = FAM_ORDER.filter(f => cnt[y][f]);
+    fams.forEach((f, j) => { const v = cnt[y][f], y1 = Yv(acc), y2 = Yv(acc + v), top_ = j === fams.length - 1, h = Math.max(0, y1 - y2 - (top_ ? 0 : 2));
+      g.append(svgEl('rect', { x: x + Math.max(0.5, bw * 0.12), y: y1 - h, width: Math.max(1, bw * 0.76), height: h, rx: top_ ? Math.min(4, bw * 0.3) : 0, style: `fill:var(--f-${f})` })); acc += v; });
+    g.append(svgEl('rect', { x, y: T, width: bw, height: H - B - T, class: 'hit' }));
+    const tip = `<b>${y}</b>: ${tot(y)} entr${tot(y) === 1 ? 'y' : 'ies'}` + fams.map(f => `<br><i class="sw" style="background:var(--f-${f})"></i>${FAM[f]}: ${cnt[y][f]}`).join('');
+    g.onmousemove = e => showTip(e, tip); g.onmouseleave = hideTip; svg.append(g);
+  });
+  host.replaceChildren(svg);
+  $('#yr-table').innerHTML = `<tr><th>Year</th>${FAM_ORDER.map(f => `<th>${FAM[f]}</th>`).join('')}<th>Total</th></tr>` + yrs.filter(y => tot(y)).map(y => `<tr><td>${y}</td>${FAM_ORDER.map(f => `<td>${cnt[y][f] || ''}</td>`).join('')}<td>${tot(y)}</td></tr>`).join('');
+}
+function renderCharts() {
+  yearBars($('#ch-years')); scatter($('#ch-isp'), 'thrust_mN', 'isp_s', 'Thrust (mN)', 'Specific impulse (s)'); scatter($('#ch-pow'), 'power_W', 'thrust_mN', 'Input power (W)', 'Thrust (mN)');
+}
+$('#hi-fam').innerHTML = ['all', ...FAM_ORDER].map(f => `<button data-v="${f}" aria-pressed="${f === 'all'}">${f === 'all' ? 'None' : FAM[f]}</button>`).join('');
+$$('#hi-fam button').forEach(b => b.onclick = () => { HI_FAM = b.dataset.v; $$('#hi-fam button').forEach(x => x.setAttribute('aria-pressed', x === b)); renderCharts(); });
+// compare panel: up to four models side by side, every value linked to its source
+function toggleCmp(k) { if (CMP.has(k)) CMP.delete(k); else { if (CMP.size >= 4) CMP.delete(CMP.values().next().value); CMP.add(k); } renderCmp(); renderCharts(); renderModels(); hideTip(); }
+function renderCmp() {
+  const L_ = [...CMP].map(k => MODELS[k]).filter(Boolean);
+  $('#cmp-n').textContent = L_.length ? `${L_.length} of 4` : '';
+  if (!L_.length) { $('#cmp').innerHTML = '<p class="fine">Pick up to four thruster models: tick them in the table below, click points in the charts, or use “Compare” on a spacecraft card.</p>'; return; }
+  const rows = PARAMS.filter(([k]) => L_.some(d => d.params && d.params[k]));
+  $('#cmp').innerHTML = `<div class="tblwrap"><table class="models cmp"><tr><th></th>${L_.map(d => `<th>${esc(d.model)} <button class="x" data-k="${esc(d.model)}" aria-label="Remove ${esc(d.model)}">×</button></th>`).join('')}</tr>` +
+    `<tr><td>Family</td>${L_.map(d => `<td><i class="sw" style="background:var(--f-${modelFam[d.model]})"></i>${esc(FAM[modelFam[d.model]] || '')}</td>`).join('')}</tr>` +
+    `<tr><td>Maker</td>${L_.map(d => `<td>${flag(d.country)} ${esc(d.manufacturer || '')}</td>`).join('')}</tr><tr><td>Propellant</td>${L_.map(d => `<td>${esc(d.propellant || '')}</td>`).join('')}</tr>` +
+    rows.map(([k, lab, u]) => `<tr><td>${lab}${u && k !== 'demonstrated_life' ? ` (${u})` : ''}</td>${L_.map(d => { const p = d.params && d.params[k];
+      return `<td>${p ? `<a href="${esc(d.sources[p.src] || '#')}" target="_blank" rel="noopener">${esc(fmtV(p))}</a>${p.note ? `<div class="fine">${esc(p.note)}</div>` : ''}` : '<span class="fine">–</span>'}</td>`; }).join('')}</tr>`).join('') + '</table></div>';
+  $$('#cmp .x').forEach(b => b.onclick = () => toggleCmp(b.dataset.k));
+}
+addEventListener('resize', () => { clearTimeout(renderCharts.t); renderCharts.t = setTimeout(renderCharts, 200); });
+renderModels(); $$('#models input[type=checkbox]').forEach(c => c.onchange = () => toggleCmp(c.dataset.k));
+const _rm = renderModels; renderModels = function () { _rm(); $$('#models input[type=checkbox]').forEach(c => c.onchange = () => toggleCmp(c.dataset.k)); };
+renderCmp(); renderCharts();
 $('#about').innerHTML = `${ms.length} entries (${ms.reduce((s, m) => s + (m.count || 1), 0).toLocaleString('en')} spacecraft) from ${Y0} to ${Y1}, ${MOD.models.length} thruster models. Last updated ${esc(M.updated || '')}.`;
 
 // ---------- close-up of the selected thruster ----------
@@ -999,9 +1342,9 @@ renderer.domElement.addEventListener('click', () => { ray.setFromCamera(mouse, V
 
 // ---------- view, scale and time controls ----------
 function setView(v) {
-  VIEW = v; controls.enabled = v === 'earth'; sctl.enabled = v === 'solar';
+  VIEW = v; controls.enabled = v === 'earth'; sctl.enabled = v === 'solar'; dctl.enabled = false; $('#v-dart').hidden = true;
   $$('#v-view button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v));
-  $('#v-scale').hidden = $('#v-speed').hidden = v !== 'earth'; $('#v-solar').hidden = v !== 'solar';
+  $('#v-scale').hidden = $('#v-speed').hidden = $('#v-fire').hidden = $('#v-gt').hidden = v !== 'earth'; $('#v-solar').hidden = v !== 'solar';
   $('#inset').hidden = false;
 }
 function setScale(mode, dist) {
@@ -1009,14 +1352,17 @@ function setScale(mode, dist) {
   $$('#v-scale button').forEach(b => b.setAttribute('aria-pressed', b.dataset.p === (TRUE_SCALE ? (dist <= 4 ? 'leo' : dist <= 30 ? 'geo' : 'moon') : 'overview')));
 }
 $$('#v-view button').forEach(b => b.onclick = () => setView(b.dataset.v));
+$('#dart-go').onclick = () => { if (DI) enterImpact(); }; $('#dart-back').onclick = () => setView('solar');
 $$('#v-scale button').forEach(b => b.onclick = () => ({ overview: () => setScale('compressed', 10), leo: () => setScale('true', 3.4), geo: () => setScale('true', 19), moon: () => setScale('true', 150) })[b.dataset.p]());
 let SPEED = 600;
+$$('#v-fire button').forEach(b => b.onclick = () => { FIRE = b.dataset.f; $$('#v-fire button').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+$('#v-gt button').onclick = e => { GROUND = !GROUND; e.target.setAttribute('aria-pressed', GROUND); };
 $$('#v-speed button').forEach(b => b.onclick = () => { SPEED = +b.dataset.s; $$('#v-speed button').forEach(x => x.setAttribute('aria-pressed', x === b)); });
 $('#v-replay').oninput = e => { solarMs = T_MIN + (T_MAX - T_MIN) * e.target.value / 1000; };
 
 // ---------- loop ----------
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-function resize() { const w = stage.clientWidth, h = stage.clientHeight; renderer.setSize(w, h, false); camera.aspect = scam.aspect = w / h; camera.updateProjectionMatrix(); scam.updateProjectionMatrix(); }
+function resize() { const w = stage.clientWidth, h = stage.clientHeight; renderer.setSize(w, h, false); camera.aspect = scam.aspect = dcamr.aspect = w / h; camera.updateProjectionMatrix(); scam.updateProjectionMatrix(); dcamr.updateProjectionMatrix(); }
 addEventListener('resize', resize); resize();
 let t = 0, last = performance.now(), wantDist = 10, simMs = Date.now(), lastGuide = 0;
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), tmp3 = new THREE.Vector3(), tq = new THREE.Quaternion(), tm = new THREE.Matrix4(), ORIGIN = new THREE.Vector3(), sv = new THREE.Vector3();
@@ -1031,7 +1377,7 @@ function frame(now) {
   if (VIEW === 'earth') {
     // Earth rotation (sidereal time), true Sun direction, true Moon position
     earth.rotation.y = gmst(simMs); clouds.rotation.y = (simMs / 86400000 * 0.02) % 6.283;
-    sunECI(simMs, sv); toScene(sv.x, sv.y, sv.z, SUN_DIR).normalize();
+    sunECI(simMs, sv); SUN_ECI.copy(sv).normalize(); toScene(sv.x, sv.y, sv.z, SUN_DIR).normalize();
     sun.position.copy(SUN_DIR).multiplyScalar(30); earthMat.uniforms.sunDir.value.copy(SUN_DIR);
     sunCorona.position.copy(SUN_DIR).multiplyScalar(3000); sunDisc.position.copy(SUN_DIR).multiplyScalar(3000);
     moonECI(simMs, sv); eciToScene(sv.x, sv.y, sv.z, moon.position); moon.lookAt(earth.position); moon.rotateY(-Math.PI / 2); moonLab.position.copy(moon.position).add(tmp3.set(0.35 * moon.scale.x, 0.25 * moon.scale.x, 0));
@@ -1043,6 +1389,9 @@ function frame(now) {
         it.hit.position.copy(it.pos); it.craft.position.copy(it.pos);
         attitude(it.craft, it.pos, it.next, o.m.orbit === 'Lunar' ? moon.position : ORIGIN, _q); it.craft.quaternion.slerp(_q, Math.min(1, dt * 5));
         it.craft.visible = !(o.m.id === S.sel && it === o.items[0]);
+        const sh = inShadow(it), [fi] = firing(o, it);
+        if (it.sh !== sh) { it.sh = sh; const c = it.craft.children; c[0].material = sh ? MINI.busMatD : MINI.busMat; c[1].material = c[2].material = sh ? MINI.wingMatD : MINI.wingMat; }
+        it.craft.children[3].visible = fi;
       }
       if (o.swarm && o.swarm.visible) {   // a quarter of the constellation sample is propagated per frame
         const p = o.swarm.geometry.attributes.position, n = o.swarmSats.length, d = new Date(simMs);
@@ -1060,16 +1409,19 @@ function frame(now) {
         if (yax.lengthSq() > 0.5) { tm.makeBasis(vel, yax, new THREE.Vector3().crossVectors(vel, yax)); tq.setFromRotationMatrix(tm); } else tq.setFromUnitVectors(new THREE.Vector3(1, 0, 0), vel);
         model.quaternion.slerp(tq, Math.min(1, dt * 6));
         const dcam = camera.position.distanceTo(model.position);
-        model.scale.setScalar(Math.min(o.m.orbit === 'LEO' || o.m.orbit === 'Suborbital' ? 0.3 : 0.42, dcam * 0.045));
+        model.scale.setScalar(Math.min(o.m.orbit === 'LEO' || o.m.orbit === 'Suborbital' ? 0.3 : 0.42, dcam * 0.045) * (model.userData.k ?? 1));
+        const [fi, why] = firing(o, it); FIRE_TXT = why; SHADOW_NOW = inShadow(it);
+        setShade(model, SHADOW_NOW); model.userData.thr.userData.off = !fi; if (ithr) ithr.userData.off = !fi;
         model.userData.thr.userData.update(dt, now / 1000);
       } else model.visible = false;
     }
     if (++declutterK % 4 === 0) declutter(model && model.visible ? model : null);
+    updateGround(it, now);
     hl.visible = !!it;
     if (it) { hl.position.copy(it.pos); hl.quaternion.copy(camera.quaternion); const k = 1 + 0.35 * Math.sin(now / 260); hl.scale.setScalar(k * camera.position.distanceTo(hl.position) / 9); hl.material.opacity = 0.9 - 0.4 * (k - 0.65); }
     { const dcur = camera.position.length(); if (Math.abs(dcur - wantDist) > 0.05 && !dragging) camera.position.multiplyScalar(Math.exp(Math.log(wantDist / dcur) * (1 - Math.exp(-dt * 3.5)))); }
     controls.update(); renderer.render(scene, camera);
-  } else {
+  } else if (VIEW === 'solar') {
     const o = objs.find(x => x.m.id === S.sel), sel = SC.find(s => s.o === o);
     const t0 = sel ? sel.tr.t[0] : T_MIN, t1 = sel ? sel.tr.t[sel.tr.t.length - 1] : T_MAX;
     solarMs += dt * 86400000 * 25; if (solarMs > t1 || solarMs < t0) solarMs = t0;          // replay: 25 days per second
@@ -1082,14 +1434,21 @@ function frame(now) {
       s.craft.visible = s.hit.visible = s.lab.visible = on; s.hit.position.copy(s.craft.position); s.lab.position.copy(s.craft.position);
       s.line.material.opacity = s === sel ? 0.9 : 0.28; s.line.visible = visible(s.o.m);
     }
+    if (solarModel) { const on = sel && sel.craft.visible; solarModel.visible = !!on;
+      if (on) { sel.craft.visible = false; solarModel.position.copy(sel.craft.position); solarModel.quaternion.copy(sel.craft.quaternion);
+        solarModel.scale.setScalar(scam.position.distanceTo(solarModel.position) * 0.035 * (solarModel.userData.k ?? 1)); solarModel.userData.thr.userData.update(dt, now / 1000); } }
     sctl.update(); renderer.render(sscene, scam);
-  }
+  } else if (DI) stepImpact(dt);
   if (ithr) { ithr.rotation.y = 0.22 * Math.sin(t * 0.35); ithr.rotation.x = 0.1 * Math.sin(t * 0.27); ithr.userData.update(dt, now / 1000); ir.render(iscene, icam); }
   const m = S.sel != null ? ms.find(x => x.id === S.sel) : null, dk = m && Object.keys(DEST).find(n => m.name.startsWith(n));
   const sc = m && SC.find(s => s.o.m === m);
-  $('#hud').innerHTML = (m ? `<b>${flag(m.country)} ${esc(m.name)}</b><br>${esc(m.thruster)} · ${esc(m.orbit)}${dk ? ' → ' + esc(DEST[dk]) : ''} · ${esc(m.launch)}<br>` : '') +
+  $('#hud').innerHTML = VIEW === 'impact' ? impactHUD() : (m ? `<b>${flag(m.country)} ${esc(m.name)}</b><br>${esc(m.thruster)} · ${esc(m.orbit)}${dk ? ' → ' + esc(DEST[dk]) : ''} · ${esc(m.launch)}<br>` : '') +
     (VIEW === 'earth' ? `<span class="clk">${fmtUTC(simMs)} · ×${SPEED}</span>${m && m.orbit !== 'Deep space' ? ` · <span class="clk">${({ live: 'real position (CelesTrak elements)', catalogue: 'catalogued orbit', representative: 'representative orbit' })[objs.find(x => x.m === m).orbitSource]}${objs.find(x => x.m === m).reentered ? ', not in orbit since ' + objs.find(x => x.m === m).reentered.slice(0, 10) : ''}</span>` : ''}`
       : `<span class="clk">${new Date(solarMs).toISOString().slice(0, 10)} · JPL Horizons trajectory${sc ? '' : ' (none available for this mission)'}${sc && sc.note ? ' · ' + esc(sc.note) : ''}</span>`);
+  if (m && VIEW !== 'impact') { const ex = [];
+    if (VIEW === 'earth' && m.orbit !== 'Deep space') { if (SHADOW_NOW) ex.push('in the Earth\u2019s shadow'); if (FIRE === 'schedule' && FIRE_TXT) ex.push(FIRE_TXT + ' (illustrative schedule)'); }
+    if (shapeKey(m) && (VIEW === 'solar' ? !!solarModel : m.orbit !== 'Deep space')) ex.push('simplified spacecraft shape');
+    if (ex.length) $('#hud').insertAdjacentHTML('beforeend', `<br><span class="clk">${ex.join(' · ')}</span>`); }
   requestAnimationFrame(frame);
 }
 function DEST_OF(m) { const k = Object.keys(DEST).find(n => m.name.startsWith(n)); return k ? DEST[k] : ''; }
