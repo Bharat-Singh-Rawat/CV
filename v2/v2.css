@@ -1037,7 +1037,7 @@ html[data-theme="dark"] .vplay svg { fill: #1d1d1f; }
 html[data-theme="dark"] .pub .badge.cover { color: #000; }
 html[data-theme="dark"] .term { text-decoration-color: rgba(245, 245, 247, 0.45); }
 html[data-theme="dark"] .term:hover, html[data-theme="dark"] .term:focus-visible { background: rgba(255, 255, 255, 0.08); }
-html[data-theme="dark"] .about-body.words .w { color: #48484a; }
+html[data-theme="dark"] .about-body.words .w { color: #8e8e93; }   /* unrevealed words: readable on black (~6:1), still dimmer than revealed */
 html[data-theme="dark"] .about-body.words .term { text-decoration-color: rgba(245, 245, 247, 0.3); }
 html[data-theme="dark"] .sg-links path { stroke: #48484a; }
 html[data-theme="dark"] .sg.focusing .sg-links path.on { stroke: #f5f5f7; }
