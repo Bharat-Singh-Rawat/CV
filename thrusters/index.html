@@ -167,6 +167,7 @@ td.ck { text-align: center; } td.ck input { accent-color: var(--cmpc); cursor: p
         <div class="vseg" id="v-scale"><button data-p="overview" aria-pressed="true">Overview</button><button data-p="leo" aria-pressed="false">True scale: LEO</button><button data-p="geo" aria-pressed="false">GEO</button><button data-p="moon" aria-pressed="false">Moon</button></div>
         <div class="vseg" id="v-fire"><button data-f="always" aria-pressed="true">Plumes always on</button><button data-f="schedule" aria-pressed="false">Firing schedule</button></div>
         <div class="vseg" id="v-gt"><button aria-pressed="true">Ground track</button></div>
+        <div class="vseg" id="v-follow"><button aria-pressed="false" title="Keep the camera on the selected spacecraft (Esc to stop)">◎ Follow</button></div>
         <div class="vseg" id="v-speed"><button data-s="1">Real time</button><button data-s="60">×60</button><button data-s="600" aria-pressed="true">×600</button><button data-s="3600">×3600</button></div>
         <div class="vseg" id="v-solar" hidden><input type="range" id="v-replay" min="0" max="1000" value="0" aria-label="Replay date"><button id="dart-go" hidden>DART impact close-up ▶</button></div>
         <div class="vseg" id="v-ss" hidden><button data-s="0">⏸</button><button data-s="5">5 d/s</button><button data-s="25" aria-pressed="true">25 d/s</button><button data-s="100">100 d/s</button><button id="v-alltr" aria-pressed="false">All trajectories</button></div>
@@ -906,7 +907,7 @@ function periodMs(it) { if (it.satrec) return 2 * Math.PI / it.satrec.no * 60000
 function updateGround(it, now) {
   const key = it ? it.o.m.name + (it.ob ? it.ob.norad : '') : '';
   if (!GROUND || !it || it.o.m.orbit === 'Lunar' || it.o.m.orbit === 'Deep space') { if (gtLine) gtLine.visible = gtDot.visible = false; return; }
-  if (!gtLine) { gtLine = new THREE.LineSegments(new THREE.BufferGeometry(), gtMat); gtDot = new THREE.Mesh(new THREE.SphereGeometry(0.012, 12, 8), new THREE.MeshBasicMaterial({ color: 0xffffff })); earth.add(gtLine, gtDot); }
+  if (!gtLine) { gtLine = new THREE.LineSegments(new THREE.BufferGeometry(), gtMat); gtDot = new THREE.Mesh(new THREE.SphereGeometry(0.006, 12, 8), new THREE.MeshBasicMaterial({ color: 0xffd76a, transparent: true, opacity: 0.85 })); earth.add(gtLine, gtDot); }
   gtLine.visible = gtDot.visible = true;
   const v = new THREE.Vector3(), p = new THREE.Vector3();
   earthFixed(itemScene(it, simMs, v), simMs, gtDot.position);
@@ -1028,7 +1029,7 @@ for (const m of ms) {
   o.dot = o.items[0].hit;
   if (m.kind === 'cluster' && rec.cluster_tles && rec.cluster_tles.length && window.satellite) {
     o.swarmSats = rec.cluster_tles.map(([l1, l2]) => { try { return satellite.twoline2satrec(l1, l2); } catch (e) { return null; } }).filter(Boolean);
-    o.swarm = new THREE.Points(new THREE.BufferGeometry(), new THREE.PointsMaterial({ color: COL[famOf(m)], size: 0.03, transparent: true, opacity: 0.95 }));
+    o.swarm = new THREE.Points(new THREE.BufferGeometry(), new THREE.PointsMaterial({ color: COL[famOf(m)], size: 0.03, map: SOFT, alphaTest: 0.05, transparent: true, opacity: 0.95, depthWrite: false }));
     o.swarm.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(o.swarmSats.length * 3), 3)); scene.add(o.swarm); o.swarmK = 0;
   }
   o.dest = m.orbit === 'Deep space' ? destLabel(m) : null;
@@ -1178,7 +1179,7 @@ function enterImpact() { VIEW = 'impact'; DT = -150; if (DF && !DF.pre) DF.pre =
   dUser = false; const inc = dartAt(-1, new THREE.Vector3()).sub(dAim).normalize();
   dSide.copy(new THREE.Vector3(0, 1, 0).cross(inc)).normalize().multiplyScalar(0.8).addScaledVector(inc, 0.45).add(new THREE.Vector3(0, 0.35, 0)).normalize();
   dctl.target.copy(dAim); dcamr.position.copy(dAim).addScaledVector(dSide, 60); dctl.update();
-  $$('#v-view button').forEach(b => b.setAttribute('aria-pressed', false)); $('#v-scale').hidden = $('#v-speed').hidden = $('#v-fire').hidden = $('#v-gt').hidden = true; $('#v-solar').hidden = $('#v-ss').hidden = true; $('#v-dart').hidden = false; }
+  $$('#v-view button').forEach(b => b.setAttribute('aria-pressed', false)); $('#v-scale').hidden = $('#v-speed').hidden = $('#v-fire').hidden = $('#v-gt').hidden = true; $('#v-solar').hidden = $('#v-ss').hidden = true; $('#v-follow').hidden = true; $('#v-dart').hidden = false; }
 function stepImpact(dt) {
   // time runs ~10x near the start, slowing to real time over the last 5 s; holds 10 s after contact, then repeats
   DT += dt * (DT < -5 ? Math.min(12, -DT / 4) : DT > 4 ? 2.5 : 1); if (DT > 30) { DT = -150; dEjecta.userData.fired = false; }
@@ -1274,7 +1275,7 @@ const visible = m => (S.type === 'all' || famOf(m) === S.type) && S.orbits.has(m
 function renderList() {
   const vis = ms.filter(visible);
   $('#list').innerHTML = vis.map(m => `<div class="item${S.sel === m.id ? ' sel' : ''}" data-id="${m.id}"><i class="dot" style="background:var(--f-${famOf(m)})"></i>${flag(m.country)} <span class="nm" title="${esc(m.name)}">${dsnOf(m) ? '📡 ' : ''}${esc(m.name)}</span>${m.kind !== 'single' ? ` <span class="tag">${m.kind}${m.count ? ' ×' + m.count.toLocaleString('en') : ''}</span>` : ''}<small>${m.year || ''} · ${esc(m.orbit)}</small></div>`).join('') || '<div class="fine" style="padding:8px">No mission matches the filters.</div>';
-  $$('#list .item').forEach(e => e.onclick = () => select(+e.dataset.id));
+  $$('#list .item').forEach(e => e.onclick = () => { select(+e.dataset.id); follow(true); });
   const nF = Object.keys(FAM).map(f => [f, vis.filter(m => famOf(m) === f).length]).filter(x => x[1]);
   $('#n-shown').textContent = `${vis.length} shown`;
   $('#counter').innerHTML = `${vis.length} entries<br>${vis.reduce((s, m) => s + (m.count || 1), 0).toLocaleString('en')} spacecraft · up to ${S.year}`;
@@ -1466,13 +1467,13 @@ renderer.domElement.addEventListener('pointermove', e => {
     tip.innerHTML = `${flag(m.country)} ${esc(it && it.ob && m.kind !== 'single' ? it.ob.member : m.name)} · ${esc(m.thruster)}`; renderer.domElement.style.cursor = 'pointer'; }
   else { tip.hidden = true; renderer.domElement.style.cursor = ''; }
 });
-renderer.domElement.addEventListener('click', () => { ray.setFromCamera(mouse, VIEW === 'earth' ? camera : scam); const hit = ray.intersectObjects(curPick())[0]; if (hit) select(hit.object.userData.o.m.id); });
+renderer.domElement.addEventListener('click', () => { ray.setFromCamera(mouse, VIEW === 'earth' ? camera : scam); const hit = ray.intersectObjects(curPick())[0]; if (hit) { select(hit.object.userData.o.m.id); follow(true); } });
 
 // ---------- view, scale and time controls ----------
 function setView(v) {
   VIEW = v; controls.enabled = v === 'earth'; sctl.enabled = v === 'solar'; dctl.enabled = false; $('#v-dart').hidden = true; setDraco(0); closeVbox();
   $$('#v-view button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v));
-  $('#v-scale').hidden = $('#v-speed').hidden = $('#v-fire').hidden = $('#v-gt').hidden = v !== 'earth'; $('#v-solar').hidden = $('#v-ss').hidden = v !== 'solar';
+  $('#v-scale').hidden = $('#v-speed').hidden = $('#v-fire').hidden = $('#v-gt').hidden = v !== 'earth'; $('#v-follow').hidden = v === 'impact'; $('#v-solar').hidden = $('#v-ss').hidden = v !== 'solar';
   $('#inset').hidden = false;
 }
 function setScale(mode, dist) {
@@ -1484,7 +1485,13 @@ $('#dart-go').onclick = () => { if (DI) enterImpact(); }; $('#dart-back').onclic
 function closeVbox() { const v = $('#vbox-v'); if (v) { v.pause(); $('#vbox').hidden = true; } }
 $('#dart-video').onclick = () => { $('#vbox').hidden = false; $('#vbox-v').play().catch(() => {}); }; $('#vbox-x').onclick = closeVbox;
 $$('#v-scale button').forEach(b => b.onclick = () => ({ overview: () => setScale('compressed', 10), leo: () => setScale('true', 3.4), geo: () => setScale('true', 19), moon: () => setScale('true', 150) })[b.dataset.p]());
-let SPEED = 600, SSPEED = 25, ALLTR = false;
+let SPEED = 600, SSPEED = 25, ALLTR = false, FOLLOW = false, followT = 0;
+// follow mode: the camera flies to the selected spacecraft and keeps it centred; drag orbits around it, scroll zooms; Esc / button stops
+function follow(on) { FOLLOW = on; followT = 0; $('#v-follow button').setAttribute('aria-pressed', on); $('#v-follow button').textContent = on ? '✕ Stop following' : '◎ Follow';
+  controls.minDistance = on ? 0.04 : 1.25; sctl.minDistance = on ? 0.05 : 2;
+  if (!on) wantDist = Math.max(4, camera.position.length()); }
+$('#v-follow button').onclick = () => follow(!FOLLOW);
+addEventListener('keydown', e => { if (e.key === 'Escape' && FOLLOW) follow(false); });
 $$('#v-ss button[data-s]').forEach(b => b.onclick = () => { SSPEED = +b.dataset.s; $$('#v-ss button[data-s]').forEach(x => x.setAttribute('aria-pressed', x === b)); });
 $('#v-alltr').onclick = e => { ALLTR = !ALLTR; e.target.setAttribute('aria-pressed', ALLTR); };
 $$('#v-fire button').forEach(b => b.onclick = () => { FIRE = b.dataset.f; $$('#v-fire button').forEach(x => x.setAttribute('aria-pressed', x === b)); });
@@ -1525,6 +1532,7 @@ function frame(now) {
         if (it.sh !== sh) { it.sh = sh; const c = it.craft.children; c[0].material = sh ? MINI.busMatD : MINI.busMat; c[1].material = c[2].material = sh ? MINI.wingMatD : MINI.wingMat; }
         it.craft.children[3].visible = fi;
       }
+      if (o.swarm) o.swarm.material.size = 0.03 * Math.min(1, Math.max(0.15, camera.position.distanceTo(controls.target) / 3));   // small dots when the camera is close
       if (o.swarm && o.swarm.visible) {   // a quarter of the constellation sample is propagated per frame
         const p = o.swarm.geometry.attributes.position, n = o.swarmSats.length, d = new Date(simMs);
         for (let c = 0; c < Math.ceil(n / 4); c++) { const k = (o.swarmK++) % n, q = satellite.propagate(o.swarmSats[k], d).position;
@@ -1541,7 +1549,7 @@ function frame(now) {
         if (yax.lengthSq() > 0.5) { tm.makeBasis(vel, yax, new THREE.Vector3().crossVectors(vel, yax)); tq.setFromRotationMatrix(tm); } else tq.setFromUnitVectors(new THREE.Vector3(1, 0, 0), vel);
         model.quaternion.slerp(tq, Math.min(1, dt * 6));
         const dcam = camera.position.distanceTo(model.position);
-        model.scale.setScalar(Math.min(o.m.orbit === 'LEO' || o.m.orbit === 'Suborbital' ? 0.3 : 0.42, dcam * 0.045) * (model.userData.k ?? 1));
+        model.scale.setScalar(Math.min(o.m.orbit === 'LEO' || o.m.orbit === 'Suborbital' ? 0.3 : 0.42, dcam * (FOLLOW ? 0.16 : 0.045)) * (model.userData.k ?? 1));
         const [fi, why] = firing(o, it); FIRE_TXT = why; SHADOW_NOW = inShadow(it);
         setShade(model, SHADOW_NOW); model.userData.thr.userData.off = !fi; if (ithr) ithr.userData.off = !fi;
         model.userData.thr.userData.update(dt, now / 1000);
@@ -1549,9 +1557,15 @@ function frame(now) {
     }
     if (++declutterK % 4 === 0) declutter(model && model.visible ? model : null);
     updateGround(it, now);
-    hl.visible = !!it;
+    if (FOLLOW && it) {   // keep the camera's offset from the target, move the target with the spacecraft, ease in to a close view over ~1.5 s
+      followT += dt; const off = tmp2.copy(camera.position).sub(controls.target), a = 1 - Math.exp(-dt * 5);
+      controls.target.lerp(it.pos, followT < 1.5 ? a : 1);
+      if (followT < 1.5) off.setLength(off.length() + (0.42 * (model && model.userData.k ? Math.max(1, model.userData.k) : 1) - off.length()) * a);
+      camera.position.copy(controls.target).add(off);
+    } else if (controls.target.lengthSq() > 1e-6) { const off = tmp2.copy(camera.position).sub(controls.target); controls.target.lerp(ORIGIN, 1 - Math.exp(-dt * 3)); if (controls.target.lengthSq() < 1e-5) controls.target.set(0, 0, 0); camera.position.copy(controls.target).add(off); }
+    hl.visible = !!it && !FOLLOW;
     if (it) { hl.position.copy(it.pos); hl.quaternion.copy(camera.quaternion); const k = 1 + 0.35 * Math.sin(now / 260); hl.scale.setScalar(k * camera.position.distanceTo(hl.position) / 9); hl.material.opacity = 0.9 - 0.4 * (k - 0.65); }
-    { const dcur = camera.position.length(); if (Math.abs(dcur - wantDist) > 0.05 && !dragging) camera.position.multiplyScalar(Math.exp(Math.log(wantDist / dcur) * (1 - Math.exp(-dt * 3.5)))); }
+    { const dcur = camera.position.length(); if (!FOLLOW && controls.target.lengthSq() < 1e-5 && Math.abs(dcur - wantDist) > 0.05 && !dragging) camera.position.multiplyScalar(Math.exp(Math.log(wantDist / dcur) * (1 - Math.exp(-dt * 3.5)))); }
     controls.update(); renderer.render(scene, camera);
   } else if (VIEW === 'solar') {
     const o = objs.find(x => x.m.id === S.sel), sel = SC.find(s => s.o === o);
@@ -1560,7 +1574,8 @@ function frame(now) {
     if (solarMs > t1 && sel && sel.o.m.name.startsWith('DART') && DI && !dAuto) { dAuto = true; solarMs = t0; enterImpact(); }   // the replay ends at the impact: switch to the close-up
     if (solarMs > t1 || solarMs < t0) solarMs = t0;          // replay loops over the selected mission (speed: SSPEED days per second)
     $('#v-replay').value = Math.round((solarMs - T_MIN) / (T_MAX - T_MIN) * 1000);
-    for (const b of SB) { interp(b.tr, solarMs, b.mesh.position); b.lab.position.copy(b.mesh.position); b.lab.visible = !b.small || (sel && DEST_OF(sel.o.m).includes(b.name)); }
+    for (const b of SB) { interp(b.tr, solarMs, b.mesh.position); b.lab.position.copy(b.mesh.position);
+      b.mesh.scale.setScalar(FOLLOW && sel && solarMs >= sel.tr.t[0] && solarMs <= sel.tr.t[sel.tr.t.length - 1] ? Math.min(1, Math.max(0.03, b.mesh.position.distanceTo(sel.craft.position) / 0.6)) : 1);   /* planets drawn oversized: shrink them near a followed craft */ b.lab.visible = !b.small || (sel && DEST_OF(sel.o.m).includes(b.name)); }
     for (const s of SC) {
       const on = solarMs >= s.tr.t[0] && solarMs <= s.tr.t[s.tr.t.length - 1] && visible(s.o.m);
       interp(s.tr, solarMs, s.craft.position); interp(s.tr, solarMs + 5 * 86400000, tmp);
@@ -1572,9 +1587,12 @@ function frame(now) {
       s.line.visible = show; s.line.geometry.setDrawRange(0, s === sel ? n : s.dts.length); s.line.material.opacity = s === sel ? 0.95 : 0.16;
       s.ahead.visible = show && s === sel; s.ahead.geometry.setDrawRange(Math.max(0, n - 1), s.dts.length);
     }
+    if (FOLLOW && sel && sel.craft.visible) { followT += dt; const off = tmp2.copy(scam.position).sub(sctl.target), a = 1 - Math.exp(-dt * 5);
+      sctl.target.lerp(sel.craft.position, followT < 1.5 ? a : 1); if (followT < 1.5) off.setLength(off.length() + (1.4 - off.length()) * a); scam.position.copy(sctl.target).add(off);
+    } else if (!FOLLOW && sctl.target.lengthSq() > 1e-6) { const off = tmp2.copy(scam.position).sub(sctl.target); sctl.target.lerp(ORIGIN, 1 - Math.exp(-dt * 3)); scam.position.copy(sctl.target).add(off); }
     if (solarModel) { const on = sel && sel.craft.visible; solarModel.visible = !!on;
       if (on) { sel.craft.visible = false; solarModel.position.copy(sel.craft.position); solarModel.quaternion.copy(sel.craft.quaternion);
-        solarModel.scale.setScalar(Math.min(0.09, scam.position.distanceTo(solarModel.position) * 0.006) * (solarModel.userData.k ?? 1)); solarModel.userData.thr.userData.update(dt, now / 1000); } }
+        solarModel.scale.setScalar(Math.min(FOLLOW ? 0.5 : 0.09, scam.position.distanceTo(solarModel.position) * (FOLLOW ? 0.09 : 0.006)) * (solarModel.userData.k ?? 1)); solarModel.userData.thr.userData.update(dt, now / 1000); } }
     sctl.update(); renderer.render(sscene, scam);
   } else if (DI) stepImpact(dt);
   if (ithr) { ithr.rotation.y = 0.22 * Math.sin(t * 0.35); ithr.rotation.x = 0.1 * Math.sin(t * 0.27); ithr.userData.update(dt, now / 1000); ir.render(iscene, icam); }
