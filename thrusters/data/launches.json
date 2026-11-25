@@ -1,0 +1,1248 @@
+{
+ "note": "Event times (s after liftoff) are copied from the cited press kits / launch kits / flight-sequence tables. Altitude and inertial speed points ('pts': [t s, altitude km, speed km/s]) only where the source prints them; otherwise the ascent path is reconstructed (hI/vI approximate). Burn targets marked 'approx' are display assumptions, not sourced values. 'az' = launch azimuth in degrees (sourced only where azSrc is true).",
+ "launches": [
+  {
+   "id": "ds1",
+   "missions": [
+    "Deep Space 1"
+   ],
+   "vehicle": "delta7326",
+   "vname": "Delta II 7326-9.5",
+   "pad": "Launch Complex 17A, Cape Canaveral Air Station",
+   "lat": 28.4472,
+   "lon": -80.5653,
+   "t0": "1998-10-24T12:08:00Z",
+   "az": 93,
+   "azSrc": false,
+   "ascent": {
+    "tI": 629,
+    "hI": 189,
+    "vI": 7.793,
+    "pts": [
+     [
+      63.1,
+      15.6,
+      0.939
+     ],
+     [
+      66,
+      16.7,
+      0.952
+     ],
+     [
+      264.3,
+      101.7,
+      5.37
+     ],
+     [
+      277.8,
+      111.7,
+      5.367
+     ],
+     [
+      298,
+      125,
+      5.434
+     ],
+     [
+      629,
+      189,
+      7.793
+     ]
+    ]
+   },
+   "burns": [
+    [
+     [
+      "srb0",
+      "srb1",
+      "srb2"
+     ],
+     0,
+     63.1
+    ],
+    [
+     [
+      "s1"
+     ],
+     0,
+     264.3
+    ],
+    [
+     [
+      "s2"
+     ],
+     277.8,
+     629
+    ],
+    [
+     [
+      "s2"
+     ],
+     2771.8,
+     2825,
+     {
+      "apo": 2725.8
+     }
+    ],
+    [
+     [
+      "s3"
+     ],
+     2915,
+     2980,
+     {
+      "c3": 3.0,
+      "approx": true
+     }
+    ]
+   ],
+   "events": [
+    [
+     0,
+     "Liftoff"
+    ],
+    [
+     63.1,
+     "Solid motors burn out (15.6 km)"
+    ],
+    [
+     66,
+     "Solid motors jettisoned",
+     [
+      "srb0",
+      "srb1",
+      "srb2"
+     ]
+    ],
+    [
+     264.3,
+     "Main engine cutoff (MECO), 101.7 km"
+    ],
+    [
+     272,
+     "First stage separates (just after MECO)",
+     [
+      "s1"
+     ]
+    ],
+    [
+     277.8,
+     "Second-stage ignition"
+    ],
+    [
+     298,
+     "Fairing jettison, 125 km",
+     [
+      "fairing"
+     ]
+    ],
+    [
+     629,
+     "Second-stage cutoff #1: 185 km parking orbit, 28.5°"
+    ],
+    [
+     2771.8,
+     "Second-stage restart"
+    ],
+    [
+     2825,
+     "Second-stage cutoff #2: 174.6 × 2725.8 km orbit"
+    ],
+    [
+     2878,
+     "Spun-up third stage separates",
+     [
+      "s2"
+     ]
+    ],
+    [
+     2915,
+     "Third-stage ignition (Star 37FM)"
+    ],
+    [
+     2980,
+     "Third-stage burnout: Earth escape"
+    ],
+    [
+     3206,
+     "Deep Space 1 separates",
+     [
+      "s3"
+     ],
+     "pay"
+    ]
+   ],
+   "sources": [
+    "https://www.jpl.nasa.gov/news/press_kits/ds1launch.pdf"
+   ],
+   "srcLabel": "NASA/JPL Deep Space 1 launch press kit (1998), planned flight profile"
+  },
+  {
+   "id": "dawn",
+   "missions": [
+    "Dawn"
+   ],
+   "vehicle": "delta7925h",
+   "vname": "Delta II 7925H-9.5",
+   "pad": "Launch Complex 17B, Cape Canaveral Air Force Station",
+   "lat": 28.4458,
+   "lon": -80.5657,
+   "t0": "2007-09-27T11:34:00Z",
+   "az": 93,
+   "azSrc": true,
+   "ascent": {
+    "tI": 538.3,
+    "hI": 188.9,
+    "vI": 7.793,
+    "pts": [
+     [
+      80.5,
+      25.61,
+      1.189
+     ],
+     [
+      159.5,
+      72.69,
+      3.288
+     ],
+     [
+      262.5,
+      125.99,
+      6.483
+     ],
+     [
+      276.5,
+      133.12,
+      6.486
+     ],
+     [
+      281,
+      135.31,
+      6.498
+     ],
+     [
+      538.3,
+      188.9,
+      7.793
+     ]
+    ]
+   },
+   "burns": [
+    [
+     [
+      "srb0",
+      "srb1",
+      "srb2",
+      "srb3",
+      "srb4",
+      "srb5"
+     ],
+     0,
+     77.1
+    ],
+    [
+     [
+      "srb6",
+      "srb7",
+      "srb8"
+     ],
+     79,
+     155.8
+    ],
+    [
+     [
+      "s1"
+     ],
+     0,
+     262.5
+    ],
+    [
+     [
+      "s2"
+     ],
+     276.5,
+     538.3
+    ],
+    [
+     [
+      "s2"
+     ],
+     3095,
+     3254.5,
+     {
+      "v": 9.01
+     }
+    ],
+    [
+     [
+      "s3"
+     ],
+     3344.7,
+     3430.7,
+     {
+      "c3": 11.4
+     }
+    ]
+   ],
+   "events": [
+    [
+     0,
+     "Liftoff"
+    ],
+    [
+     77.1,
+     "Six ground-lit solid motors burn out"
+    ],
+    [
+     79,
+     "Three air-lit solid motors ignite"
+    ],
+    [
+     80.5,
+     "Three solid motors jettisoned (25.6 km)",
+     [
+      "srb0",
+      "srb1",
+      "srb2"
+     ]
+    ],
+    [
+     81.5,
+     "Three more solid motors jettisoned",
+     [
+      "srb3",
+      "srb4",
+      "srb5"
+     ]
+    ],
+    [
+     155.8,
+     "Air-lit solid motors burn out"
+    ],
+    [
+     159.5,
+     "Air-lit solid motors jettisoned (72.7 km)",
+     [
+      "srb6",
+      "srb7",
+      "srb8"
+     ]
+    ],
+    [
+     262.5,
+     "Main engine cutoff (MECO), 126 km"
+    ],
+    [
+     271,
+     "Stage I–II separation",
+     [
+      "s1"
+     ]
+    ],
+    [
+     276.5,
+     "Stage II ignition"
+    ],
+    [
+     281,
+     "Fairing jettison, 135 km",
+     [
+      "fairing"
+     ]
+    ],
+    [
+     538.3,
+     "Stage II cutoff (SECO-1): parking orbit"
+    ],
+    [
+     3095,
+     "Stage II restart"
+    ],
+    [
+     3254.5,
+     "SECO-2 (184 km, 9.01 km/s)"
+    ],
+    [
+     3307.7,
+     "Spun-up stage III separates",
+     [
+      "s2"
+     ]
+    ],
+    [
+     3344.7,
+     "Stage III ignition (Star 48)"
+    ],
+    [
+     3430.7,
+     "Stage III burnout: C3 = 11.4 km²/s²"
+    ],
+    [
+     3720.8,
+     "Dawn separates",
+     [
+      "s3"
+     ],
+     "pay"
+    ]
+   ],
+   "sources": [
+    "https://www.ulalaunch.com/docs/default-source/news-items/dii_dawn_mob.pdf"
+   ],
+   "srcLabel": "ULA Delta II Dawn mission overview booklet (2007), flight profile for 26 Sep – 9 Oct"
+  },
+  {
+   "id": "psyche",
+   "missions": [
+    "NASA Psyche"
+   ],
+   "vehicle": "falconheavy",
+   "vname": "Falcon Heavy",
+   "pad": "Launch Complex 39A, Kennedy Space Center",
+   "lat": 28.6082,
+   "lon": -80.6041,
+   "t0": "2023-10-13T14:19:43Z",
+   "az": 90,
+   "azSrc": false,
+   "ascent": {
+    "tI": 506,
+    "hI": 200,
+    "vI": 7.78
+   },
+   "burns": [
+    [
+     [
+      "side0",
+      "side1"
+     ],
+     0,
+     145
+    ],
+    [
+     [
+      "s1"
+     ],
+     0,
+     235
+    ],
+    [
+     [
+      "s2"
+     ],
+     244,
+     506
+    ],
+    [
+     [
+      "s2"
+     ],
+     3240,
+     3372,
+     {
+      "c3": 20,
+      "approx": true
+     }
+    ]
+   ],
+   "events": [
+    [
+     0,
+     "Liftoff"
+    ],
+    [
+     69,
+     "Max Q"
+    ],
+    [
+     145,
+     "Side boosters cut off (BECO)"
+    ],
+    [
+     148,
+     "Side boosters separate",
+     [
+      "side0",
+      "side1"
+     ]
+    ],
+    [
+     160,
+     "Side boosters start boostback burns"
+    ],
+    [
+     235,
+     "Centre core cutoff (MECO)"
+    ],
+    [
+     239,
+     "Stage separation",
+     [
+      "s1"
+     ]
+    ],
+    [
+     244,
+     "Second-stage ignition"
+    ],
+    [
+     264,
+     "Fairing deployed",
+     [
+      "fairing"
+     ]
+    ],
+    [
+     497,
+     "Side boosters land at Cape Canaveral"
+    ],
+    [
+     506,
+     "Second-stage cutoff (SECO-1)"
+    ],
+    [
+     3240,
+     "Second-stage restart (SES-2)"
+    ],
+    [
+     3372,
+     "SECO-2: Earth escape"
+    ],
+    [
+     3744,
+     "Psyche deploys",
+     [
+      "s2"
+     ],
+     "pay"
+    ]
+   ],
+   "sources": [
+    "https://science.nasa.gov/blogs/psyche/2023/10/13/key-milestones-for-todays-psyche-launch"
+   ],
+   "srcLabel": "NASA Psyche launch blog, ascent milestones (approximate times)",
+   "video": [
+    {
+     "url": "https://www.jpl.nasa.gov/videos/psyche-mission-launches-from-kennedy-space-center-highlights/",
+     "label": "Launch highlights (NASA/JPL)"
+    }
+   ]
+  },
+  {
+   "id": "dart",
+   "missions": [
+    "DART"
+   ],
+   "vehicle": "falcon9",
+   "vname": "Falcon 9 Block 5",
+   "pad": "Space Launch Complex 4E, Vandenberg Space Force Base",
+   "lat": 34.6321,
+   "lon": -120.6106,
+   "t0": "2021-11-24T06:21:02Z",
+   "az": 195,
+   "azSrc": false,
+   "ascent": {
+    "tI": 486,
+    "hI": 200,
+    "vI": 7.78
+   },
+   "burns": [
+    [
+     [
+      "s1"
+     ],
+     0,
+     153
+    ],
+    [
+     [
+      "s2"
+     ],
+     164,
+     486
+    ],
+    [
+     [
+      "s2"
+     ],
+     1717,
+     1770,
+     {
+      "c3": 6,
+      "approx": true
+     }
+    ]
+   ],
+   "events": [
+    [
+     0,
+     "Liftoff"
+    ],
+    [
+     72,
+     "Max Q"
+    ],
+    [
+     153,
+     "Main engine cutoff (MECO)"
+    ],
+    [
+     156,
+     "Stage separation",
+     [
+      "s1"
+     ]
+    ],
+    [
+     164,
+     "Second-stage ignition"
+    ],
+    [
+     191,
+     "Fairing jettison",
+     [
+      "fairing"
+     ]
+    ],
+    [
+     400,
+     "First stage entry burn"
+    ],
+    [
+     486,
+     "Second-stage cutoff (SECO-1)"
+    ],
+    [
+     532,
+     "First stage lands"
+    ],
+    [
+     1717,
+     "Second-stage restart"
+    ],
+    [
+     1770,
+     "SECO-2: Earth escape"
+    ],
+    [
+     3340,
+     "DART separates",
+     [
+      "s2"
+     ],
+     "pay"
+    ]
+   ],
+   "sources": [
+    "https://spaceflightnow.com/2021/11/23/falcon-9-launch-timeline-with-dart/",
+    "https://science.nasa.gov/blogs/dart/2021/11/24/dart-launch-and-separation-events/"
+   ],
+   "srcLabel": "Spaceflight Now launch timeline (pre-launch) + NASA DART blog",
+   "video": [
+    {
+     "url": "https://www.spacex.com/launches/dart",
+     "label": "SpaceX DART mission page"
+    }
+   ]
+  },
+  {
+   "id": "abs3a",
+   "missions": [
+    "Boeing 702SP all-electric satellites"
+   ],
+   "member": "ABS-3A",
+   "vehicle": "falcon9v11",
+   "vname": "Falcon 9 v1.1",
+   "pad": "Space Launch Complex 40, Cape Canaveral Air Force Station",
+   "lat": 28.5619,
+   "lon": -80.5772,
+   "t0": "2015-03-02T03:50:00Z",
+   "az": 90,
+   "azSrc": false,
+   "ascent": {
+    "tI": 530,
+    "hI": 200,
+    "vI": 7.78
+   },
+   "burns": [
+    [
+     [
+      "s1"
+     ],
+     0,
+     176
+    ],
+    [
+     [
+      "s2"
+     ],
+     186,
+     530
+    ],
+    [
+     [
+      "s2"
+     ],
+     1542,
+     1601,
+     {
+      "apo": 63000
+     }
+    ]
+   ],
+   "events": [
+    [
+     0,
+     "Liftoff"
+    ],
+    [
+     84,
+     "Max Q"
+    ],
+    [
+     176,
+     "Main engine cutoff (MECO)"
+    ],
+    [
+     178,
+     "Stage separation",
+     [
+      "s1"
+     ]
+    ],
+    [
+     186,
+     "Second-stage ignition"
+    ],
+    [
+     231,
+     "Fairing jettison",
+     [
+      "fairing"
+     ]
+    ],
+    [
+     530,
+     "Second-stage cutoff (SECO-1)"
+    ],
+    [
+     1542,
+     "Second-stage restart"
+    ],
+    [
+     1601,
+     "SECO-2: supersynchronous transfer orbit, 400 × 63,000 km"
+    ],
+    [
+     1808,
+     "ABS-3A separates",
+     [
+      "s2"
+     ],
+     "pay"
+    ],
+    [
+     2108,
+     "Eutelsat 115 West B separates"
+    ]
+   ],
+   "sources": [
+    "https://spaceflightnow.com/2015/02/28/falcon-9-launch-timeline-with-eutelsat-115-west-b-and-abs-3a/"
+   ],
+   "srcLabel": "Spaceflight Now launch timeline (pre-launch)"
+  },
+  {
+   "id": "hayabusa2",
+   "missions": [
+    "Hayabusa2",
+    "PROCYON"
+   ],
+   "vehicle": "h2a202",
+   "vname": "H-IIA 202 (F26)",
+   "pad": "Yoshinobu Launch Complex, Tanegashima Space Center",
+   "lat": 30.4009,
+   "lon": 130.9775,
+   "t0": "2014-12-03T04:22:04Z",
+   "az": 99,
+   "azSrc": false,
+   "ascent": {
+    "tI": 680,
+    "hI": 250,
+    "vI": 7.75
+   },
+   "burns": [
+    [
+     [
+      "srb0",
+      "srb1"
+     ],
+     0,
+     93
+    ],
+    [
+     [
+      "s1"
+     ],
+     0,
+     396
+    ],
+    [
+     [
+      "s2"
+     ],
+     414,
+     680
+    ],
+    [
+     [
+      "s2"
+     ],
+     5966,
+     6211,
+     {
+      "c3": 21,
+      "approx": true
+     }
+    ]
+   ],
+   "events": [
+    [
+     0,
+     "Liftoff"
+    ],
+    [
+     93,
+     "SRB-A burnout"
+    ],
+    [
+     107,
+     "SRB-A jettison",
+     [
+      "srb0",
+      "srb1"
+     ]
+    ],
+    [
+     251,
+     "Payload fairing jettison",
+     [
+      "fairing"
+     ]
+    ],
+    [
+     396,
+     "First-stage cutoff (MECO)"
+    ],
+    [
+     404,
+     "First/second stage separation",
+     [
+      "s1"
+     ]
+    ],
+    [
+     414,
+     "Second-stage ignition (SELI1)"
+    ],
+    [
+     680,
+     "Second-stage cutoff (SECO1)"
+    ],
+    [
+     5966,
+     "Second-stage restart (SELI2)"
+    ],
+    [
+     6211,
+     "SECO2: Earth escape"
+    ],
+    [
+     6441,
+     "Hayabusa2 separates",
+     [
+      "s2"
+     ],
+     "pay:Hayabusa2"
+    ],
+    [
+     6841,
+     "Shin-en 2 separates"
+    ],
+    [
+     7091,
+     "ARTSAT2-DESPATCH separates"
+    ],
+    [
+     7341,
+     "PROCYON separates",
+     [
+      "s2"
+     ],
+     "pay:PROCYON"
+    ]
+   ],
+   "sources": [
+    "https://www.mhi.com/notice/pdf/notice_20141203.pdf",
+    "https://global.jaxa.jp/press/2014/12/20141203_h2af26.html"
+   ],
+   "srcLabel": "MHI H-IIA F26 flight sequence (quick estimation of actual values)",
+   "video": [
+    {
+     "url": "https://www.planetary.org/video/hayabusa-2-fairing-separation",
+     "label": "On-board camera: fairing separation (JAXA)"
+    },
+    {
+     "url": "https://www.planetary.org/video/hayabusa-2-spacecraft-separation",
+     "label": "On-board camera: Hayabusa2 separation (JAXA)"
+    }
+   ]
+  },
+  {
+   "id": "bepi",
+   "missions": [
+    "BepiColombo"
+   ],
+   "vehicle": "ariane5eca",
+   "vname": "Ariane 5 ECA (VA245)",
+   "pad": "ELA-3, Guiana Space Centre, Kourou",
+   "lat": 5.239,
+   "lon": -52.7685,
+   "t0": "2018-10-20T01:45:28Z",
+   "az": 93,
+   "azSrc": false,
+   "ascent": {
+    "tI": 509.7,
+    "hI": 170,
+    "vI": 6.9
+   },
+   "burns": [
+    [
+     [
+      "eap0",
+      "eap1"
+     ],
+     0,
+     132
+    ],
+    [
+     [
+      "s1"
+     ],
+     0,
+     509.7
+    ],
+    [
+     [
+      "s2"
+     ],
+     519.7,
+     1470.7,
+     {
+      "c3": 12.08
+     }
+    ]
+   ],
+   "events": [
+    [
+     0,
+     "Liftoff"
+    ],
+    [
+     5,
+     "Vertical climb ends, pitch towards the east"
+    ],
+    [
+     133.7,
+     "Solid boosters (EAP) separate",
+     [
+      "eap0",
+      "eap1"
+     ]
+    ],
+    [
+     181.7,
+     "Fairing jettison",
+     [
+      "fairing"
+     ]
+    ],
+    [
+     509.7,
+     "End of main-stage (EPC) thrust"
+    ],
+    [
+     515.7,
+     "Main stage separates",
+     [
+      "s1"
+     ]
+    ],
+    [
+     519.7,
+     "ESC-A upper stage ignition"
+    ],
+    [
+     1470.7,
+     "Injection: escape, v∞ = 3,475 m/s, 1,449 km altitude"
+    ],
+    [
+     1599.7,
+     "BepiColombo separates",
+     [
+      "s2"
+     ],
+     "pay"
+    ]
+   ],
+   "sources": [
+    "https://www.esa.int/Science_Exploration/Space_Science/BepiColombo/BepiColombo_blasts_off_to_investigate_Mercury_s_mysteries"
+   ],
+   "srcLabel": "Arianespace VA245 launch kit, flight sequence (H0 times shifted to liftoff = H0 + 7.3 s)",
+   "video": [
+    {
+     "url": "https://www.esa.int/ESA_Multimedia/Videos/2018/10/BepiColombo_liftoff",
+     "label": "BepiColombo liftoff (ESA)"
+    }
+   ]
+  },
+  {
+   "id": "smart1",
+   "missions": [
+    "SMART-1"
+   ],
+   "vehicle": "ariane5g",
+   "vname": "Ariane 5G (V162)",
+   "pad": "ELA-3, Guiana Space Centre, Kourou",
+   "lat": 5.239,
+   "lon": -52.7685,
+   "t0": "2003-09-27T23:14:00Z",
+   "az": 90,
+   "azSrc": false,
+   "ascent": {
+    "tI": 583.7,
+    "hI": 160,
+    "vI": 6.8
+   },
+   "burns": [
+    [
+     [
+      "eap0",
+      "eap1"
+     ],
+     0,
+     130
+    ],
+    [
+     [
+      "s1"
+     ],
+     0,
+     583.7
+    ],
+    [
+     [
+      "s2"
+     ],
+     596.7,
+     1608.7,
+     {
+      "apo": 35786
+     }
+    ]
+   ],
+   "events": [
+    [
+     0,
+     "Liftoff"
+    ],
+    [
+     133.7,
+     "Solid boosters (EAP) separate",
+     [
+      "eap0",
+      "eap1"
+     ]
+    ],
+    [
+     182.7,
+     "Fairing jettison",
+     [
+      "fairing"
+     ]
+    ],
+    [
+     583.7,
+     "Main cryogenic stage (EPC) shuts down"
+    ],
+    [
+     590,
+     "Main stage separates",
+     [
+      "s1"
+     ]
+    ],
+    [
+     596.7,
+     "Storable-propellant upper stage (EPS) ignites"
+    ],
+    [
+     1608.7,
+     "EPS shutdown: 650 × 35,786 km transfer orbit, 7°"
+    ],
+    [
+     1733.7,
+     "Insat 3E separates"
+    ],
+    [
+     1955.7,
+     "Sylda 5 dispenser separates"
+    ],
+    [
+     2049.7,
+     "e-Bird separates"
+    ],
+    [
+     2492.7,
+     "SMART-1 separates",
+     [
+      "s2"
+     ],
+     "pay"
+    ]
+   ],
+   "sources": [
+    "https://spaceflightnow.com/ariane/v162/030924ascent.html",
+    "https://www.esa.int/Science_Exploration/Space_Science/Exploring_space/SMART-1_sets_off_for_the_Moon"
+   ],
+   "srcLabel": "Spaceflight Now V162 ascent timeline (Arianespace data; H0 times shifted to liftoff)",
+   "video": [
+    {
+     "url": "https://www.esa.int/ESA_Multimedia/Images/2003/09/SMART-1_lift_off",
+     "label": "SMART-1 lift-off photo (ESA)"
+    }
+   ]
+  },
+  {
+   "id": "goce",
+   "missions": [
+    "GOCE"
+   ],
+   "vehicle": "rockot",
+   "vname": "Rockot / Breeze-KM",
+   "pad": "Plesetsk Cosmodrome",
+   "lat": 62.887,
+   "lon": 40.847,
+   "t0": "2009-03-17T14:21:00Z",
+   "az": 345,
+   "azSrc": false,
+   "ascent": {
+    "tI": 284,
+    "hI": 190,
+    "vI": 6.4
+   },
+   "burns": [
+    [
+     [
+      "s1"
+     ],
+     0,
+     122
+    ],
+    [
+     [
+      "s2"
+     ],
+     122,
+     284
+    ],
+    [
+     [
+      "s3"
+     ],
+     311,
+     858,
+     {
+      "apo": 290,
+      "approx": true
+     }
+    ],
+    [
+     [
+      "s3"
+     ],
+     4690,
+     4703,
+     {
+      "circ": true
+     }
+    ]
+   ],
+   "events": [
+    [
+     0,
+     "Liftoff"
+    ],
+    [
+     122,
+     "First/second stage separation",
+     [
+      "s1"
+     ]
+    ],
+    [
+     170,
+     "Fairing jettison",
+     [
+      "fairing"
+     ]
+    ],
+    [
+     284,
+     "Second-stage cutoff"
+    ],
+    [
+     305,
+     "Second stage separates",
+     [
+      "s2"
+     ]
+    ],
+    [
+     311,
+     "Breeze-KM first burn"
+    ],
+    [
+     858,
+     "End of first Breeze burn"
+    ],
+    [
+     4690,
+     "Second Breeze burn"
+    ],
+    [
+     4703,
+     "Breeze cutoff: ~280 km circular polar orbit, 96.7°"
+    ],
+    [
+     5366,
+     "GOCE separation command",
+     [
+      "s3"
+     ],
+     "pay"
+    ]
+   ],
+   "sources": [
+    "https://www.esa.int/Enabling_Support/Operations/GOCE_timeline_for_16_March_2009",
+    "https://www.esa.int/Newsroom/Press_Releases/ESA_launches_Earth_Explorer_mission_GOCE"
+   ],
+   "srcLabel": "ESA GOCE timeline (planned for 16 March; flown 17 March, times shifted to liftoff)",
+   "video": [
+    {
+     "url": "https://www.esa.int/ESA_Multimedia/Videos/2009/03/GOCE_liftoff",
+     "label": "GOCE liftoff (ESA)"
+    }
+   ]
+  }
+ ]
+}

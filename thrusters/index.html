@@ -96,6 +96,20 @@ h1 { margin: 8px 0 0; font-size: 26px; letter-spacing: -.025em; }
 .clpop li button { display: block; width: 100%; text-align: left; border: 0; background: none; color: inherit; font: 12.5px var(--font); padding: 6px 8px; border-radius: 7px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .clpop li button:hover { background: rgba(255,255,255,.1); } .clpop li i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px; vertical-align: 0; }
 .clpop li small { display: block; color: #98989d; font-size: 11px; margin-left: 15px; overflow: hidden; text-overflow: ellipsis; }
+.lpanel { position: absolute; right: 12px; top: 12px; width: 290px; max-height: calc(100% - 120px); display: flex; flex-direction: column; border-radius: 12px; overflow: hidden;
+  background: rgba(20,24,36,.72); border: 1px solid rgba(255,255,255,.12); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: #e8eaf2; font-size: 12px; }
+.lpanel .lph { padding: 9px 12px 7px; border-bottom: 1px solid rgba(255,255,255,.1); } .lpanel .lph b { display: block; font-size: 13px; } .lpanel .lph span { color: #98989d; font-size: 11px; }
+.lpanel ol { list-style: none; margin: 0; padding: 4px; overflow-y: auto; flex: 1; }
+.lpanel li button { display: flex; gap: 8px; width: 100%; text-align: left; border: 0; background: none; color: #aeb6c8; font: 12px var(--font); padding: 4px 8px; border-radius: 7px; cursor: pointer; }
+.lpanel li button i { font-style: normal; font-variant-numeric: tabular-nums; color: #7d8494; min-width: 62px; } .lpanel li.done button { color: #d8dce6; }
+.lpanel li.on button { background: rgba(10,132,255,.28); color: #fff; } .lpanel li button:hover { background: rgba(255,255,255,.08); }
+.lpanel .lpf, .lpanel .lpv { margin: 0; padding: 6px 12px 8px; color: #98989d; font-size: 10.5px; line-height: 1.45; border-top: 1px solid rgba(255,255,255,.08); }
+.lpanel a { color: #6cb4ff; text-decoration: none; } .lpanel .lpv a { display: block; font-size: 12px; padding: 2px 0; }
+.lbar input { width: 260px; }
+@media (max-width: 860px) { .lpanel { display: none; } .lbar input { width: 110px; } }
+.lnch { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin: 10px 0 2px; padding: 9px 12px; border-radius: 10px; background: var(--accent-soft); font-size: 12.5px; }
+.lnch div { flex: 1 1 100%; } .lnch .lgo { border: 0; border-radius: 980px; background: var(--accent); color: #fff; font: 600 12px var(--font); padding: 5px 12px; cursor: pointer; }
+.lnch a { color: var(--accent); font-size: 12px; text-decoration: none; } .lnch small { flex: 1 1 100%; color: var(--muted); font-size: 11px; }
 .tip { position: absolute; pointer-events: none; background: rgba(20,22,30,.9); color: #fff; font-size: 12px; padding: 5px 8px; border-radius: 7px; transform: translate(12px, -50%); white-space: nowrap; }
 .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--sep); padding: 16px 18px; margin-top: 14px; }
 .card h2 { margin: 0; font-size: 19px; letter-spacing: -.02em; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -179,7 +193,7 @@ td.ck { text-align: center; } td.ck input { accent-color: var(--cmpc); cursor: p
       <div class="inset" id="inset"><span id="inset-l"></span><img id="draco" alt="" hidden><span id="draco-cap" hidden></span></div>
       <div class="vbox" id="vbox" hidden><div><video id="vbox-v" controls playsinline preload="none" poster="vendor/dart_replay_poster.jpg" src="vendor/dart_replay.mp4"></video><p>DART’s final 5.5 minutes as streamed from its DRACO camera (replay 10× faster than real time, except the last six images). Credit: NASA/Johns Hopkins APL. Images as on the detector (mirror-flipped).</p><button id="vbox-x" aria-label="Close">×</button></div></div>
       <div class="vbar">
-        <div class="vseg" id="v-view"><button data-v="earth" aria-pressed="true">Earth</button><button data-v="solar" aria-pressed="false">Solar system</button></div>
+        <div class="vseg" id="v-view"><button data-v="earth" aria-pressed="true">Earth</button><button data-v="solar" aria-pressed="false">Solar system</button><button data-v="launch" aria-pressed="false" hidden>Launch</button></div>
         <div class="vseg" id="v-scale"><button data-p="overview" aria-pressed="true">Overview</button><button data-p="leo" aria-pressed="false">True scale: LEO</button><button data-p="geo" aria-pressed="false">GEO</button><button data-p="moon" aria-pressed="false">Moon</button></div>
         <div class="vseg" id="v-fire"><button data-f="always" aria-pressed="true">Plumes always on</button><button data-f="schedule" aria-pressed="false">Firing schedule</button></div>
         <div class="vseg" id="v-gt"><button aria-pressed="true">Ground track</button></div>
@@ -230,6 +244,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
 import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
 import { DRACOLoader } from './vendor/loaders/DRACOLoader.js';
 import { mergeGeometries } from './vendor/utils/BufferGeometryUtils.js';
+import { setupLaunch } from './launch.js?v=14';
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const [M, MOD] = await Promise.all(['missions', 'models'].map(n => fetch('data/' + n + '.json').then(r => r.json())));
@@ -938,8 +953,8 @@ function realCopy(k, sc) { const c = REAL[k], r = sc.clone(true), w = new THREE.
   if (k === 'DART') r.traverse(o => { if (o.isMesh) { o.geometry.computeVertexNormals(); o.material = new THREE.MeshStandardMaterial({ color: 0xc8cbd2, metalness: 0.35, roughness: 0.5, side: THREE.DoubleSide }); } });
   return w; }
 // detailed model of a mission: its own shape when known, else the generic bus
-function craftModel(m, type, col, hz) {
-  const k = Object.keys(SHAPES).find(n => m && m.name.startsWith(n)), rk = realKey(m);
+function craftModel(m, type, col, hz, noReal = false) {
+  const k = Object.keys(SHAPES).find(n => m && m.name.startsWith(n)), rk = noReal && k ? null : realKey(m);
   if (!k && !rk) { const g = spacecraft(type, col, hz, busClass(m), /^ATS-[24]/.test(m.name)); g.userData.cls = busClass(m); g.userData.booms = /^ATS-[24]/.test(m.name); return g; }
   let s, o;
   if (k) { s = new THREE.Group(); o = SHAPES[k](s); if (FIXED_ARRAYS.has(k)) s.traverse(c => { c.userData.sadm = false; }); } else { s = spacecraft(type, col, hz); s.remove(s.userData.thr); o = { x: -0.17, scale: 1 }; }
@@ -1527,8 +1542,10 @@ function select(id) {
   }
   if (!md.length) html += `<p class="fine">No parameter record: the exact thruster model is not confirmed in the sources, or no citable parameter set was found for it.</p>`;
   html += `<h3>Mission sources</h3><ol class="src">${(m.sources || []).map(u => `<li><a href="${esc(u)}" target="_blank" rel="noopener">${esc(u)}</a></li>`).join('')}</ol>`;
+  { const Lx = LAUNCH.info(m); $('#v-view [data-v=launch]').hidden = !Lx;
+    if (Lx) html = html.replace(/(<div class="kv">)/, `<div class="lnch"><div><b>Launch</b> ${esc(Lx.vname)} · ${esc(Lx.pad)} · ${esc(Lx.t0.slice(0, 16).replace('T', ' '))} UTC</div><button class="lgo">▶ Watch the launch</button>${(Lx.video || []).map(v => `<a href="${esc(v.url)}" target="_blank" rel="noopener">${esc(v.label)} ›</a>`).join('')}<small>Event times: <a href="${esc(Lx.sources[0])}" target="_blank" rel="noopener">${esc(Lx.srcLabel)}</a>; path reconstructed from them.</small></div>$1`); }
   if (isDSNcraft(m)) html = html.replace('</h2>', '</h2><p class="live" id="dsn-live"></p>');
-  $('#detail').innerHTML = html; renderLive(); $$('#detail .cmpb').forEach(b => b.onclick = () => { toggleCmp(b.dataset.k); b.textContent = CMP.has(b.dataset.k) ? 'In compare ✓' : 'Compare'; });
+  $('#detail').innerHTML = html; renderLive(); { const g = $('#detail .lgo'); if (g) g.onclick = () => { setView('launch'); $('#stage').scrollIntoView({ behavior: 'smooth', block: 'start' }); }; } $$('#detail .cmpb').forEach(b => b.onclick = () => { toggleCmp(b.dataset.k); b.textContent = CMP.has(b.dataset.k) ? 'In compare ✓' : 'Compare'; });
 }
 
 // ---------- models table ----------
@@ -1652,7 +1669,7 @@ addEventListener('resize', insetSize); insetSize();
 
 // ---------- picking / hover ----------
 const ray = new THREE.Raycaster(), mouse = new THREE.Vector2(); ray.params.Points = { threshold: 0.05 };
-const curPick = () => VIEW === 'earth' ? pick.filter(p => p.visible && !p.userData.it.clHidden) : spick.filter(p => p.visible);
+const curPick = () => VIEW === 'launch' || VIEW === 'impact' ? [] : VIEW === 'earth' ? pick.filter(p => p.visible && !p.userData.it.clHidden) : spick.filter(p => p.visible);
 renderer.domElement.addEventListener('pointermove', e => {
   const r = renderer.domElement.getBoundingClientRect(); mouse.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
   ray.setFromCamera(mouse, VIEW === 'earth' ? camera : scam); const hit = ray.intersectObjects(curPick())[0];
@@ -1665,10 +1682,13 @@ renderer.domElement.addEventListener('click', () => { ray.setFromCamera(mouse, V
 
 // ---------- view, scale and time controls ----------
 function setView(v) {
-  VIEW = v; closeCluster(); controls.enabled = v === 'earth'; sctl.enabled = v === 'solar'; dctl.enabled = false; $('#v-dart').hidden = true; setDraco(0); closeVbox();
+  if (VIEW === 'launch' && v !== 'launch') LAUNCH.exit();
+  if (v === 'launch' && FOLLOW) follow(false);
+  VIEW = v; closeCluster(); controls.enabled = v === 'earth' || v === 'launch'; sctl.enabled = v === 'solar'; dctl.enabled = false; $('#v-dart').hidden = true; setDraco(0); closeVbox();
   $$('#v-view button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v));
-  $('#v-scale').hidden = $('#v-speed').hidden = $('#v-fire').hidden = $('#v-gt').hidden = v !== 'earth'; $('#v-follow').hidden = v === 'impact'; $('#v-solar').hidden = $('#v-ss').hidden = v !== 'solar';
-  $('#inset').hidden = false;
+  $('#v-scale').hidden = $('#v-speed').hidden = $('#v-fire').hidden = $('#v-gt').hidden = v !== 'earth'; $('#v-follow').hidden = v === 'impact' || v === 'launch'; $('#v-solar').hidden = $('#v-ss').hidden = v !== 'solar';
+  $('#inset').hidden = v === 'launch';
+  if (v === 'launch' && !LAUNCH.enter(ms.find(x => x.id === S.sel))) setView('earth');
 }
 function setScale(mode, dist) {
   TRUE_SCALE = mode === 'true'; rebuildGuides(); wantDist = dist;
@@ -1695,6 +1715,20 @@ $$('#v-speed button[data-s]').forEach(b => b.onclick = () => { SPEED = +b.datase
 function syncNow() { simMs = Date.now(); lastGuide = 0; gtT = 0; }
 $('#v-now').onclick = syncNow;
 $('#v-replay').oninput = e => { solarMs = T_MIN + (T_MAX - T_MIN) * e.target.value / 1000; };
+
+// ---------- launch replay (launch.js + data/launches.json) ----------
+function envAt(ms) {   // Earth rotation, Sun direction and light at time ms (shared by the launch view)
+  earth.rotation.y = gmst(ms); clouds.rotation.y = (ms / 86400000 * 0.02) % 6.283;
+  sunECI(ms, sv); SUN_ECI.copy(sv).normalize(); toScene(sv.x, sv.y, sv.z, SUN_DIR).normalize();
+  sun.position.copy(SUN_DIR).multiplyScalar(30); earthMat.uniforms.sunDir.value.copy(SUN_DIR);
+  sunCorona.position.copy(SUN_DIR).multiplyScalar(3000); sunDisc.position.copy(SUN_DIR).multiplyScalar(3000);
+}
+const LDATA = await fetch('data/launches.json').then(r => r.json()).catch(() => ({ launches: [] }));
+const STARS = scene.children.find(c => c.isPoints);
+const LAUNCH = setupLaunch({ scene, camera, controls, renderer, stage, earth, earthMesh, clouds, stars: STARS, atmo: earth.children[2], keep: [earth, STARS, sunCorona, sunDisc],
+  RE, MU, gmst, envAt, SUN_DIR, studioEnv, sadmList, sunTrack, data: LDATA, dayMap: () => earthMat.uniforms.dayMap.value, view: () => VIEW,
+  payloadModel: m => craftModel(m, visOf(m), propColor(m), pulseHz(m), true) });   // folded arrays need the simplified shape, not the official model
+$('#v-view [data-v=launch]').onclick = () => setView('launch');
 
 // ---------- loop ----------
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1801,14 +1835,15 @@ function frame(now) {
       if (on) { sel.craft.visible = false; solarModel.position.copy(sel.craft.position); solarModel.quaternion.copy(sel.craft.quaternion);
         solarModel.scale.setScalar(Math.min(FOLLOW ? 0.5 : 0.09, scam.position.distanceTo(solarModel.position) * (FOLLOW ? 0.09 : 0.006)) * (solarModel.userData.k ?? 1)); solarModel.userData.thr.userData.update(dt, now / 1000); sunTrack(solarModel.userData.sadmL ??= sadmList(solarModel), tmp3.copy(solarModel.position).negate().normalize()); } }
     sctl.update(); renderer.render(sscene, scam);
-  } else if (DI) stepImpact(dt);
+  } else if (VIEW === 'launch') { LAUNCH.step(dt, now); if (clBadges.some(b => !b.hidden)) placeBadges(); }
+  else if (DI) stepImpact(dt);
   if (ithr) { ithr.rotation.y = 0.22 * Math.sin(t * 0.35); ithr.rotation.x = 0.1 * Math.sin(t * 0.27); ithr.userData.update(dt, now / 1000); ir.render(iscene, icam); }
   const m = S.sel != null ? ms.find(x => x.id === S.sel) : null, dk = m && Object.keys(DEST).find(n => m.name.startsWith(n));
   const sc = m && SC.find(s => s.o.m === m);
-  $('#hud').innerHTML = VIEW === 'impact' ? impactHUD() : (m ? `<b>${flag(m.country)} ${esc(m.name)}</b><br>${esc(m.thruster)} · ${esc(m.orbit)}${dk ? ' → ' + esc(DEST[dk]) : ''} · ${esc(m.launch)}<br>` : '') +
+  $('#hud').innerHTML = VIEW === 'launch' ? LAUNCH.hud() : VIEW === 'impact' ? impactHUD() : (m ? `<b>${flag(m.country)} ${esc(m.name)}</b><br>${esc(m.thruster)} · ${esc(m.orbit)}${dk ? ' → ' + esc(DEST[dk]) : ''} · ${esc(m.launch)}<br>` : '') +
     (VIEW === 'earth' ? `<span class="clk">${fmtUTC(simMs)} · ×${SPEED}</span>${m && m.orbit !== 'Deep space' ? ` · <span class="clk">${({ live: 'real position (CelesTrak elements)', catalogue: 'catalogued orbit', representative: 'representative orbit' })[objs.find(x => x.m === m).orbitSource]}${objs.find(x => x.m === m).reentered ? ', not in orbit since ' + objs.find(x => x.m === m).reentered.slice(0, 10) : ''}</span>` : ''}`
       : `<span class="clk">${new Date(solarMs).toISOString().slice(0, 10)} · JPL Horizons trajectory${sc ? '' : ' (none available for this mission)'}${sc && sc.note ? ' · ' + esc(sc.note) : ''}</span>`);
-  if (m && VIEW !== 'impact') { const ex = []; const L_ = dsnOf(m); if (L_) ex.push(`📡 live DSN contact: ${L_[0].site} ${L_[0].dish}`);
+  if (m && VIEW !== 'impact' && VIEW !== 'launch') { const ex = []; const L_ = dsnOf(m); if (L_) ex.push(`📡 live DSN contact: ${L_[0].site} ${L_[0].dish}`);
     if (VIEW === 'earth' && m.orbit !== 'Deep space') { if (SHADOW_NOW) ex.push('in the Earth\u2019s shadow'); if (FIRE === 'schedule' && FIRE_TXT) ex.push(FIRE_TXT + ' (illustrative schedule)'); }
     const cm = VIEW === 'solar' ? solarModel : model; if (shapeKey(m) && cm && (VIEW === 'solar' || m.orbit !== 'Deep space')) ex.push(cm.userData.real === 'generic' ? 'generic CubeSat (NASA 3D Resources), not this mission\u2019s own design' : cm.userData.real ? 'NASA 3D model (NASA 3D Resources)' : 'simplified spacecraft shape');
     else if (cm && cm.userData.cls && VIEW === 'earth' && m.orbit !== 'Deep space') ex.push(cm.userData.booms ? 'drum with gravity-gradient booms (representative, not the exact shape)' : 'representative ' + ({ geo: 'GEO comsat', flat: 'flat-pack constellation', spin: 'early drum-shaped (body-mounted cells)', station: 'station module', leo: 'small-satellite', cube: 'CubeSat' })[cm.userData.cls] + ' bus, not the exact shape');
