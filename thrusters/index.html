@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Electric Propulsion in Space: Flown Ion &amp; Hall Thrusters — Bharat Singh Rawat</title>
-<meta name="description" content="An interactive atlas of every gridded-ion and Hall-effect thruster that has flown in space, mission by mission, on an animated Earth: orbit, country, launch year, thruster model and its key parameters (specific impulse, thrust, power, beam and discharge voltage and current), each with sources.">
+<title>Electric Propulsion in Space: Every Flown Electric Thruster — Bharat Singh Rawat</title>
+<meta name="description" content="An interactive atlas of the electric thrusters that have flown in space (gridded ion, Hall, resistojet and arcjet, FEEP and electrospray, pulsed plasma and vacuum arc, HEMPT and RF plasma), mission by mission, on an animated Earth: orbit, country, launch year, thruster model and its key parameters (specific impulse, thrust, power, beam and discharge voltage and current), each with sources.">
 <link rel="canonical" href="https://bharat-singh-rawat.github.io/CV/thrusters/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%235e5ce6'/%3E%3Ccircle cx='16' cy='16' r='7' fill='none' stroke='white' stroke-width='2.4'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='white'/%3E%3C/svg%3E">
 <script>
@@ -110,7 +110,7 @@ table.models tr:hover td { background: var(--input); } .tblwrap { max-height: 42
 <div class="window">
   <aside class="sidebar">
     <div class="traffic"><span></span><span></span><span></span></div>
-    <div class="brand"><div class="logo">EP</div><div><b>EP in Space</b><small>flown ion &amp; Hall thrusters</small></div></div>
+    <div class="brand"><div class="logo">EP</div><div><b>EP in Space</b><small>flown electric thrusters</small></div></div>
     <div class="group">Thruster type</div>
     <div class="seg" id="f-type"><button data-v="all" aria-pressed="true">All</button><button data-v="ion" aria-pressed="false">Gridded ion</button><button data-v="hall" aria-pressed="false">Hall</button><button data-v="electrothermal" aria-pressed="false">Electrothermal</button><button data-v="electrospray" aria-pressed="false">Electrospray / FEEP</button><button data-v="pulsed" aria-pressed="false">Pulsed</button><button data-v="plasma" aria-pressed="false">Other plasma</button></div>
     <div class="group">Orbit</div>
@@ -126,11 +126,11 @@ table.models tr:hover td { background: var(--input); } .tblwrap { max-height: 42
   </aside>
   <main>
     <a class="back" href="/CV/">‹ Bharat Singh Rawat · CV</a> <span class="fine" style="margin-left:10px">Open data: <a class="back" href="/CV/yields/">Yield Explorer ›</a> · <a class="back" href="/CV/fc-atlas/">Faraday Cup Atlas ›</a></span>
-    <h1>Electric propulsion in space: every flown ion and Hall thruster</h1>
-    <p class="sub">Each spacecraft (or series, or constellation) that has flown a gridded ion engine or a Hall-effect thruster, placed on its orbit around an animated Earth. Blue: gridded ion engines (accelerating grids, ion beam). Violet: Hall thrusters (annular channel, plasma plume). Click a spacecraft or a list entry for its thruster, the thruster's key parameters and the sources.</p>
+    <h1>Electric propulsion in space: the electric thrusters that have flown</h1>
+    <p class="sub">Each spacecraft (or series, or constellation) that has flown an electric thruster, placed on its orbit around an animated Earth: gridded ion engines, Hall thrusters, electrothermal (resistojet, arcjet), electrospray and FEEP, pulsed (PTFE pulsed plasma, vacuum arc, pulsed MPD) and other plasma thrusters (HEMPT, RF, hollow cathode, quad confinement). Pulsed thrusters are drawn firing discrete pulses. Air-breathing electric propulsion has not flown (as of November 2026). Click a spacecraft or a list entry for its thruster, the thruster's key parameters and the sources.</p>
     <div class="stage" id="stage">
       <div class="hud" id="hud"></div>
-      <div class="legend"><span><i style="background:var(--ion)"></i>Gridded ion (blue beam)</span><span><i style="background:var(--hall)"></i>Hall (violet plume)</span><span>Plume colour = propellant (Xe blue-violet, Kr icy blue, Ar lavender, I₂ yellow, H₂O pink)</span></div>
+      <div class="legend"><span><i style="background:#0a84ff"></i>Ion</span><span><i style="background:#bf5af2"></i>Hall</span><span><i style="background:#ff9f0a"></i>Electrothermal</span><span><i style="background:#30d158"></i>Electrospray / FEEP</span><span><i style="background:#ffd60a"></i>Pulsed</span><span><i style="background:#64d2ff"></i>Other plasma</span><span>Plume colour = propellant</span></div>
       <div class="counter" id="counter"></div>
       <div class="tip" id="tip" hidden></div>
       <div class="inset" id="inset"><span id="inset-l"></span></div>
@@ -202,6 +202,7 @@ let dragging = false; controls.addEventListener('start', () => { dragging = true
 controls.enableDamping = true; controls.minDistance = 1.25; controls.maxDistance = 260; controls.enablePan = false;
 scene.add(new THREE.AmbientLight(0xffffff, 0.12)); scene.add(new THREE.HemisphereLight(0xdfe8ff, 0x20242c, 0.25));
 const sun = new THREE.DirectionalLight(0xfff4e6, 2.4); scene.add(sun);
+queueMicrotask(() => { scene.environment = studioEnv(renderer); });
 const SUN_DIR = new THREE.Vector3(1, 0, 0);
 
 // ---------- time and astronomy (low-precision formulas; accurate to well under a degree, enough for display) ----------
@@ -311,6 +312,51 @@ const graphite = new THREE.MeshStandardMaterial({ color: 0x34373d, metalness: 0.
 const copper = new THREE.MeshStandardMaterial({ color: 0xc27a43, metalness: 0.9, roughness: 0.33 });
 const ceramic = new THREE.MeshStandardMaterial({ color: 0xf1eee6, metalness: 0.0, roughness: 0.85 });
 const canvasTex = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d')); const t = new THREE.CanvasTexture(c); t.anisotropy = 4; return t; };
+// ---------- realism helpers: studio environment for metal reflections, rounded boxes, crinkled MLI, bolts, harness ----------
+function studioEnv(r) {   // soft studio: dark floor, bright sky, two softboxes and a rim strip (prefiltered for PBR reflections)
+  const es = new THREE.Scene();
+  es.add(new THREE.Mesh(new THREE.SphereGeometry(10, 32, 16), new THREE.ShaderMaterial({ side: THREE.BackSide,
+    vertexShader: 'varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: 'varying vec3 vP; void main(){ float h = vP.y; vec3 c = mix(vec3(0.05,0.055,0.065), vec3(0.42,0.45,0.52), smoothstep(-0.25, 0.7, h)); gl_FragColor = vec4(c, 1.0); }' })));
+  const box = (w, h, x, y, z, k) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color(k, k, k * 1.04), side: THREE.DoubleSide })); m.position.set(x, y, z); m.lookAt(0, 0, 0); es.add(m); };
+  box(6, 4, 4, 6, 5, 3.2); box(5, 3, -6, 3, 3, 1.6); box(12, 0.6, 0, 1.5, -8, 2.4); box(3, 3, 2, -2, 7, 0.7);
+  const pm = new THREE.PMREMGenerator(r), t = pm.fromScene(es, 0.03).texture; pm.dispose(); return t;
+}
+// rounded box: w (x) x h (y) x d (z), edge radius b
+function rbox(w, h, d, b = 0.006) {
+  b = Math.min(b, w / 2 - 1e-4, h / 2 - 1e-4, d / 2 - 1e-4); const x = w / 2 - b, z = d / 2 - b, rr = Math.min(b, x, z) * 0.999, s = new THREE.Shape();
+  s.moveTo(-x + rr, -z); s.lineTo(x - rr, -z); s.absarc(x - rr, -z + rr, rr, -Math.PI / 2, 0); s.lineTo(x, z - rr); s.absarc(x - rr, z - rr, rr, 0, Math.PI / 2);
+  s.lineTo(-x + rr, z); s.absarc(-x + rr, z - rr, rr, Math.PI / 2, Math.PI); s.lineTo(-x, -z + rr); s.absarc(-x + rr, -z + rr, rr, Math.PI, Math.PI * 1.5);
+  const g = new THREE.ExtrudeGeometry(s, { depth: Math.max(1e-4, h - 2 * b), bevelEnabled: true, bevelThickness: b, bevelSize: b * 0.98, bevelSegments: 4, curveSegments: 6 });
+  g.rotateX(-Math.PI / 2); g.center(); g.computeVertexNormals(); return g;
+}
+// crinkled multi-layer insulation (gold Kapton foil): colour + bump from the same canvas
+const MLI_TEX = canvasTex(512, 512, x => {
+  x.fillStyle = '#9a6a1e'; x.fillRect(0, 0, 512, 512);
+  for (let k = 0; k < 900; k++) { const px = Math.random() * 512, py = Math.random() * 512, a = Math.random() * 6.28, L = 10 + Math.random() * 60, l = Math.random();
+    x.strokeStyle = `rgba(${l > 0.5 ? '255,226,150' : '70,40,5'},${0.10 + Math.random() * 0.22})`; x.lineWidth = 1 + Math.random() * 3;
+    x.beginPath(); x.moveTo(px, py); x.quadraticCurveTo(px + Math.cos(a + 0.6) * L * 0.6, py + Math.sin(a + 0.6) * L * 0.6, px + Math.cos(a) * L, py + Math.sin(a) * L); x.stroke(); }
+  x.strokeStyle = 'rgba(60,35,5,.35)'; x.lineWidth = 2; for (let k = 0; k < 6; k++) { x.beginPath(); x.moveTo(0, 85 * k + 40); x.lineTo(512, 85 * k + 46); x.stroke(); } });
+MLI_TEX.wrapS = MLI_TEX.wrapT = THREE.RepeatWrapping; MLI_TEX.colorSpace = THREE.SRGBColorSpace;
+const mli = new THREE.MeshStandardMaterial({ color: 0xffe2a0, map: MLI_TEX, bumpMap: MLI_TEX, bumpScale: 0.6, metalness: 0.9, roughness: 0.28, envMapIntensity: 1.3 });
+const anodized = new THREE.MeshStandardMaterial({ color: 0x2b2f37, metalness: 0.6, roughness: 0.38, envMapIntensity: 0.9 });
+const alu = new THREE.MeshStandardMaterial({ color: 0xd4d8de, metalness: 0.95, roughness: 0.22, envMapIntensity: 1.2 });
+const harnessMat = new THREE.MeshStandardMaterial({ color: 0xe9e4d6, metalness: 0.05, roughness: 0.6 });   // white PTFE-jacketed wire bundle
+const BOLT = new THREE.CylinderGeometry(0.0042, 0.0042, 0.004, 6);
+// ring of hex bolt heads on a +Y-facing surface at height y
+function boltRing(parent, r, y, n, a0 = 0) { for (let k = 0; k < n; k++) { const a = a0 + k / n * 6.283, b = new THREE.Mesh(BOLT, steel); b.position.set(r * Math.cos(a), y + 0.002, r * Math.sin(a)); parent.add(b); } }
+function boltGrid(parent, pts, y) { for (const [x, z] of pts) { const b = new THREE.Mesh(BOLT, steel); b.position.set(x, y + 0.002, z); parent.add(b); } }
+// harness / feed line through 3D points, with a connector at the start
+function harness(parent, pts, rad = 0.0045, mat = harnessMat, conn = true) {
+  const c = new THREE.CatmullRomCurve3(pts.map(p => new THREE.Vector3(...p)));
+  parent.add(new THREE.Mesh(new THREE.TubeGeometry(c, 48, rad, 10, false), mat));
+  if (conn) { const k = new THREE.Mesh(new THREE.CylinderGeometry(rad * 2.2, rad * 2.2, rad * 4, 16), anodized); k.position.copy(c.getPoint(0)); k.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), c.getTangent(0)); parent.add(k); }
+}
+// mounting flange (+Y face) with bolt ring
+function flange(parent, rIn, rOut, y, th = 0.008, mat = alu, n = 8) {
+  const f = new THREE.Mesh(new THREE.CylinderGeometry(rOut, rOut, th, 64, 1, false), mat); f.position.y = y; parent.add(f);
+  boltRing(parent, (rIn + rOut) / 2 + (rOut - rIn) * 0.15, y + th / 2, n);
+}
 const SOFT = canvasTex(64, 64, x => { const g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
   g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.35, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); });
 // ion-engine grid: hexagonal apertures (alpha map: white = metal, black = hole, outside the disc = transparent)
@@ -351,17 +397,20 @@ function particles(n, color, size, emit) {
 const lathe = (pts, mat, seg = 72) => new THREE.Mesh(new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), seg), mat);
 const faceUp = m => { m.rotation.x = -Math.PI / 2; return m; };   // flat geometry (XY) -> facing +Y
 
-function thruster(type, col) {   // built along +Y (exhaust direction); the wrapper turns +Y into -X
-  if (type !== 'ion' && type !== 'hall') return thrusterFam(type, col ?? 0xdde6ff);
+function thruster(type, col, hz) {   // built along +Y (exhaust direction); the wrapper turns +Y into -X
+  if (type !== 'ion' && type !== 'hall') return thrusterFam(type, col ?? 0xdde6ff, hz);
   const C = new THREE.Color(col ?? (type === 'ion' ? 0x6f86ff : 0xbf5af2)), Cl = C.clone().lerp(new THREE.Color(0xffffff), 0.55), Cd = C.clone().multiplyScalar(0.8);
   const g = new THREE.Group(), u = new THREE.Group(); u.rotation.z = Math.PI / 2; g.add(u);
   const glows = [], plumes = [], parts = [];
   if (type === 'ion') {
     // discharge chamber: rounded back dome, cylindrical body, front flange (radii ~ a 30 cm engine scaled to 0.1)
     u.add(lathe([[0, -0.235], [0.04, -0.232], [0.07, -0.215], [0.088, -0.19], [0.097, -0.15], [0.1, -0.11], [0.1, -0.02], [0.104, -0.012], [0.104, 0]], steel));
-    const fl = new THREE.Mesh(new THREE.CylinderGeometry(0.128, 0.128, 0.012, 72), darkMetal); fl.position.y = -0.06; u.add(fl);
+    const fl = new THREE.Mesh(new THREE.CylinderGeometry(0.128, 0.128, 0.012, 72), alu); fl.position.y = -0.06; u.add(fl); boltRing(u, 0.118, -0.054, 16);
+    const sh = new THREE.Mesh(new THREE.CylinderGeometry(0.103, 0.103, 0.06, 64, 1, true), mli); sh.position.y = -0.135; u.add(sh);
+    harness(u, [[0.0, -0.37, 0.05], [0.0, -0.33, 0.04], [0.0, -0.305, 0.0]], 0.006, steel, false);
+    harness(u, [[-0.16, -0.32, 0.05], [-0.12, -0.25, 0.06], [-0.08, -0.2, 0.06]]);
     for (let k = 0; k < 3; k++) { const a = k * 2.094 + 0.5, leg = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.05, 0.018), darkMetal); leg.position.set(0.118 * Math.cos(a), -0.09, 0.118 * Math.sin(a)); u.add(leg); }
-    const harness = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.08, 16), graphite); harness.position.y = -0.27; u.add(harness);
+    const hcon = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.08, 16), graphite); hcon.position.y = -0.27; u.add(hcon);
     // plasma glow seen through the grid apertures
     const glow = faceUp(new THREE.Mesh(new THREE.CircleGeometry(0.098, 64), new THREE.MeshBasicMaterial({ color: C, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false })));
     glow.position.y = -0.004; u.add(glow); glows.push([glow, 0.9]);
@@ -388,7 +437,11 @@ function thruster(type, col) {   // built along +Y (exhaust direction); the wrap
     u.add(pp); parts.push(pp);
   } else {
     // SPT-style Hall thruster: magnetic body, four outer coils, ceramic annular channel, centre pole, external cathode
-    const plate = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.014, 0.3), graphite); plate.position.y = -0.09; u.add(plate);
+    const plate = new THREE.Mesh(rbox(0.3, 0.014, 0.3, 0.005), alu); plate.position.y = -0.09; u.add(plate);
+    boltGrid(u, [[-0.135, -0.135], [0.135, -0.135], [-0.135, 0.135], [0.135, 0.135], [0, -0.135], [0, 0.135], [-0.135, 0], [0.135, 0]], -0.083);
+    boltRing(u, 0.111, 0.0, 12, 0.13);
+    harness(u, [[0.06, -0.22, 0.09], [0.05, -0.15, 0.09], [0.05, -0.1, 0.06]], 0.006, steel, false);
+    harness(u, [[-0.14, -0.2, 0.06], [-0.11, -0.14, 0.08], [-0.09, -0.1, 0.07]]);
     u.add(lathe([[0.03, -0.083], [0.1, -0.083], [0.104, -0.075], [0.104, -0.012], [0.098, -0.004], [0.0, -0.004]], darkMetal));
     const pole = faceUp(new THREE.Mesh(new THREE.RingGeometry(0.09, 0.118, 72), steel)); pole.position.y = 0.0; u.add(pole);
     for (let k = 0; k < 4; k++) { const a = Math.PI / 4 + k * Math.PI / 2, x = 0.118 * Math.cos(a), z = 0.118 * Math.sin(a);
@@ -448,25 +501,31 @@ function puff(n, color, size, spawn) {
 }
 const coneDir = (q, spread) => { const a = Math.random() * 6.283, th = spread * Math.sqrt(Math.random()); return q.v.set(Math.sin(th) * Math.cos(a), Math.cos(th), Math.sin(th) * Math.sin(a)); };
 
-function thrusterFam(vis, col) {
+function thrusterFam(vis, col, hz) {
   const C = new THREE.Color(col), Cl = C.clone().lerp(new THREE.Color(0xffffff), 0.55), Cd = C.clone().multiplyScalar(0.8);
   const g = new THREE.Group(), u = new THREE.Group(); u.rotation.z = Math.PI / 2; g.add(u);
   const glows = [], plumes = [], parts = [], flashes = [], puffs = [];
   let pulse = null, onPulse = null;
   const capBank = (w, h, d, y) => {   // pulse capacitor bank: box + row of cans
-    const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), darkMetal); b.position.y = y; u.add(b);
-    for (let k = 0; k < 4; k++) { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.07, 20), steel); c.rotation.z = Math.PI / 2;
-      c.position.set(0, y - h / 2 - 0.0, -d / 2 + d * (k + 0.5) / 4); c.position.y = y; c.position.x = w / 2 + 0.024; u.add(c); } };
+    const b = new THREE.Mesh(rbox(w, h, d, 0.01), anodized); b.position.y = y; u.add(b);
+    boltGrid(u, [[-w / 2 + 0.012, -d / 2 + 0.012], [w / 2 - 0.012, -d / 2 + 0.012], [-w / 2 + 0.012, d / 2 - 0.012], [w / 2 - 0.012, d / 2 - 0.012]], y + h / 2);
+    for (let k = 0; k < 4; k++) { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.07, 32), alu); c.rotation.z = Math.PI / 2;
+      c.position.set(w / 2 + 0.024, y, -d / 2 + d * (k + 0.5) / 4); u.add(c);
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.004, 24), ceramic); cap.rotation.z = Math.PI / 2; cap.position.set(w / 2 + 0.061, y, c.position.z); u.add(cap); }
+    harness(u, [[-w / 2 - 0.005, y, 0], [-w / 2 - 0.05, y - 0.02, 0.02], [-w / 2 - 0.07, y - 0.09, 0.05]]); };
 
   if (vis === 'resistojet' || vis === 'arcjet') {
     const arc = vis === 'arcjet';
     // chamber + heat shield (resistojet: gold-foil wrap with an exposed glowing heater coil; arcjet: finned body)
-    u.add(lathe([[0, -0.25], [0.03, -0.25], [0.05, -0.235], [0.052, -0.06], [0.03, -0.045], [0, -0.045]], arc ? darkMetal : gold, 48));
+    u.add(lathe([[0, -0.25], [0.03, -0.25], [0.05, -0.235], [0.052, -0.06], [0.03, -0.045], [0, -0.045]], arc ? darkMetal : steel, 48));
+    if (!arc) { const sh = new THREE.Mesh(new THREE.CylinderGeometry(0.062, 0.062, 0.05, 48, 1, true), mli); sh.position.y = -0.225; u.add(sh); }
+    flange(u, 0.03, 0.085, -0.262, 0.01, alu, 6);
+    harness(u, [[0.03, -0.38, 0.0], [0.035, -0.33, 0.0], [0.03, -0.27, 0.0]], 0.006, steel, false);   // propellant line
+    const valve = new THREE.Mesh(rbox(0.04, 0.03, 0.03, 0.005), anodized); valve.position.set(0.03, -0.395, 0); u.add(valve);
+    harness(u, [[-0.11, -0.36, 0.05], [-0.06, -0.33, 0.04], [-0.035, -0.285, 0.02]]);
     if (!arc) for (let k = 0; k < 7; k++) { const h = addGlow(new THREE.TorusGeometry(0.056, 0.0045, 10, 48), 0xff7a2a, 0.85); h.rotation.x = Math.PI / 2; h.position.y = -0.2 + k * 0.016; u.add(h); glows.push([h, 0.85]); }
     else for (let k = 0; k < 10; k++) { const a = k * Math.PI / 5, f = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.12, 0.004), steel);
       f.position.set(0.07 * Math.cos(a), -0.14, 0.07 * Math.sin(a)); f.rotation.y = -a; u.add(f); }
-    const feed = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.12, 12), steel); feed.position.set(0.03, -0.3, 0); u.add(feed);
-    for (const x of [-0.025, 0.0]) { const ld = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.09, 8), copper); ld.position.set(x, -0.29, 0.02); u.add(ld); }
     // converging-diverging nozzle
     const L = arc ? 0.13 : 0.1, Re = arc ? 0.068 : 0.05;
     const np = []; for (let k = 0; k <= 12; k++) { const s = k / 12; np.push([0.008 + (Re - 0.008) * Math.pow(s, 0.75), -0.03 + s * L]); }
@@ -482,8 +541,11 @@ function thrusterFam(vis, col) {
     pp.position.y = y0; u.add(pp); parts.push(pp);
   } else if (vis === 'feep') {
     // indium/gallium FEEP: square housing, crown of needle emitters, annular extractor, two neutraliser filaments
-    const hb = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.15, 0.2), darkMetal); hb.position.y = -0.085; u.add(hb);
-    const face = faceUp(new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.2), steel)); face.position.y = -0.0095; u.add(face);
+    const hb = new THREE.Mesh(rbox(0.2, 0.15, 0.2, 0.014), anodized); hb.position.y = -0.087; u.add(hb);
+    const face = new THREE.Mesh(rbox(0.19, 0.008, 0.19, 0.003), alu); face.position.y = -0.012; u.add(face);
+    boltGrid(u, [[-0.082, -0.082], [0.082, -0.082], [-0.082, 0.082], [0.082, 0.082]], -0.008);
+    for (const s_ of [-1, 1]) { const fin = new THREE.Mesh(rbox(0.004, 0.13, 0.17, 0.002), alu); fin.position.set(s_ * 0.103, -0.09, 0); u.add(fin); }
+    harness(u, [[0.0, -0.22, 0.06], [0.0, -0.19, 0.06], [0.03, -0.16, 0.06]]);
     const heat = addGlow(new THREE.CylinderGeometry(0.03, 0.03, 0.012, 48), 0xff9040, 0.35); heat.position.y = -0.012; u.add(heat); glows.push([heat, 0.35]);
     const needle = new THREE.ConeGeometry(0.0045, 0.024, 10); needle.translate(0, 0.012, 0);
     for (let k = 0; k < 28; k++) { const a = k / 28 * 6.283, n = new THREE.Mesh(needle, steel); n.position.set(0.034 * Math.cos(a), -0.01, 0.034 * Math.sin(a)); u.add(n);
@@ -496,8 +558,9 @@ function thrusterFam(vis, col) {
     pp.position.y = 0.016; u.add(pp); parts.push(pp);
   } else if (vis === 'electrospray') {
     // ionic-liquid electrospray: chip on a tank, emitter array (6 x 6 tips) under a perforated extractor, one beamlet per tip
-    const tank = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.12, 0.17), gold); tank.position.y = -0.1; u.add(tank);
-    const chip = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.03, 0.15), new THREE.MeshStandardMaterial({ color: 0x23262c, metalness: 0.4, roughness: 0.5 })); chip.position.y = -0.025; u.add(chip);
+    const tank = new THREE.Mesh(rbox(0.17, 0.12, 0.17, 0.014), mli); tank.position.y = -0.1; u.add(tank);
+    const chip = new THREE.Mesh(rbox(0.15, 0.03, 0.15, 0.004), anodized); chip.position.y = -0.025; u.add(chip);
+    harness(u, [[0.0, -0.2, 0.07], [0.0, -0.17, 0.07], [0.04, -0.14, 0.07]]);
     const tip = new THREE.ConeGeometry(0.0065, 0.014, 10); tip.translate(0, 0.007, 0); const TIPS = [];
     for (let i = 0; i < 6; i++) for (let j = 0; j < 6; j++) { const x = -0.05 + i * 0.02, z = -0.05 + j * 0.02, t = new THREE.Mesh(tip, new THREE.MeshStandardMaterial({ color: 0x585e69, metalness: 0.5, roughness: 0.6 }));
       t.position.set(x, -0.01, z); u.add(t); TIPS.push([x, z]); }
@@ -505,7 +568,10 @@ function thrusterFam(vis, col) {
       for (let i = 0; i < 6; i++) for (let j = 0; j < 6; j++) { x.beginPath(); x.arc(48 + i * 32, 48 + j * 32, 9, 0, 7); x.fill(); } });
     const ex = faceUp(new THREE.Mesh(new THREE.PlaneGeometry(0.15 * 256 / 192, 0.15 * 256 / 192), new THREE.MeshStandardMaterial({ color: 0xc3c8d0, metalness: 0.9, roughness: 0.3, alphaMap: holes, alphaTest: 0.5, side: THREE.DoubleSide })));
     ex.position.y = 0.012; u.add(ex);
-    const fr = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.01, 0.2), darkMetal); fr.position.y = 0.008; u.add(fr);
+    const frS = new THREE.Shape([[-0.1, -0.1], [0.1, -0.1], [0.1, 0.1], [-0.1, 0.1]].map(([a, b]) => new THREE.Vector2(a, b)));
+    frS.holes.push(new THREE.Path([[-0.07, -0.07], [-0.07, 0.07], [0.07, 0.07], [0.07, -0.07]].map(([a, b]) => new THREE.Vector2(a, b))));
+    const frG = new THREE.ExtrudeGeometry(frS, { depth: 0.006, bevelEnabled: true, bevelThickness: 0.002, bevelSize: 0.002, bevelSegments: 2 }); frG.rotateX(-Math.PI / 2);
+    const fr = new THREE.Mesh(frG, alu); fr.position.y = 0.006; u.add(fr); boltGrid(u, [[-0.088, -0.088], [0.088, -0.088], [-0.088, 0.088], [0.088, 0.088]], 0.016);
     const halo = faceUp(addGlow(new THREE.PlaneGeometry(0.12, 0.12), C, 0.25)); halo.position.y = 0.0; u.add(halo); glows.push([halo, 0.25]);
     const pl = plumeShell(0.075, 0.2, 0.8, Cd, 0.22); pl.position.y = 0.014; u.add(pl); plumes.push(pl);
     const pp = particles(560, Cl, 0.009, () => { const [x, z] = TIPS[(Math.random() * 36) | 0]; return { r0: Math.hypot(x, z), a: Math.atan2(z, x), div: Math.hypot(x, z) * 1.6 + (Math.random() - 0.5) * 0.08, L: 0.8, v: 0.8 + Math.random() * 0.5 }; });
@@ -513,8 +579,12 @@ function thrusterFam(vis, col) {
   } else if (vis === 'ppt') {
     // breech-fed PTFE pulsed plasma thruster: capacitor bank, two flared copper rails, PTFE bar pushed by a spring, igniter plug
     capBank(0.14, 0.12, 0.2, -0.17);
-    for (const s of [-1, 1]) { const r = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.16, 0.085), copper); r.position.set(s * 0.045, -0.03, 0); r.rotation.z = -s * 0.09; u.add(r); }
-    const bar = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 0.07), ptfe); bar.position.y = -0.075; u.add(bar);
+    for (const s of [-1, 1]) { const r = new THREE.Mesh(rbox(0.012, 0.16, 0.085, 0.003), copper); r.position.set(s * 0.045, -0.03, 0); r.rotation.z = -s * 0.09; u.add(r);
+      const ins = new THREE.Mesh(rbox(0.008, 0.17, 0.1, 0.002), ceramic); ins.position.set(s * 0.058, -0.035, 0); ins.rotation.z = -s * 0.09; u.add(ins);
+      for (const z of [-0.03, 0.03]) { const b = new THREE.Mesh(BOLT, steel); b.rotation.z = Math.PI / 2; b.position.set(s * 0.063, -0.08, z); u.add(b); } }
+    const bar = new THREE.Mesh(rbox(0.07, 0.07, 0.07, 0.006), ptfe); bar.position.y = -0.075; u.add(bar);
+    const spring = new THREE.Curve(); spring.getPoint = (t_, o = new THREE.Vector3()) => o.set(0.012 * Math.cos(t_ * 6.283 * 6), -0.14 + t_ * 0.03, 0.012 * Math.sin(t_ * 6.283 * 6));
+    u.add(new THREE.Mesh(new THREE.TubeGeometry(spring, 120, 0.002, 6, false), steel));
     const sp = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.02, 12), steel); sp.position.set(-0.03, -0.035, 0.03); sp.rotation.z = Math.PI / 2; u.add(sp);
     const fl = faceUp(addGlow(new THREE.PlaneGeometry(0.08, 0.075), 0xffffff, 0)); fl.position.y = -0.039; u.add(fl);
     const sheet = faceUp(addGlow(new THREE.PlaneGeometry(0.085, 0.08), Cl, 0)); u.add(sheet);
@@ -535,7 +605,8 @@ function thrusterFam(vis, col) {
       const lip = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.006, 12, 64), steel); lip.rotation.x = Math.PI / 2; lip.position.y = 0.02; u.add(lip);
       const cat = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.09, 20), graphite); cat.position.y = -0.055; u.add(cat);
     } else {     // vacuum arc (uCAT-type): coaxial cathode / insulator / anode head inside a magnetic coil
-      u.add(lathe([[0, -0.2], [0.04, -0.2], [0.045, -0.19], [0.045, -0.02], [0, -0.02]], darkMetal, 48));
+      u.add(lathe([[0, -0.2], [0.04, -0.2], [0.045, -0.19], [0.045, -0.02], [0, -0.02]], anodized, 48)); flange(u, 0.04, 0.075, -0.2, 0.008, alu, 6);
+      harness(u, [[0.0, -0.31, 0.03], [0.0, -0.27, 0.025], [0.0, -0.215, 0.02]]);
       for (let k = 0; k < 5; k++) { const c = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.008, 10, 48), copper); c.rotation.x = Math.PI / 2; c.position.y = -0.09 + k * 0.016; u.add(c); }
       const an = faceUp(new THREE.Mesh(new THREE.RingGeometry(0.018, 0.04, 48), steel)); an.position.y = -0.019; u.add(an);
       const ins = faceUp(new THREE.Mesh(new THREE.RingGeometry(0.01, 0.018, 48), ceramic)); ins.position.y = -0.0185; u.add(ins);
@@ -552,7 +623,9 @@ function thrusterFam(vis, col) {
       spot.material.opacity = Math.min(1, e * 1.4); col2.material.opacity = e * (mpd ? 0.45 : 0.8); pl.material.uniforms.uF.value = e; };
   } else if (vis === 'hempt' || vis === 'rf') {
     if (vis === 'hempt') {   // HEMPT: stack of ring magnets (alternating polarity) around a ceramic tube, anode at the back
-      u.add(lathe([[0.03, -0.24], [0.08, -0.24], [0.08, -0.22], [0.03, -0.22]], darkMetal, 48));
+      flange(u, 0.03, 0.11, -0.235, 0.012, alu, 10);
+      harness(u, [[0.05, -0.34, 0.0], [0.05, -0.3, 0.0], [0.03, -0.245, 0.0]], 0.006, steel, false);
+      harness(u, [[-0.13, -0.32, 0.05], [-0.07, -0.3, 0.04], [-0.05, -0.245, 0.02]]);
       for (let k = 0; k < 3; k++) { const mg = new THREE.Mesh(new THREE.CylinderGeometry(0.082, 0.082, 0.05, 64), k % 2 ? steel : new THREE.MeshStandardMaterial({ color: 0x5b6068, metalness: 0.8, roughness: 0.35 }));
         mg.position.y = -0.195 + k * 0.062; u.add(mg); const sp = new THREE.Mesh(new THREE.CylinderGeometry(0.076, 0.076, 0.012, 64), copper); sp.position.y = -0.164 + k * 0.062; u.add(sp); }
       u.add(lathe([[0.034, -0.03], [0.05, 0.0], [0.078, 0.008], [0.082, 0.0], [0.082, -0.04]], darkMetal, 64));
@@ -563,7 +636,9 @@ function thrusterFam(vis, col) {
       const pp = particles(560, Cl, 0.016, () => { const r0 = 0.04 * Math.sqrt(Math.random()); return { r0, a: Math.random() * 6.283, div: Math.random() < 0.55 ? 0.35 + Math.random() * 0.15 : Math.random() * 0.08, L: 0.95, v: 0.8 + Math.random() * 0.4 }; });
       pp.position.y = -0.02; u.add(pp); parts.push(pp);
     } else {                 // RF / helicon: quartz tube with a copper helical antenna, magnet ring at the exit, magnetic-nozzle plume
-      const back = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.04, 48), darkMetal); back.position.y = -0.23; u.add(back);
+      const back = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.04, 48), anodized); back.position.y = -0.23; u.add(back); flange(u, 0.03, 0.095, -0.255, 0.01, alu, 8);
+      harness(u, [[0.0, -0.36, 0.0], [0.0, -0.31, 0.0], [0.0, -0.26, 0.0]], 0.006, steel, false);
+      harness(u, [[0.12, -0.3, 0.06], [0.1, -0.22, 0.07], [0.058, -0.185, 0.03]], 0.006, anodized);   // RF coax to the antenna
       const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.2, 48, 1, true), quartz); tube.position.y = -0.11; u.add(tube);
       const gl = addGlow(new THREE.CylinderGeometry(0.04, 0.04, 0.19, 48, 1, true), C, 0.8); gl.position.y = -0.11; u.add(gl); glows.push([gl, 0.8]);
       const core = addGlow(new THREE.CylinderGeometry(0.018, 0.018, 0.18, 24, 1, true), Cl, 0.7); core.position.y = -0.11; u.add(core); glows.push([core, 0.7]);
@@ -576,8 +651,9 @@ function thrusterFam(vis, col) {
       pp.position.y = -0.009; u.add(pp); parts.push(pp);
     }
   } else if (vis === 'hct') {   // stand-alone hollow cathode thruster: cathode tube, heater, keeper, bright plume ball
-    const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.2, 32), steel); tube.position.y = -0.12; u.add(tube);
-    const sh = new THREE.Mesh(new THREE.CylinderGeometry(0.034, 0.034, 0.08, 32, 1, true), gold); sh.position.y = -0.06; u.add(sh);
+    const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.2, 32), steel); tube.position.y = -0.12; u.add(tube); flange(u, 0.022, 0.06, -0.2, 0.008, alu, 6);
+    harness(u, [[0.0, -0.33, 0.0], [0.0, -0.28, 0.0], [0.0, -0.22, 0.0]], 0.005, steel, false); harness(u, [[-0.1, -0.3, 0.04], [-0.05, -0.25, 0.03], [-0.02, -0.21, 0.02]]);
+    const sh = new THREE.Mesh(new THREE.CylinderGeometry(0.034, 0.034, 0.08, 32, 1, true), mli); sh.position.y = -0.06; u.add(sh);
     const kp = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.018, 32), darkMetal); kp.position.y = -0.012; u.add(kp);
     const orifice = faceUp(addGlow(new THREE.CircleGeometry(0.01, 24), 0xffffff, 1)); orifice.position.y = -0.002; u.add(orifice); glows.push([orifice, 1]);
     const ball = addGlow(new THREE.SphereGeometry(0.04, 24, 16), Cl, 0.4); ball.position.y = 0.03; u.add(ball); glows.push([ball, 0.4]);
@@ -585,11 +661,13 @@ function thrusterFam(vis, col) {
     const pp = particles(260, Cl, 0.013, () => ({ r0: 0.008 * Math.random(), a: Math.random() * 6.283, div: Math.random() * 0.45, L: 0.6, v: 0.7 + Math.random() * 0.5 }));
     pp.position.y = -0.002; u.add(pp); parts.push(pp);
   } else {   // 'qct' quad confinement thruster: square annular channel, four magnet poles, external cathode
-    const body = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.09, 0.22), graphite); body.position.y = -0.055; u.add(body);
+    const body = new THREE.Mesh(rbox(0.22, 0.09, 0.22, 0.012), anodized); body.position.y = -0.055; u.add(body);
+    const bp = new THREE.Mesh(rbox(0.26, 0.012, 0.26, 0.004), alu); bp.position.y = -0.106; u.add(bp);
+    boltGrid(u, [[-0.118, -0.118], [0.118, -0.118], [-0.118, 0.118], [0.118, 0.118]], -0.1); harness(u, [[-0.1, -0.2, 0.08], [-0.08, -0.15, 0.08], [-0.06, -0.11, 0.06]]);
     const sq = (a, b) => { const s = new THREE.Shape([[-a, -a], [a, -a], [a, a], [-a, a]].map(([x, y]) => new THREE.Vector2(x, y))); const h = new THREE.Path([[-b, -b], [-b, b], [b, b], [b, -b]].map(([x, y]) => new THREE.Vector2(x, y))); s.holes.push(h); return new THREE.ShapeGeometry(s); };
     const ch = faceUp(new THREE.Mesh(sq(0.09, 0.04), ceramic)); ch.position.y = -0.008; u.add(ch);
     const gl = faceUp(addGlow(sq(0.08, 0.05), C, 0.95)); gl.position.y = -0.006; u.add(gl); glows.push([gl, 0.95]);
-    for (const [x, z] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) { const pm = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.1, 0.035), copper); pm.position.set(x * 0.1, -0.05, z * 0.1); u.add(pm); }
+    for (const [x, z] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) { const pm = new THREE.Mesh(rbox(0.035, 0.1, 0.035, 0.008), copper); pm.position.set(x * 0.1, -0.05, z * 0.1); u.add(pm); }
     const cg = new THREE.Group(); cg.position.set(0.15, -0.012, 0); cg.rotation.z = 0.55; u.add(cg);
     cg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.08, 20), steel));
     const pl = plumeShell(0.09, 0.5, 0.95, Cd, 0.6); pl.position.y = -0.006; u.add(pl); plumes.push(pl);
@@ -597,7 +675,8 @@ function thrusterFam(vis, col) {
       return { r0: Math.hypot(x, z), a: Math.atan2(z, x), div: 0.15 + Math.random() * 0.4, L: 0.95, v: 0.7 + Math.random() * 0.4 }; });
     pp.position.y = -0.006; u.add(pp); parts.push(pp);
   }
-  // pulse clock: phase restarts each period (with jitter); envelope = fast rise, exponential decay
+  // pulse clock: phase restarts each period (with jitter); envelope = fast rise, exponential decay. With a published flight pulse rate, that rate is used.
+  if (pulse && hz > 0) { pulse.period = Math.min(3, Math.max(0.05, 1 / hz)); pulse.jitter = Math.min(pulse.jitter, 0.05); }
   let clock = Math.random() * (pulse ? pulse.period : 1), next = pulse ? pulse.period : 0;
   g.userData.pulsed = !!pulse;
   g.userData.update = (dt, time) => {
@@ -622,10 +701,10 @@ const INSET_TXT = { ion: 'Gridded ion engine: grids + ion beam', hall: 'Hall thr
   mpd: 'Pulsed MPD: coaxial arc discharge', hempt: 'HEMPT: stacked ring magnets (cusped field)', rf: 'RF plasma: antenna-heated tube + magnetic nozzle',
   hct: 'Hollow cathode thruster', qct: 'Quad confinement thruster: square channel, four cusps' };
 const VIS_PULSED = new Set(['ppt', 'vat', 'mpd']);
-function spacecraft(type, col) {
+function spacecraft(type, col, hz) {
   const s = new THREE.Group();
-  const bus = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.3, 0.3), gold); s.add(bus);
-  const deck = new THREE.Mesh(new THREE.BoxGeometry(0.345, 0.012, 0.305), steel); deck.position.y = 0.156; s.add(deck);
+  const bus = new THREE.Mesh(rbox(0.34, 0.3, 0.3, 0.012), mli); s.add(bus);
+  const deck = new THREE.Mesh(rbox(0.35, 0.012, 0.31, 0.004), alu); deck.position.y = 0.156; s.add(deck);
   for (const z of [-1, 1]) {
     const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.16, 10), steel); arm.rotation.x = Math.PI / 2; arm.position.set(0, 0, z * 0.23); s.add(arm);
     for (const k of [0, 1]) { const w = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.008, 0.3), panelMat); w.position.set(0, 0, z * (0.47 + k * 0.31)); s.add(w); }
@@ -633,17 +712,20 @@ function spacecraft(type, col) {
   const dish = new THREE.Mesh(new THREE.SphereGeometry(0.12, 32, 12, 0, Math.PI * 2, 0, Math.PI / 3.2), new THREE.MeshStandardMaterial({ color: 0xeeeef2, roughness: 0.6, side: THREE.DoubleSide }));
   dish.position.set(0.05, 0.27, 0); dish.rotation.x = Math.PI; s.add(dish);
   const feed = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.1, 8), steel); feed.position.set(0.05, 0.22, 0); s.add(feed);
-  const t = thruster(type, col); t.position.x = -0.17; s.add(t); s.userData.thr = t;
+  const t = thruster(type, col, hz); t.position.x = -0.17; s.add(t); s.userData.thr = t;
   return s;
 }
 
 // ---------- plume colour from the propellant (approximate visible glow of the plasma, for display only) ----------
 const PROP_COL = [[/iodine/i, 0xffcf5a], [/argon/i, 0x8fa6ff], [/krypton/i, 0xbcd2ff], [/mercury/i, 0x8fe6ff], [/caesium|cesium/i, 0x7fa0ff],
-  [/water/i, 0xff9fbf], [/hydrazine|ammonia/i, 0xffa45c], [/xenon/i, 0x6f86ff]];
-function propColor(m) {
+  [/water/i, 0xff9fbf], [/hydrazine|ammonia/i, 0xffa45c], [/xenon/i, 0x6f86ff],
+  [/PTFE|teflon/i, 0xd6ddff], [/indium/i, 0x7d6bff], [/gallium/i, 0xa98cff], [/ionic liquid|EMI-|AF-M315|ASCENT/i, 0x9effc8],
+  [/nitrogen|nitrous/i, 0xe0c8ff], [/butane/i, 0xffd2a0], [/molybdenum|titanium|copper|alumin|metal/i, 0x9ff0ff], [/potassium/i, 0xd59bff]];
+function propColor(m) {   // colour of the propellant named first (models' propellant, then the thruster text)
   const p = (m.models || []).map(k => (MODELS[k] || {}).propellant || '').join(' ') + ' ' + (m.thruster || '');
-  for (const [rx, c] of PROP_COL) if (rx.test(p)) return c;
-  return COL[famOf(m)] || 0x8fa6ff;
+  let best = null, at = 1e9;
+  for (const [rx, c] of PROP_COL) { const i = p.search(rx); if (i >= 0 && i < at) { at = i; best = c; } }
+  return best ?? ({ ppt: 0xd6ddff, vat: 0x9ff0ff, resistojet: 0xffa45c, arcjet: 0xffa45c })[visOf(m)] ?? COL[famOf(m)] ?? 0x8fa6ff;
 }
 // ---------- mini spacecraft markers (one per mission; shared geometry/materials) ----------
 const MINI = {
@@ -768,7 +850,7 @@ const hl = new THREE.Mesh(new THREE.RingGeometry(0.1, 0.125, 48), new THREE.Mesh
 hl.renderOrder = 10; scene.add(hl);
 // the detailed model follows the selected spacecraft
 let model = null, modelType = null;
-function setModel(type, col) { if (model) scene.remove(model); model = spacecraft(type, col); model.scale.setScalar(0.42); scene.add(model); }
+function setModel(type, col, hz) { if (model) scene.remove(model); model = spacecraft(type, col, hz); model.scale.setScalar(0.42); scene.add(model); }
 
 // ---------- solar-system view (JPL Horizons: heliocentric ecliptic J2000, 1 AU = 4 scene units) ----------
 const sscene = new THREE.Scene(), scam = new THREE.PerspectiveCamera(40, 1, 0.01, 4000); scam.position.set(0, 18, 26);
@@ -823,7 +905,7 @@ function renderList() {
   $$('#list .item').forEach(e => e.onclick = () => select(+e.dataset.id));
   const nF = Object.keys(FAM).map(f => [f, vis.filter(m => famOf(m) === f).length]).filter(x => x[1]);
   $('#n-shown').textContent = `${vis.length} shown`;
-  $('#counter').innerHTML = `${vis.length} entries (${nF.map(([f, n]) => n + ' ' + FAM[f].split(' ')[0].toLowerCase()).join(', ')})<br>${vis.reduce((s, m) => s + (m.count || 1), 0).toLocaleString('en')} spacecraft · up to ${S.year}`;
+  $('#counter').innerHTML = `${vis.length} entries<br>${vis.reduce((s, m) => s + (m.count || 1), 0).toLocaleString('en')} spacecraft · up to ${S.year}`;
   for (const o of objs) { const on = visible(o.m); setObjVisible(o, on); if (o.dest) o.dest.visible = false; }
 }
 const seg = (id, key) => $$(`#${id} button`).forEach(b => b.onclick = () => { S[key] = b.dataset.v; $$(`#${id} button`).forEach(x => x.setAttribute('aria-pressed', x === b)); renderList(); });
@@ -850,14 +932,17 @@ $('#q').oninput = e => { S.q = e.target.value.trim().toLowerCase(); renderList()
 const PARAMS = [['power_W', 'Input power', 'W'], ['thrust_mN', 'Thrust', 'mN'], ['isp_s', 'Specific impulse', 's'], ['efficiency_pct', 'Total efficiency', '%'],
   ['beam_voltage_V', 'Beam voltage (≈ beam energy, eV per ion)', 'V'], ['beam_current_A', 'Beam current', 'A'], ['accel_voltage_V', 'Accelerator grid voltage', 'V'],
   ['grid_diameter_cm', 'Grid diameter', 'cm'], ['discharge_voltage_V', 'Discharge voltage', 'V'], ['discharge_current_A', 'Discharge current', 'A'],
-  ['channel_diameter_mm', 'Channel outer diameter', 'mm'], ['mass_kg', 'Thruster mass', 'kg'], ['demonstrated_life', 'Demonstrated life', '']];
+  ['channel_diameter_mm', 'Channel outer diameter', 'mm'], ['impulse_bit_uNs', 'Impulse bit (per pulse)', 'µN·s'], ['discharge_energy_J', 'Discharge energy per pulse', 'J'],
+  ['pulse_rate_Hz', 'Pulse rate', 'Hz'], ['emitter_voltage_V', 'Emitter / extraction voltage', 'V'], ['arc_voltage_V', 'Arc voltage', 'V'], ['anode_voltage_V', 'Anode voltage', 'V'],
+  ['heater_power_W', 'Heater power', 'W'], ['mass_kg', 'Thruster mass', 'kg'], ['demonstrated_life', 'Demonstrated life', '']];
 const fmtV = p => p == null ? '' : Array.isArray(p.v) ? `${p.v[0]}–${p.v[1]}` : String(p.v);
+function pulseHz(m) { for (const d of modelsOf(m)) { const p = (d.params || {}).pulse_rate_Hz; if (p) { const x = parseFloat(String(Array.isArray(p.v) ? p.v[0] : p.v)); if (x > 0) return x; } } return 0; }
 function modelsOf(m) { return (m.models || []).map(k => MODELS[k]).filter(Boolean); }
 function select(id) {
   S.sel = id; const m = ms.find(x => x.id === id); renderList();
   const md = modelsOf(m);
   const pc = propColor(m);
-  if (modelType !== visOf(m) + pc) { setModel(visOf(m), pc); setInset(visOf(m), pc); modelType = visOf(m) + pc; }
+  const hz = pulseHz(m); if (modelType !== visOf(m) + pc + hz) { setModel(visOf(m), pc, hz); setInset(visOf(m), pc, hz); modelType = visOf(m) + pc + hz; }
   if (typeof setView === 'function') setView(m.orbit === 'Deep space' ? 'solar' : 'earth');
   let html = `<h2>${flag(m.country)} ${esc(m.name)} <span class="tag">${FAM[famOf(m)]}${VIS_LABEL[visOf(m)] && VIS_LABEL[visOf(m)] !== FAM[famOf(m)] ? ' · ' + VIS_LABEL[visOf(m)] : ''}</span>${m.kind !== 'single' ? `<span class="tag">${m.kind}${m.count ? ' · ' + m.count.toLocaleString('en') + ' spacecraft' : ''}</span>` : ''}<span class="conf ${esc(m.confidence)}">${esc(m.confidence)} confidence</span></h2>
     <div class="kv"><div><span>Country</span><b>${esc(cname(m.country))}</b></div><div><span>Operator / agency</span><b>${esc(m.agency_or_operator)}</b></div>
@@ -891,11 +976,11 @@ $('#about').innerHTML = `${ms.length} entries (${ms.reduce((s, m) => s + (m.coun
 
 // ---------- close-up of the selected thruster ----------
 const inset = $('#inset'), ir = new THREE.WebGLRenderer({ antialias: true, alpha: true }); ir.setPixelRatio(Math.min(devicePixelRatio, 2)); inset.prepend(ir.domElement);
-const iscene = new THREE.Scene(), icam = new THREE.PerspectiveCamera(35, 230 / 170, 0.01, 20); icam.position.set(-0.5, 0.36, 1.05); icam.lookAt(-0.2, 0.02, 0);
+const iscene = new THREE.Scene(); iscene.environment = studioEnv(ir); const icam = new THREE.PerspectiveCamera(35, 230 / 170, 0.01, 20); icam.position.set(-0.5, 0.36, 1.05); icam.lookAt(-0.2, 0.02, 0);
 iscene.add(new THREE.AmbientLight(0xffffff, 0.35)); iscene.add(new THREE.HemisphereLight(0xe8eeff, 0x1a1d24, 0.9)); const il = new THREE.DirectionalLight(0xffffff, 1.5); il.position.set(1, 1, 2); iscene.add(il);
 let ithr = null;
-function setInset(type, col) { if (ithr) iscene.remove(ithr); ithr = thruster(type, col); iscene.add(ithr);
-  $('#inset-l').textContent = INSET_TXT[type] || ''; }
+function setInset(type, col, hz) { if (ithr) iscene.remove(ithr); ithr = thruster(type, col, hz); iscene.add(ithr);
+  $('#inset-l').textContent = (INSET_TXT[type] || '') + (hz > 0 && VIS_PULSED.has(type) ? ` · ${hz} Hz flight pulse rate` : ''); }
 function insetSize() { const w = inset.clientWidth, h = inset.clientHeight; ir.setSize(w, h, false); icam.aspect = w / h; icam.updateProjectionMatrix(); }
 addEventListener('resize', insetSize); insetSize();
 
