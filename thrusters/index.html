@@ -123,6 +123,11 @@ table.cmp td:first-child { color: var(--muted); white-space: normal; min-width: 
 button.x { border: 0; background: var(--input); color: var(--text); border-radius: 50%; width: 18px; height: 18px; line-height: 16px; cursor: pointer; font-size: 12px; padding: 0; }
 button.cmpb { border: 1px solid var(--sep2); background: none; color: var(--accent); border-radius: 7px; font: inherit; font-size: 11.5px; padding: 1px 8px; cursor: pointer; margin-left: 6px; }
 td.ck { text-align: center; } td.ck input { accent-color: var(--cmpc); cursor: pointer; }
+#draco { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
+#inset #draco-cap { position: absolute; left: 0; right: 0; top: auto; bottom: 0; padding: 4px 8px; font-size: 10.5px; line-height: 1.35; color: #e6e9f0; background: linear-gradient(transparent, rgba(0,0,0,.75)); border-radius: 0 0 12px 12px; }
+.vbox { position: absolute; inset: 0; z-index: 30; background: rgba(0,0,0,.82); display: flex; align-items: center; justify-content: center; border-radius: inherit; }
+.vbox > div { position: relative; width: min(760px, 92%); } .vbox video { width: 100%; border-radius: 10px; background: #000; display: block; }
+.vbox p { color: #c9cdd8; font-size: 11.5px; margin: 6px 0 0; } .vbox button { position: absolute; top: -12px; right: -12px; width: 28px; height: 28px; border-radius: 50%; border: 0; background: #fff; color: #000; font-size: 16px; cursor: pointer; }
 </style>
 <script src="vendor/satellite.min.js"></script>
 <script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
@@ -154,7 +159,8 @@ td.ck { text-align: center; } td.ck input { accent-color: var(--cmpc); cursor: p
       <div class="legend"><span><i style="background:#3987e5"></i>Ion</span><span><i style="background:#d95926"></i>Hall</span><span><i style="background:#199e70"></i>Electrothermal</span><span><i style="background:#c98500"></i>Electrospray / FEEP</span><span><i style="background:#d55181"></i>Pulsed</span><span><i style="background:#0ca30c"></i>Other plasma</span><span>Plume colour = propellant</span></div>
       <div class="counter" id="counter"></div>
       <div class="tip" id="tip" hidden></div>
-      <div class="inset" id="inset"><span id="inset-l"></span></div>
+      <div class="inset" id="inset"><span id="inset-l"></span><img id="draco" alt="" hidden><span id="draco-cap" hidden></span></div>
+      <div class="vbox" id="vbox" hidden><div><video id="vbox-v" controls playsinline preload="none" poster="vendor/dart_replay_poster.jpg" src="vendor/dart_replay.mp4"></video><p>DART’s final 5.5 minutes as streamed from its DRACO camera (replay 10× faster than real time, except the last six images). Credit: NASA/Johns Hopkins APL. Images as on the detector (mirror-flipped).</p><button id="vbox-x" aria-label="Close">×</button></div></div>
       <div class="vbar">
         <div class="vseg" id="v-view"><button data-v="earth" aria-pressed="true">Earth</button><button data-v="solar" aria-pressed="false">Solar system</button></div>
         <div class="vseg" id="v-scale"><button data-p="overview" aria-pressed="true">Overview</button><button data-p="leo" aria-pressed="false">True scale: LEO</button><button data-p="geo" aria-pressed="false">GEO</button><button data-p="moon" aria-pressed="false">Moon</button></div>
@@ -162,7 +168,7 @@ td.ck { text-align: center; } td.ck input { accent-color: var(--cmpc); cursor: p
         <div class="vseg" id="v-gt"><button aria-pressed="true">Ground track</button></div>
         <div class="vseg" id="v-speed"><button data-s="1">Real time</button><button data-s="60">×60</button><button data-s="600" aria-pressed="true">×600</button><button data-s="3600">×3600</button></div>
         <div class="vseg" id="v-solar" hidden><input type="range" id="v-replay" min="0" max="1000" value="0" aria-label="Replay date"><button id="dart-go" hidden>DART impact close-up ▶</button></div>
-        <div class="vseg" id="v-dart" hidden><button id="dart-back">◀ Solar system</button></div>
+        <div class="vseg" id="v-dart" hidden><button id="dart-back">◀ Solar system</button><button id="dart-video">▶ NASA replay video</button></div>
       </div>
     </div>
     <section class="card" id="detail"></section>
@@ -194,7 +200,7 @@ td.ck { text-align: center; } td.ck input { accent-color: var(--cmpc); cursor: p
       <h2>About the data</h2>
       <p id="about"></p>
       <p class="fine">Compiled from agency, manufacturer and peer-reviewed sources (IEPC, AIAA and journal papers), listed on every entry. Constellations are shown as one entry tagged <b>cluster</b>; families of near-identical satellites as one entry tagged <b>series</b>. Positions: spacecraft still in orbit are at their real current position, propagated with SGP4 (satellite.js) from CelesTrak orbital elements refreshed daily; retired spacecraft fly their catalogued orbit (CelesTrak SATCAT inclination, perigee, apogee; for decayed low orbits the final pre-decay altitude is replaced by 450 km); spacecraft without a catalogue match use a representative orbit for their class. Constellations show a sample of 240 of their real satellites. Deep-space trajectories: JPL Horizons. Sun and Moon positions and Earth's rotation are computed for the displayed time. The Overview scale compresses distances (log-like); the True scale buttons show real distances. Images: Earth day map NASA Goddard (Blue Marble; R. Stöckli, R. Simmon) via Wikimedia Commons, CC BY-SA 3.0; city lights NASA Earth Observatory (Black Marble 2016), public domain; clouds and Moon maps Solar System Scope, CC BY 4.0. Please report any error.</p>
-          <p class="fine"><b>Views and models.</b> Earth's shadow uses the true geometry (cylindrical umbra, real Sun direction). The firing schedule is an illustration of typical practice, not mission telemetry: no firing in eclipse (solar-electric power), GEO north–south station keeping in two windows a day centred on right ascension 90° and 270°, GOCE firing continuously (drag-free control), other spacecraft firing in sunlight; pulsed thrusters always pulse (at the published flight pulse rate where one exists). The ground track is drawn from the same orbit model as the position. Spacecraft shapes for GOCE, Starlink, SMART-1, Dawn, Deep Space 1, Hayabusa2, Psyche, BepiColombo and LISA Pathfinder are simplified, with proportions taken from public images. DART close-up: trajectory from JPL Horizons (DART −135, Didymos, Dimorphos 120065803), drawn as a straight final approach along the Horizons direction; derived impact 23:14:24.18 UTC (NASA: 23:14:24 UTC), 6.14 km/s; body sizes from Daly et al. 2023 (Nature 616, 443); the ejecta are an illustration. Charts: thruster parameters as in the table; a range is drawn as a bar with the point at its upper end.</p>
+          <p class="fine"><b>Views and models.</b> Earth's shadow uses the true geometry (cylindrical umbra, real Sun direction). The firing schedule is an illustration of typical practice, not mission telemetry: no firing in eclipse (solar-electric power), GEO north–south station keeping in two windows a day centred on right ascension 90° and 270°, GOCE firing continuously (drag-free control), other spacecraft firing in sunlight; pulsed thrusters always pulse (at the published flight pulse rate where one exists). The ground track is drawn from the same orbit model as the position. Spacecraft shapes for GOCE, Starlink, SMART-1, Dawn, Deep Space 1, Hayabusa2, Psyche, BepiColombo and LISA Pathfinder are simplified, with proportions taken from public images. DART close-up: trajectory from JPL Horizons (DART −135, Didymos, Dimorphos 120065803), drawn as a straight final approach along the Horizons direction; derived impact 23:14:24.18 UTC (NASA: 23:14:24 UTC), 6.14 km/s; body sizes from Daly et al. 2023 (Nature 616, 443); the spacecraft break-up and the ejecta are illustrations. The inset shows the real DRACO images (NASA/Johns Hopkins APL) at the matching moments, and “NASA replay video” plays NASA’s replay of the final 5.5 minutes (hosted copy, reduced to 640 px). Charts: thruster parameters as in the table; a range is drawn as a bar with the point at its upper end.</p>
     </section>
     <footer style="text-align:center;color:var(--muted,#6e6e73);font-size:12.5px;margin:22px 0 6px">Created and conceptualised by Dr. Bharat Singh Rawat</footer>
   </main>
@@ -1071,7 +1077,7 @@ const DI = await fetch('data/dart_impact.json').then(r => r.json()).catch(() => 
 const dscene = new THREE.Scene(), dcamr = new THREE.PerspectiveCamera(40, 1, 0.001, 5000);
 const dctl = new OrbitControls(dcamr, renderer.domElement); dctl.enableDamping = true; dctl.enabled = false; dctl.minDistance = 0.3; dctl.maxDistance = 1500;
 dctl.addEventListener('start', () => { dUser = true; });
-let DT = -60, dUser = false, dSide = new THREE.Vector3(), dartObj = null, dartTrail = null, dLab = {}, dFlash = null, dEjecta = null, dAim = new THREE.Vector3();
+let DT = -60, dFrag = null, dDraco = '', dUser = false, dSide = new THREE.Vector3(), dartObj = null, dartTrail = null, dLab = {}, dFlash = null, dEjecta = null, dAim = new THREE.Vector3();
 if (DI) {
   const S_ = v => new THREE.Vector3(v[0], v[2], -v[1]);   // ecliptic -> scene (same convention as the Earth view)
   dscene.environment = studioEnv(renderer);
@@ -1104,10 +1110,15 @@ if (DI) {
   dLab.dart = lab('DART (drawn 20× larger)', 'rgba(120,180,255,.95)');
   dFlash = glowSprite(1, [[0, 'rgba(255,255,255,1)'], [0.3, 'rgba(255,236,190,.9)'], [1, 'rgba(255,170,80,0)']]); dFlash.material.sizeAttenuation = true; dFlash.position.copy(dAim); dscene.add(dFlash);
   // ejecta (illustration): grains thrown back along the incoming direction in a wide cone
-  dEjecta = puff(900, 0xd9cdb8, 0.006, q => { q.p.copy(dAim); const back = S_(DI.approach_dir).multiplyScalar(-1), a_ = Math.random() * 6.283, th = 0.35 + Math.random() * 0.6;
+  dEjecta = puff(1600, 0xd9cdb8, 0.01, q => { q.p.copy(dAim); const back = S_(DI.approach_dir).multiplyScalar(-1), a_ = Math.random() * 6.283, th = 0.35 + Math.random() * 0.6;
     const t1 = new THREE.Vector3(1, 0, 0).cross(back).normalize(), t2 = back.clone().cross(t1);
-    q.v.copy(back).multiplyScalar(Math.cos(th)).addScaledVector(t1, Math.sin(th) * Math.cos(a_)).addScaledVector(t2, Math.sin(th) * Math.sin(a_)).multiplyScalar(0.01 + Math.random() * 0.05); q.tau = 4 + Math.random() * 4; });
+    q.v.copy(back).multiplyScalar(Math.cos(th)).addScaledVector(t1, Math.sin(th) * Math.cos(a_)).addScaledVector(t2, Math.sin(th) * Math.sin(a_)).multiplyScalar(0.01 + Math.random() * 0.09); q.tau = 8 + Math.random() * 10; });
   dEjecta.material.sizeAttenuation = true; dscene.add(dEjecta);
+  // DART breaking up at contact (illustration): hot fragments spraying out of the impact point, fading within ~1-2 s
+  dFrag = puff(500, 0xffd2a0, 0.012, q => { q.p.copy(dAim); const back = S_(DI.approach_dir).multiplyScalar(-1), a_ = Math.random() * 6.283, th = Math.random() * 1.45;
+    const t1 = new THREE.Vector3(1, 0, 0).cross(back).normalize(), t2 = back.clone().cross(t1);
+    q.v.copy(back).multiplyScalar(Math.cos(th)).addScaledVector(t1, Math.sin(th) * Math.cos(a_)).addScaledVector(t2, Math.sin(th) * Math.sin(a_)).multiplyScalar(0.15 + Math.random() * 0.9); q.tau = 0.4 + Math.random() * 1.1; });
+  dFrag.material.sizeAttenuation = true; dscene.add(dFrag);
 }
 // DART position at time T (s from contact): straight line along the Horizons approach direction (asteroid gravity negligible over minutes)
 function dartAt(T, out) { return out.copy(dAim).addScaledVector(new THREE.Vector3(DI.approach_dir[0], DI.approach_dir[2], -DI.approach_dir[1]), T * DI.impact.speed_km_s); }
@@ -1118,23 +1129,31 @@ function enterImpact() { VIEW = 'impact'; DT = -60; dEjecta.userData.fired = fal
   $$('#v-view button').forEach(b => b.setAttribute('aria-pressed', false)); $('#v-scale').hidden = $('#v-speed').hidden = $('#v-fire').hidden = $('#v-gt').hidden = true; $('#v-solar').hidden = true; $('#v-dart').hidden = false; }
 function stepImpact(dt) {
   // time runs ~10x near the start, slowing to real time over the last 5 s; holds 10 s after contact, then repeats
-  DT += dt * (DT < -5 ? Math.min(12, -DT / 4) : 1); if (DT > 10) { DT = -60; dEjecta.userData.fired = false; }
+  DT += dt * (DT < -5 ? Math.min(12, -DT / 4) : DT > 4 ? 2.5 : 1); if (DT > 30) { DT = -60; dEjecta.userData.fired = false; }
   const p = dartAt(Math.min(DT, 0), new THREE.Vector3());
   dartObj.visible = DT < 0; dartObj.position.copy(p); dartObj.lookAt(dAim); dLab.dart.visible = DT < 0; dLab.dart.position.copy(p).add(new THREE.Vector3(0.05, 0.05, 0));
   const pts = []; for (let k = 0; k <= 40; k++) pts.push(dartAt(-60 + k / 40 * (Math.min(DT, 0) + 60), new THREE.Vector3()));
   dartTrail.geometry.dispose(); dartTrail.geometry = new THREE.BufferGeometry().setFromPoints(pts);
   const f = DT >= 0 ? Math.exp(-DT / 0.6) : 0; dFlash.visible = f > 0.01; dFlash.scale.setScalar(0.05 + 0.6 * (1 - f)); dFlash.material.opacity = f;
-  if (DT >= 0 && !dEjecta.userData.fired) { dEjecta.userData.fire(); dEjecta.userData.fired = true; } dEjecta.visible = DT >= 0; if (DT >= 0) dEjecta.userData.step(dt);
+  if (DT >= 0 && !dEjecta.userData.fired) { dEjecta.userData.fire(); dFrag.userData.fire(); dEjecta.userData.fired = true; }
+  dEjecta.visible = dFrag.visible = DT >= 0; if (DT >= 0) { const sdt = dt * (DT > 4 ? 2.5 : 1); dEjecta.userData.step(sdt); dFrag.userData.step(sdt); }
+  setDraco(DT);
   if (!dUser) {   // automatic dolly: frame DART and Dimorphos while they close, then hold ~2.5 km from the impact site
-    const d = Math.max(0, -DT) * DI.impact.speed_km_s, D = Math.max(2.5, 1.6 * d);
+    const d = Math.max(0, -DT) * DI.impact.speed_km_s, D = DT < 0 ? Math.max(2.5, 1.6 * d) : 2.5 + Math.min(DT, 30) * 0.12;
     dctl.target.lerp(DT < 0 ? dAim.clone().lerp(p, Math.min(0.5, d / (d + 3))) : dAim, 0.2); dcamr.position.copy(dctl.target).addScaledVector(dSide, D); }
   dctl.update(); renderer.render(dscene, dcamr);
 }
+// real DRACO frames (NASA/Johns Hopkins APL) shown in the inset at the matching moment, with NASA's caption values
+const DRACO = [[-11, 'draco_t150.jpg', 'DRACO, 2.5 min before impact, 920 km: Didymos (lower left) and Dimorphos'], [-2, 'draco_t11.jpg', 'DRACO, 11 s before impact, 68 km: last image with all of Dimorphos'],
+  [0, 'draco_t2.jpg', 'DRACO, 2 s before impact, ~12 km: last complete image (patch 31 m across)'], [1e9, 'draco_final.jpg', 'DRACO, final image: partial; red = data never received, the impact happened during its transmission']];
+function setDraco(T) { const k = VIEW === 'impact' ? DRACO.find(([t]) => T < t) : null, img = $('#draco'), cap = $('#draco-cap');
+  img.hidden = cap.hidden = !k; ir.domElement.style.visibility = k ? 'hidden' : ''; $('#inset-l').hidden = !!k;
+  if (k && dDraco !== k[1]) { dDraco = k[1]; img.src = 'vendor/' + k[1]; img.alt = k[2]; cap.innerHTML = `${k[2]}<br>NASA/Johns Hopkins APL · as on the detector (mirror-flipped)`; } }
 function impactHUD() {
   const d = Math.max(0, -DT * DI.impact.speed_km_s);
   return `<b>🇺🇸 DART → Dimorphos (Didymos system)</b><br>NEXT-C ion engine on board · kinetic impact test<br>` +
-    `<span class="clk">${DT < 0 ? `T−${(-DT).toFixed(1)} s · ${d >= 10 ? d.toFixed(0) : d.toFixed(2)} km · ${DI.impact.speed_km_s} km/s` : `Impact ${DI.impact.utc} (JPL Horizons; NASA: 23:14:24 UTC)`}</span>` +
-    `<br><span class="clk">trajectory: JPL Horizons · sizes: Daly et al. 2023 · ejecta: illustration</span>`;
+    `<span class="clk">${DT < 0 ? `T−${(-DT).toFixed(1)} s · ${d >= 10 ? d.toFixed(0) : d.toFixed(2)} km · ${DI.impact.speed_km_s} km/s` : `Impact ${DI.impact.utc} (JPL Horizons; NASA: 23:14:24 UTC) · T+${DT.toFixed(0)} s`}</span>` +
+    `<br><span class="clk">trajectory: JPL Horizons · sizes: Daly et al. 2023 · break-up and ejecta: illustration · inset: real DRACO images</span>`;
 }
 
 function setSolarModel(m, type, col, hz) { if (solarModel) sscene.remove(solarModel); solarModel = null; if (!SC.some(s => s.o.m === m)) return; solarModel = craftModel(m, type, col, hz); sscene.add(solarModel); }
@@ -1342,7 +1361,7 @@ renderer.domElement.addEventListener('click', () => { ray.setFromCamera(mouse, V
 
 // ---------- view, scale and time controls ----------
 function setView(v) {
-  VIEW = v; controls.enabled = v === 'earth'; sctl.enabled = v === 'solar'; dctl.enabled = false; $('#v-dart').hidden = true;
+  VIEW = v; controls.enabled = v === 'earth'; sctl.enabled = v === 'solar'; dctl.enabled = false; $('#v-dart').hidden = true; setDraco(0); closeVbox();
   $$('#v-view button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v));
   $('#v-scale').hidden = $('#v-speed').hidden = $('#v-fire').hidden = $('#v-gt').hidden = v !== 'earth'; $('#v-solar').hidden = v !== 'solar';
   $('#inset').hidden = false;
@@ -1353,6 +1372,8 @@ function setScale(mode, dist) {
 }
 $$('#v-view button').forEach(b => b.onclick = () => setView(b.dataset.v));
 $('#dart-go').onclick = () => { if (DI) enterImpact(); }; $('#dart-back').onclick = () => setView('solar');
+function closeVbox() { const v = $('#vbox-v'); if (v) { v.pause(); $('#vbox').hidden = true; } }
+$('#dart-video').onclick = () => { $('#vbox').hidden = false; $('#vbox-v').play().catch(() => {}); }; $('#vbox-x').onclick = closeVbox;
 $$('#v-scale button').forEach(b => b.onclick = () => ({ overview: () => setScale('compressed', 10), leo: () => setScale('true', 3.4), geo: () => setScale('true', 19), moon: () => setScale('true', 150) })[b.dataset.p]());
 let SPEED = 600;
 $$('#v-fire button').forEach(b => b.onclick = () => { FIRE = b.dataset.f; $$('#v-fire button').forEach(x => x.setAttribute('aria-pressed', x === b)); });
