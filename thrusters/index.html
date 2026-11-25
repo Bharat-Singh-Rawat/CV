@@ -96,7 +96,6 @@ table.models tr:hover td { background: var(--input); } .tblwrap { max-height: 42
 }
 </style>
 <script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
-<script src="vendor/globe-dots.js"></script>
 </head>
 <body>
 <div class="window">
@@ -112,7 +111,7 @@ table.models tr:hover td { background: var(--input); } .tblwrap { max-height: 42
     <div class="group"><span>Launched up to</span><span id="n-shown"></span></div>
     <div class="timeline"><button class="play" id="play" aria-label="Play the timeline" title="Play">▶</button><input type="range" id="year"><b id="year-l"></b></div>
     <div class="group">Missions</div>
-    <input class="search" id="q" placeholder="Search mission, thruster, country">
+    <input class="search" id="q" placeholder="Search mission, thruster, maker, country">
     <div class="list" id="list"></div>
     <div class="theme" id="theme"><button data-t="light" aria-label="Light theme" title="Light">☀︎</button><button data-t="auto" aria-label="Automatic theme" title="Automatic">A</button><button data-t="dark" aria-label="Dark theme" title="Dark">☾</button></div>
   </aside>
@@ -136,7 +135,7 @@ table.models tr:hover td { background: var(--input); } .tblwrap { max-height: 42
     <section class="card">
       <h2>About the data</h2>
       <p id="about"></p>
-      <p class="fine">Compiled from agency, manufacturer and peer-reviewed sources (IEPC, AIAA and journal papers), listed on every entry. Constellations are shown as one entry tagged <b>cluster</b>; families of near-identical satellites as one entry tagged <b>series</b>. Orbit placement and inclinations in the animation are illustrative. Please report any error.</p>
+      <p class="fine">Compiled from agency, manufacturer and peer-reviewed sources (IEPC, AIAA and journal papers), listed on every entry. Constellations are shown as one entry tagged <b>cluster</b>; families of near-identical satellites as one entry tagged <b>series</b>. Orbit placement and inclinations in the animation are illustrative. Earth image: NASA Goddard Space Flight Center (Blue Marble; R. Stöckli, R. Simmon), via Wikimedia Commons, CC BY-SA 3.0. Please report any error.</p>
     </section>
   </main>
 </div>
@@ -177,27 +176,41 @@ renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 stage.prepend(renderer.domElement);
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 200);
-camera.position.set(0, 2.6, 11.5);
+camera.position.set(0, 2.3, 10);
 const controls = new OrbitControls(camera, renderer.domElement);
 let dragging = false; controls.addEventListener('start', () => { dragging = true; }); controls.addEventListener('end', () => { dragging = false; wantDist = camera.position.length(); });
 controls.enableDamping = true; controls.minDistance = 1.6; controls.maxDistance = 40; controls.enablePan = false;
-scene.add(new THREE.AmbientLight(0xffffff, 0.35)); scene.add(new THREE.HemisphereLight(0xdfe8ff, 0x20242c, 0.6));
-const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(5, 3, 4); scene.add(sun);
+scene.add(new THREE.AmbientLight(0xffffff, 0.22)); scene.add(new THREE.HemisphereLight(0xdfe8ff, 0x20242c, 0.45));
+const sun = new THREE.DirectionalLight(0xfff4e6, 2.2); sun.position.set(5, 2.5, 4); scene.add(sun);
 // starfield
 { const g = new THREE.BufferGeometry(), n = 1500, p = new Float32Array(n * 3);
   for (let i = 0; i < n; i++) { const r = 60 + Math.random() * 40, t = Math.random() * Math.PI * 2, u = Math.acos(2 * Math.random() - 1);
     p.set([r * Math.sin(u) * Math.cos(t), r * Math.cos(u), r * Math.sin(u) * Math.sin(t)], i * 3); }
   g.setAttribute('position', new THREE.BufferAttribute(p, 3));
   scene.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0x9aa3b8, size: 0.12, sizeAttenuation: true }))); }
-// Earth: dark ocean sphere + land dots (Natural Earth, as on the CV career globe)
+// Earth: NASA Blue Marble day map (land, ocean colour, sea ice), oceans-only sun glint, atmosphere rim
 const earth = new THREE.Group(); scene.add(earth);
-earth.add(new THREE.Mesh(new THREE.SphereGeometry(0.995, 64, 48), new THREE.MeshPhongMaterial({ color: 0x14254a, emissive: 0x060b18, shininess: 12 })));
-{ const D = window.GLOBE_DOTS, n = D.length / 2, p = new Float32Array(n * 3);
-  for (let i = 0; i < n; i++) { const la = D[2 * i] * Math.PI / 180, lo = D[2 * i + 1] * Math.PI / 180;
-    p.set([Math.cos(la) * Math.cos(lo), Math.sin(la), -Math.cos(la) * Math.sin(lo)], i * 3); }
-  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(p, 3));
-  earth.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0x7fb0ff, size: 0.022 }))); }
-earth.add(new THREE.Mesh(new THREE.SphereGeometry(1.06, 48, 32), new THREE.MeshBasicMaterial({ color: 0x3d7bff, transparent: true, opacity: 0.08, side: THREE.BackSide })));
+const earthMat = new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x3a5a7a, shininess: 28 });
+const earthMesh = new THREE.Mesh(new THREE.SphereGeometry(1, 96, 64), earthMat); earth.add(earthMesh);
+new THREE.TextureLoader().load('vendor/earth_day.jpg', tex => {
+  tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  earthMat.map = tex;
+  // ocean mask for the specular glint: dark, blue-dominant pixels are water (computed once from the image itself)
+  const img = tex.image, w = 1024, h = 512, c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d'); x.drawImage(img, 0, 0, w, h); const d = x.getImageData(0, 0, w, h), p = d.data;
+  for (let i = 0; i < p.length; i += 4) { const r = p[i], g = p[i + 1], b = p[i + 2];
+    const water = b > r + 18 && b > g + 6 && r + g + b < 420 ? 255 : 0; p[i] = p[i + 1] = p[i + 2] = water; }
+  x.putImageData(d, 0, 0); earthMat.specularMap = new THREE.CanvasTexture(c); earthMat.needsUpdate = true;
+});
+// atmosphere: soft fresnel rim on a slightly larger back-facing shell
+earth.add(new THREE.Mesh(new THREE.SphereGeometry(1.09, 64, 48), new THREE.ShaderMaterial({
+  vertexShader: 'varying vec3 vN; varying vec3 vV; void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }',
+  fragmentShader: 'varying vec3 vN; varying vec3 vV; void main(){ float f = pow(clamp(0.72 - dot(vN, -vV), 0.0, 1.0), 4.0) * 1.6; gl_FragColor = vec4(vec3(0.3, 0.6, 1.0) * f, f); }',
+  transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.BackSide })));
+earth.add(new THREE.Mesh(new THREE.SphereGeometry(1.012, 64, 48), new THREE.ShaderMaterial({
+  vertexShader: 'varying vec3 vN; varying vec3 vV; void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }',
+  fragmentShader: 'varying vec3 vN; varying vec3 vV; void main(){ float f = pow(1.0 - abs(dot(vN, vV)), 3.0) * 0.55; gl_FragColor = vec4(vec3(0.45, 0.7, 1.0) * f, f); }',
+  transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })));
 // Moon
 const moon = new THREE.Mesh(new THREE.SphereGeometry(0.27, 32, 24), new THREE.MeshPhongMaterial({ color: 0x9a9a9a, emissive: 0x111111 }));
 scene.add(moon);
@@ -394,7 +407,7 @@ function setModel(type) { if (model) scene.remove(model); model = spacecraft(typ
 
 // ---------- filtering + list ----------
 const visible = m => (S.type === 'all' || m.thruster_type === S.type) && S.orbits.has(m.orbit) && S.countries.has(m.country) && (!m.year || m.year <= S.year)
-  && (!S.q || `${m.name} ${(m.members || []).join(' ')} ${m.thruster} ${cname(m.country)} ${m.thruster_country ? cname(m.thruster_country) : ''} ${m.agency_or_operator || ''}`.toLowerCase().includes(S.q));
+  && (!S.q || `${m.name} ${(m.members || []).join(' ')} ${m.thruster} ${(m.models || []).map(k => `${k} ${(MODELS[k] || {}).manufacturer || ''}`).join(' ')} ${cname(m.country)} ${m.thruster_country ? cname(m.thruster_country) : ''} ${m.agency_or_operator || ''}`.toLowerCase().includes(S.q));
 function renderList() {
   const vis = ms.filter(visible);
   $('#list').innerHTML = vis.map(m => `<div class="item${S.sel === m.id ? ' sel' : ''}" data-id="${m.id}"><i class="dot" style="background:${m.thruster_type === 'ion' ? 'var(--ion)' : 'var(--hall)'}"></i>${flag(m.country)} <span class="nm" title="${esc(m.name)}">${esc(m.name)}</span>${m.kind !== 'single' ? ` <span class="tag">${m.kind}${m.count ? ' ×' + m.count.toLocaleString('en') : ''}</span>` : ''}<small>${m.year || ''} · ${esc(m.orbit)}</small></div>`).join('') || '<div class="fine" style="padding:8px">No mission matches the filters.</div>';
@@ -434,7 +447,7 @@ function select(id) {
   S.sel = id; const m = ms.find(x => x.id === id); renderList();
   const md = modelsOf(m);
   if (modelType !== m.thruster_type) { setModel(m.thruster_type); setInset(m.thruster_type); }
-  wantDist = (m.orbit === 'Lunar' || m.orbit === 'Deep space') ? 17 : 11.5;
+  wantDist = (m.orbit === 'Lunar' || m.orbit === 'Deep space') ? 17 : 10;
   let html = `<h2>${flag(m.country)} ${esc(m.name)} <span class="tag">${m.thruster_type === 'ion' ? 'Gridded ion' : 'Hall'}</span>${m.kind !== 'single' ? `<span class="tag">${m.kind}${m.count ? ' · ' + m.count.toLocaleString('en') + ' spacecraft' : ''}</span>` : ''}<span class="conf ${esc(m.confidence)}">${esc(m.confidence)} confidence</span></h2>
     <div class="kv"><div><span>Country</span><b>${esc(cname(m.country))}</b></div><div><span>Operator / agency</span><b>${esc(m.agency_or_operator)}</b></div>
     <div><span>Launch</span><b>${esc(m.launch)}${m.launch_last ? ' – ' + esc(m.launch_last) : ''}</b></div><div><span>Orbit</span><b>${esc(m.orbit)}</b></div>
@@ -491,7 +504,7 @@ renderer.domElement.addEventListener('click', () => { ray.setFromCamera(mouse, c
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 function resize() { const w = stage.clientWidth, h = stage.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
 addEventListener('resize', resize); resize();
-let t = 0, last = performance.now(), wantDist = 11.5;
+let t = 0, last = performance.now(), wantDist = 10;
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), tmp3 = new THREE.Vector3(), tq = new THREE.Quaternion(), tm = new THREE.Matrix4(), ORIGIN = new THREE.Vector3();
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now; t += reduce ? dt * 0.15 : dt;
