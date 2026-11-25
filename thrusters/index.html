@@ -200,7 +200,7 @@ td.ck { text-align: center; } td.ck input { accent-color: var(--cmpc); cursor: p
       <h2>About the data</h2>
       <p id="about"></p>
       <p class="fine">Compiled from agency, manufacturer and peer-reviewed sources (IEPC, AIAA and journal papers), listed on every entry. Constellations are shown as one entry tagged <b>cluster</b>; families of near-identical satellites as one entry tagged <b>series</b>. Positions: spacecraft still in orbit are at their real current position, propagated with SGP4 (satellite.js) from CelesTrak orbital elements refreshed daily; retired spacecraft fly their catalogued orbit (CelesTrak SATCAT inclination, perigee, apogee; for decayed low orbits the final pre-decay altitude is replaced by 450 km); spacecraft without a catalogue match use a representative orbit for their class. Constellations show a sample of 240 of their real satellites. Deep-space trajectories: JPL Horizons. Sun and Moon positions and Earth's rotation are computed for the displayed time. The Overview scale compresses distances (log-like); the True scale buttons show real distances. Images: Earth day map NASA Goddard (Blue Marble; R. Stöckli, R. Simmon) via Wikimedia Commons, CC BY-SA 3.0; city lights NASA Earth Observatory (Black Marble 2016), public domain; clouds and Moon maps Solar System Scope, CC BY 4.0. Please report any error.</p>
-          <p class="fine"><b>Views and models.</b> Earth's shadow uses the true geometry (cylindrical umbra, real Sun direction). The firing schedule is an illustration of typical practice, not mission telemetry: no firing in eclipse (solar-electric power), GEO north–south station keeping in two windows a day centred on right ascension 90° and 270°, GOCE firing continuously (drag-free control), other spacecraft firing in sunlight; pulsed thrusters always pulse (at the published flight pulse rate where one exists). The ground track is drawn from the same orbit model as the position. Spacecraft shapes for GOCE, Starlink, SMART-1, Dawn, Deep Space 1, Hayabusa2, Psyche, BepiColombo and LISA Pathfinder are simplified, with proportions taken from public images. DART close-up: trajectory from JPL Horizons (DART −135, Didymos, Dimorphos 120065803), drawn as a straight final approach along the Horizons direction; derived impact 23:14:24.18 UTC (NASA: 23:14:24 UTC), 6.14 km/s; body sizes from Daly et al. 2023 (Nature 616, 443); the spacecraft break-up and the ejecta are illustrations. The inset shows the real DRACO images (NASA/Johns Hopkins APL) at the matching moments, and “NASA replay video” plays NASA’s replay of the final 5.5 minutes (hosted copy, reduced to 640 px). Charts: thruster parameters as in the table; a range is drawn as a bar with the point at its upper end.</p>
+          <p class="fine"><b>Views and models.</b> Earth's shadow uses the true geometry (cylindrical umbra, real Sun direction). The firing schedule is an illustration of typical practice, not mission telemetry: no firing in eclipse (solar-electric power), GEO north–south station keeping in two windows a day centred on right ascension 90° and 270°, GOCE firing continuously (drag-free control), other spacecraft firing in sunlight; pulsed thrusters always pulse (at the published flight pulse rate where one exists). The ground track is drawn from the same orbit model as the position. Official NASA 3D models (NASA 3D Resources, github.com/nasa/NASA-3D-Resources) are used for Dawn, Deep Space 1, EO-1, the SSL 1300 platform and DART (DART simplified from NASA's 3D-print file); the thruster drawn on them is ours and its position approximate. Spacecraft shapes for GOCE, Starlink, SMART-1, Hayabusa2, Psyche, BepiColombo and LISA Pathfinder are simplified, with proportions taken from public images (each is labelled in the view). DART close-up: trajectory from JPL Horizons (DART −135, Didymos, Dimorphos 120065803), drawn as a straight final approach along the Horizons direction; derived impact 23:14:24.18 UTC (NASA: 23:14:24 UTC), 6.14 km/s; body sizes from Daly et al. 2023 (Nature 616, 443); the spacecraft break-up and the ejecta are illustrations. The inset shows the real DRACO images of the final phase from the NASA Planetary Data System (Small Bodies Node, DART bundle v2.0; every third frame, all frames in the last 15 s; NASA/Johns Hopkins APL) at their recorded times, and “NASA replay video” plays NASA’s replay of the final 5.5 minutes (hosted copy, reduced to 640 px). Charts: thruster parameters as in the table; a range is drawn as a bar with the point at its upper end.</p>
     </section>
     <footer style="text-align:center;color:var(--muted,#6e6e73);font-size:12.5px;margin:22px 0 6px">Created and conceptualised by Dr. Bharat Singh Rawat</footer>
   </main>
@@ -208,6 +208,8 @@ td.ck { text-align: center; } td.ck input { accent-color: var(--cmpc); cursor: p
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from './vendor/OrbitControls.js';
+import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
+import { DRACOLoader } from './vendor/loaders/DRACOLoader.js';
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const [M, MOD] = await Promise.all(['missions', 'models'].map(n => fetch('data/' + n + '.json').then(r => r.json())));
@@ -835,12 +837,38 @@ const SHAPES = {
     const top = new THREE.Mesh(new THREE.CylinderGeometry(0.29, 0.29, 0.006, 8), cellMat); top.position.y = 0.064; s.add(top);
     return { x: -0.3, scale: 0.9 }; },
 };
-const shapeKey = m => m && Object.keys(SHAPES).find(k => m.name.startsWith(k));
+const shapeKey = m => m && (Object.keys(SHAPES).find(k => m.name.startsWith(k)) || Object.keys(REAL).find(k => m.name.startsWith(k)));
+// official NASA 3D models (NASA 3D Resources, github.com/nasa/NASA-3D-Resources; DART = simplified from NASA's 3D-print file).
+// rot: rotations applied in order (axis, angle) that turn the model so its thrust axis is -X and the arrays lie along Z; L: largest extent in page units; plume: engine position after normalising
+const REAL = {
+  'Dawn': { f: 'dawn.glb', rot: [['y', Math.PI / 2], ['z', -Math.PI / 2]], L: 2.2, plume: [-0.16, 0, 0] },
+  'Deep Space 1': { f: 'ds1.glb', rot: [['y', Math.PI / 2], ['z', -Math.PI / 2]], L: 1.8, plume: [-0.16, 0, 0] },
+  'EO-1': { f: 'eo1.glb', rot: [], L: 1.2, plume: [-0.25, 0, 0] },
+  'SSL / Maxar 1300': { f: 'ssl1300.glb', rot: [['y', Math.PI / 2]], L: 2.4, plume: [-0.25, 0, 0] },
+  'DART': { f: 'dart.glb', rot: [['y', Math.PI / 2]], L: 2.0, plume: [-0.12, 0, 0] },
+};
+const gltfL = new GLTFLoader(); { const dl = new DRACOLoader(); dl.setDecoderPath('vendor/libs/draco/gltf/'); gltfL.setDRACOLoader(dl); }
+const realCache = {};
+function loadReal(k) { return realCache[k] ??= new Promise(res => gltfL.load('vendor/models/' + REAL[k].f, g => res(g.scene), undefined, () => res(null))); }
+const realKey = m => m && Object.keys(REAL).find(k => m.name.startsWith(k));
+// normalised copy of a NASA model: rotated, centred, largest extent = L
+function realCopy(k, sc) { const c = REAL[k], r = sc.clone(true), w = new THREE.Group(), g = new THREE.Group(), AX = { x: new THREE.Vector3(1, 0, 0), y: new THREE.Vector3(0, 1, 0), z: new THREE.Vector3(0, 0, 1) };
+  for (const [a, ang] of c.rot) r.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(AX[a], ang)); g.add(r);
+  const b = new THREE.Box3().setFromObject(g), sz = b.getSize(new THREE.Vector3()), ctr = b.getCenter(new THREE.Vector3()); r.position.sub(ctr);
+  g.scale.setScalar(c.L / Math.max(sz.x, sz.y, sz.z)); w.add(g);
+  if (k === 'DART') r.traverse(o => { if (o.isMesh) { o.geometry.computeVertexNormals(); o.material = new THREE.MeshStandardMaterial({ color: 0xc8cbd2, metalness: 0.35, roughness: 0.5, side: THREE.DoubleSide }); } });
+  return w; }
 // detailed model of a mission: its own shape when known, else the generic bus
 function craftModel(m, type, col, hz) {
-  const k = shapeKey(m); if (!k) return spacecraft(type, col, hz);
-  const s = new THREE.Group(), o = SHAPES[k](s), t = thruster(type, col, hz);
-  t.position.x = o.x; t.scale.setScalar(Math.min(1, 0.75 / o.scale)); s.add(t); s.userData.thr = t; s.userData.shape = k; s.userData.k = o.scale; return s;
+  const k = Object.keys(SHAPES).find(n => m && m.name.startsWith(n)), rk = realKey(m);
+  if (!k && !rk) return spacecraft(type, col, hz);
+  let s, o;
+  if (k) { s = new THREE.Group(); o = SHAPES[k](s); } else { s = spacecraft(type, col, hz); s.remove(s.userData.thr); o = { x: -0.17, scale: 1 }; }
+  const t = thruster(type, col, hz); t.position.x = o.x; t.scale.setScalar(Math.min(1, 0.75 / o.scale)); s.add(t); s.userData.thr = t; s.userData.shape = k || rk; s.userData.k = o.scale;
+  if (rk) loadReal(rk).then(sc => { if (!sc) return;   // swap the placeholder for the official model when it has loaded
+    for (const c of [...s.children]) if (c !== t) s.remove(c);
+    const w = realCopy(rk, sc); s.add(w); t.position.set(...REAL[rk].plume); t.scale.multiplyScalar(0.6); s.userData.real = true; shadeModel(w); s.userData.inShadow = undefined; s.userData.R = Math.min(s.userData.R ?? 9, REAL[rk].L * 0.6); });
+  return s;
 }
 // darker copies of materials for spacecraft in the Earth's shadow
 function shadeModel(obj) { obj.traverse(o => { if (o.isMesh && o.material && o.material.isMeshStandardMaterial) { o.material = o.material.clone();
@@ -1074,10 +1102,11 @@ sscene.environment = studioEnv(renderer);
 let solarModel = null;   // detailed model of the selected deep-space craft, placed on its Horizons trajectory
 // ---------- DART impact close-up (JPL Horizons: DART -135, Didymos, Dimorphos; km, ecliptic J2000, Didymos-centred) ----------
 const DI = await fetch('data/dart_impact.json').then(r => r.json()).catch(() => null);
+const DF = await fetch('data/draco_frames.json').then(r => r.json()).catch(() => null);   // every 3rd DRACO frame of the final phase (all in the last 15 s), PDS SBN
 const dscene = new THREE.Scene(), dcamr = new THREE.PerspectiveCamera(40, 1, 0.001, 5000);
 const dctl = new OrbitControls(dcamr, renderer.domElement); dctl.enableDamping = true; dctl.enabled = false; dctl.minDistance = 0.3; dctl.maxDistance = 1500;
 dctl.addEventListener('start', () => { dUser = true; });
-let DT = -60, dFrag = null, dDraco = '', dUser = false, dSide = new THREE.Vector3(), dartObj = null, dartTrail = null, dLab = {}, dFlash = null, dEjecta = null, dAim = new THREE.Vector3();
+let dAuto = false, DT = -60, dPieces = [], dFrag = null, dDraco = '', dUser = false, dSide = new THREE.Vector3(), dartObj = null, dartTrail = null, dLab = {}, dFlash = null, dEjecta = null, dAim = new THREE.Vector3();
 if (DI) {
   const S_ = v => new THREE.Vector3(v[0], v[2], -v[1]);   // ecliptic -> scene (same convention as the Earth view)
   dscene.environment = studioEnv(renderer);
@@ -1102,6 +1131,11 @@ if (DI) {
     for (const sd of [-1, 1]) { const arr = new THREE.Mesh(rbox(0.0024, 0.0001, 0.0085, 0.00005), cellMat); arr.position.z = sd * 0.0058; dartObj.add(arr); }
     const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.0006, 0.0006, 0.0002, 16), whitePaint); ant.position.y = 0.001; dartObj.add(ant); }
   dartObj.scale.setScalar(20); dscene.add(dartObj);
+  loadReal('DART').then(sc => { if (!sc) return; const w = realCopy('DART', sc); w.scale.setScalar(0.0095); dartObj.children.forEach(c => { c.visible = false; }); dartObj.add(w); });   // NASA model, 19 m span before the 20x
+  // pieces of DART for the break-up (illustration): clones of its parts with their own velocity and spin
+  dPieces = dartObj.children.map(c => { const m = c.clone(); m.material = c.material.clone(); m.material.emissive = new THREE.Color(0xff6a1a); m.userData.c0 = m.material.color.clone(); dscene.add(m); m.visible = false; return m; });
+  for (let k = 0; k < 14; k++) { const m = new THREE.Mesh(new THREE.TetrahedronGeometry(0.0012 + Math.random() * 0.0012), new THREE.MeshStandardMaterial({ color: 0xc9c2b4, metalness: 0.7, roughness: 0.4, emissive: 0xff6a1a }));
+    m.userData.c0 = m.material.color.clone(); dscene.add(m); m.visible = false; dPieces.push(m); }
   dartTrail = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0x3987e5, transparent: true, opacity: 0.9 })); dscene.add(dartTrail);
   const lab = (t, col) => { const c = document.createElement('canvas'); c.width = 512; c.height = 64; const x = c.getContext('2d'); x.font = '600 30px -apple-system, Segoe UI, sans-serif'; x.fillStyle = col; x.fillText(t, 6, 42);
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, depthTest: false, sizeAttenuation: false })); s.scale.set(0.18, 0.0225, 1); s.center.set(0, 0.5); dscene.add(s); return s; };
@@ -1115,27 +1149,35 @@ if (DI) {
     q.v.copy(back).multiplyScalar(Math.cos(th)).addScaledVector(t1, Math.sin(th) * Math.cos(a_)).addScaledVector(t2, Math.sin(th) * Math.sin(a_)).multiplyScalar(0.01 + Math.random() * 0.09); q.tau = 8 + Math.random() * 10; });
   dEjecta.material.sizeAttenuation = true; dscene.add(dEjecta);
   // DART breaking up at contact (illustration): hot fragments spraying out of the impact point, fading within ~1-2 s
-  dFrag = puff(500, 0xffd2a0, 0.012, q => { q.p.copy(dAim); const back = S_(DI.approach_dir).multiplyScalar(-1), a_ = Math.random() * 6.283, th = Math.random() * 1.45;
+  dFrag = puff(900, 0xffc488, 0.03, q => { q.p.copy(dAim); const back = S_(DI.approach_dir).multiplyScalar(-1), a_ = Math.random() * 6.283, th = Math.random() * 1.45;
     const t1 = new THREE.Vector3(1, 0, 0).cross(back).normalize(), t2 = back.clone().cross(t1);
-    q.v.copy(back).multiplyScalar(Math.cos(th)).addScaledVector(t1, Math.sin(th) * Math.cos(a_)).addScaledVector(t2, Math.sin(th) * Math.sin(a_)).multiplyScalar(0.15 + Math.random() * 0.9); q.tau = 0.4 + Math.random() * 1.1; });
+    q.v.copy(back).multiplyScalar(Math.cos(th)).addScaledVector(t1, Math.sin(th) * Math.cos(a_)).addScaledVector(t2, Math.sin(th) * Math.sin(a_)).multiplyScalar(0.1 + Math.random() * 0.7); q.tau = 1 + Math.random() * 2.5; });
   dFrag.material.sizeAttenuation = true; dscene.add(dFrag);
 }
 // DART position at time T (s from contact): straight line along the Horizons approach direction (asteroid gravity negligible over minutes)
 function dartAt(T, out) { return out.copy(dAim).addScaledVector(new THREE.Vector3(DI.approach_dir[0], DI.approach_dir[2], -DI.approach_dir[1]), T * DI.impact.speed_km_s); }
-function enterImpact() { VIEW = 'impact'; DT = -60; dEjecta.userData.fired = false; controls.enabled = sctl.enabled = false; dctl.enabled = true;
+function enterImpact() { VIEW = 'impact'; DT = -150; if (DF && !DF.pre) DF.pre = DF.frames.map(f => { const i = new Image(); i.src = 'vendor/draco/' + f.f; return i; }); dEjecta.userData.fired = false; controls.enabled = sctl.enabled = false; dctl.enabled = true;
   dUser = false; const inc = dartAt(-1, new THREE.Vector3()).sub(dAim).normalize();
   dSide.copy(new THREE.Vector3(0, 1, 0).cross(inc)).normalize().multiplyScalar(0.8).addScaledVector(inc, 0.45).add(new THREE.Vector3(0, 0.35, 0)).normalize();
   dctl.target.copy(dAim); dcamr.position.copy(dAim).addScaledVector(dSide, 60); dctl.update();
   $$('#v-view button').forEach(b => b.setAttribute('aria-pressed', false)); $('#v-scale').hidden = $('#v-speed').hidden = $('#v-fire').hidden = $('#v-gt').hidden = true; $('#v-solar').hidden = true; $('#v-dart').hidden = false; }
 function stepImpact(dt) {
   // time runs ~10x near the start, slowing to real time over the last 5 s; holds 10 s after contact, then repeats
-  DT += dt * (DT < -5 ? Math.min(12, -DT / 4) : DT > 4 ? 2.5 : 1); if (DT > 30) { DT = -60; dEjecta.userData.fired = false; }
+  DT += dt * (DT < -5 ? Math.min(12, -DT / 4) : DT > 4 ? 2.5 : 1); if (DT > 30) { DT = -150; dEjecta.userData.fired = false; }
   const p = dartAt(Math.min(DT, 0), new THREE.Vector3());
   dartObj.visible = DT < 0; dartObj.position.copy(p); dartObj.lookAt(dAim); dLab.dart.visible = DT < 0; dLab.dart.position.copy(p).add(new THREE.Vector3(0.05, 0.05, 0));
-  const pts = []; for (let k = 0; k <= 40; k++) pts.push(dartAt(-60 + k / 40 * (Math.min(DT, 0) + 60), new THREE.Vector3()));
+  const pts = []; for (let k = 0; k <= 40; k++) pts.push(dartAt(-150 + k / 40 * (Math.min(DT, 0) + 150), new THREE.Vector3()));
   dartTrail.geometry.dispose(); dartTrail.geometry = new THREE.BufferGeometry().setFromPoints(pts);
   const f = DT >= 0 ? Math.exp(-DT / 0.6) : 0; dFlash.visible = f > 0.01; dFlash.scale.setScalar(0.05 + 0.6 * (1 - f)); dFlash.material.opacity = f;
-  if (DT >= 0 && !dEjecta.userData.fired) { dEjecta.userData.fire(); dFrag.userData.fire(); dEjecta.userData.fired = true; }
+  if (DT >= 0 && !dEjecta.userData.fired) { dEjecta.userData.fire(); dFrag.userData.fire(); dEjecta.userData.fired = true;
+    const back = dartAt(1, new THREE.Vector3()).sub(dAim).normalize();   // pieces rebound up-range, spreading sideways
+    dPieces.forEach((m, i) => { const r = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+      m.position.copy(dAim).addScaledVector(back, 0.03); m.userData.v = back.clone().multiplyScalar(0.05 + Math.random() * 0.12).addScaledVector(r, 0.06 + Math.random() * 0.1);
+      m.userData.w = r.clone().multiplyScalar(2 + Math.random() * 6); m.scale.setScalar(i < dartObj.children.length ? 20 : 20 * (0.6 + Math.random())); m.visible = true; }); }
+  if (DT < 0) dPieces.forEach(m => { m.visible = false; });
+  else dPieces.forEach(m => { if (!m.visible) return; const sdt = dt * (DT > 4 ? 2.5 : 1), life = Math.max(0, 1 - DT / 6);
+    m.position.addScaledVector(m.userData.v, sdt); m.rotation.x += m.userData.w.x * sdt; m.rotation.y += m.userData.w.y * sdt; m.rotation.z += m.userData.w.z * sdt;
+    m.material.emissiveIntensity = 2.5 * Math.exp(-DT / 1.2); m.material.color.copy(m.userData.c0).multiplyScalar(0.3 + 0.7 * life); if (life <= 0) m.visible = false; });
   dEjecta.visible = dFrag.visible = DT >= 0; if (DT >= 0) { const sdt = dt * (DT > 4 ? 2.5 : 1); dEjecta.userData.step(sdt); dFrag.userData.step(sdt); }
   setDraco(DT);
   if (!dUser) {   // automatic dolly: frame DART and Dimorphos while they close, then hold ~2.5 km from the impact site
@@ -1146,7 +1188,13 @@ function stepImpact(dt) {
 // real DRACO frames (NASA/Johns Hopkins APL) shown in the inset at the matching moment, with NASA's caption values
 const DRACO = [[-11, 'draco_t150.jpg', 'DRACO, 2.5 min before impact, 920 km: Didymos (lower left) and Dimorphos'], [-2, 'draco_t11.jpg', 'DRACO, 11 s before impact, 68 km: last image with all of Dimorphos'],
   [0, 'draco_t2.jpg', 'DRACO, 2 s before impact, ~12 km: last complete image (patch 31 m across)'], [1e9, 'draco_final.jpg', 'DRACO, final image: partial; red = data never received, the impact happened during its transmission']];
-function setDraco(T) { const k = VIEW === 'impact' ? DRACO.find(([t]) => T < t) : null, img = $('#draco'), cap = $('#draco-cap');
+function setDraco(T) {
+  if (DF && VIEW === 'impact') { let f = DF.frames[0]; for (const x of DF.frames) if (x.t <= T) f = x; const img = $('#draco'), cap = $('#draco-cap');
+    img.hidden = cap.hidden = false; ir.domElement.style.visibility = 'hidden'; $('#inset-l').hidden = true;
+    if (dDraco !== f.f) { dDraco = f.f; img.src = 'vendor/draco/' + f.f; const last = f === DF.frames[DF.frames.length - 1];
+      cap.innerHTML = `DRACO ${f.utc.slice(11, 23)} UTC · T−${(-f.t).toFixed(2)} s${last ? ' · last image (partial, transmission cut by the impact)' : ''}<br>NASA/Johns Hopkins APL (PDS) · as on the detector (mirror-flipped)`; }
+    return; }
+  const k = VIEW === 'impact' ? DRACO.find(([t]) => T < t) : null, img = $('#draco'), cap = $('#draco-cap');
   img.hidden = cap.hidden = !k; ir.domElement.style.visibility = k ? 'hidden' : ''; $('#inset-l').hidden = !!k;
   if (k && dDraco !== k[1]) { dDraco = k[1]; img.src = 'vendor/' + k[1]; img.alt = k[2]; cap.innerHTML = `${k[2]}<br>NASA/Johns Hopkins APL · as on the detector (mirror-flipped)`; } }
 function impactHUD() {
@@ -1204,7 +1252,7 @@ function pulseHz(m) { for (const d of modelsOf(m)) { const p = (d.params || {}).
 function modelsOf(m) { return (m.models || []).map(k => MODELS[k]).filter(Boolean); }
 function select(id) {
   S.sel = id; const m = ms.find(x => x.id === id); renderList();
-  $('#dart-go').hidden = !(m.name.startsWith('DART') && DI);
+  $('#dart-go').hidden = !(m.name.startsWith('DART') && DI); dAuto = false;
   const md = modelsOf(m);
   const pc = propColor(m);
   const hz = pulseHz(m), mk = visOf(m) + pc + hz + (shapeKey(m) || ''); if (modelType !== mk) { setModel(visOf(m), pc, hz, m); setInset(visOf(m), pc, hz); setSolarModel(m, visOf(m), pc, hz); modelType = mk; }
@@ -1445,7 +1493,9 @@ function frame(now) {
   } else if (VIEW === 'solar') {
     const o = objs.find(x => x.m.id === S.sel), sel = SC.find(s => s.o === o);
     const t0 = sel ? sel.tr.t[0] : T_MIN, t1 = sel ? sel.tr.t[sel.tr.t.length - 1] : T_MAX;
-    solarMs += dt * 86400000 * 25; if (solarMs > t1 || solarMs < t0) solarMs = t0;          // replay: 25 days per second
+    solarMs += dt * 86400000 * 25;
+    if (solarMs > t1 && sel && sel.o.m.name.startsWith('DART') && DI && !dAuto) { dAuto = true; solarMs = t0; enterImpact(); }   // the replay ends at the impact: switch to the close-up
+    if (solarMs > t1 || solarMs < t0) solarMs = t0;          // replay: 25 days per second
     $('#v-replay').value = Math.round((solarMs - T_MIN) / (T_MAX - T_MIN) * 1000);
     for (const b of SB) { interp(b.tr, solarMs, b.mesh.position); b.lab.position.copy(b.mesh.position); b.lab.visible = !b.small || (sel && DEST_OF(sel.o.m).includes(b.name)); }
     for (const s of SC) {
@@ -1457,7 +1507,7 @@ function frame(now) {
     }
     if (solarModel) { const on = sel && sel.craft.visible; solarModel.visible = !!on;
       if (on) { sel.craft.visible = false; solarModel.position.copy(sel.craft.position); solarModel.quaternion.copy(sel.craft.quaternion);
-        solarModel.scale.setScalar(scam.position.distanceTo(solarModel.position) * 0.035 * (solarModel.userData.k ?? 1)); solarModel.userData.thr.userData.update(dt, now / 1000); } }
+        solarModel.scale.setScalar(Math.min(0.09, scam.position.distanceTo(solarModel.position) * 0.006) * (solarModel.userData.k ?? 1)); solarModel.userData.thr.userData.update(dt, now / 1000); } }
     sctl.update(); renderer.render(sscene, scam);
   } else if (DI) stepImpact(dt);
   if (ithr) { ithr.rotation.y = 0.22 * Math.sin(t * 0.35); ithr.rotation.x = 0.1 * Math.sin(t * 0.27); ithr.userData.update(dt, now / 1000); ir.render(iscene, icam); }
@@ -1468,7 +1518,7 @@ function frame(now) {
       : `<span class="clk">${new Date(solarMs).toISOString().slice(0, 10)} · JPL Horizons trajectory${sc ? '' : ' (none available for this mission)'}${sc && sc.note ? ' · ' + esc(sc.note) : ''}</span>`);
   if (m && VIEW !== 'impact') { const ex = [];
     if (VIEW === 'earth' && m.orbit !== 'Deep space') { if (SHADOW_NOW) ex.push('in the Earth\u2019s shadow'); if (FIRE === 'schedule' && FIRE_TXT) ex.push(FIRE_TXT + ' (illustrative schedule)'); }
-    if (shapeKey(m) && (VIEW === 'solar' ? !!solarModel : m.orbit !== 'Deep space')) ex.push('simplified spacecraft shape');
+    const cm = VIEW === 'solar' ? solarModel : model; if (shapeKey(m) && cm && (VIEW === 'solar' || m.orbit !== 'Deep space')) ex.push(cm.userData.real ? 'NASA 3D model (NASA 3D Resources)' : 'simplified spacecraft shape');
     if (ex.length) $('#hud').insertAdjacentHTML('beforeend', `<br><span class="clk">${ex.join(' · ')}</span>`); }
   requestAnimationFrame(frame);
 }
