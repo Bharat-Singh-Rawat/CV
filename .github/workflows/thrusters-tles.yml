@@ -1,0 +1,30 @@
+name: EP in Space orbital elements
+
+# Refreshes thrusters/data/orbits.json with the newest CelesTrak two-line elements, so the page shows real positions.
+on:
+  schedule:
+    - cron: "17 4 * * *"   # once a day
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fetch new elements
+        run: python .github/scripts/refresh_tles.py
+      - name: Commit if anything changed
+        run: |
+          git add thrusters/data/orbits.json
+          if git diff --cached --quiet; then echo "No changes"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "EP in Space: refresh orbital elements"
+          git pull --rebase origin main
+          git push
