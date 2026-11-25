@@ -955,7 +955,7 @@ function realCopy(k, sc) { const c = REAL[k], r = sc.clone(true), w = new THREE.
 // detailed model of a mission: its own shape when known, else the generic bus
 function craftModel(m, type, col, hz, noReal = false) {
   const k = Object.keys(SHAPES).find(n => m && m.name.startsWith(n)), rk = noReal && k ? null : realKey(m);
-  if (!k && !rk) { const g = spacecraft(type, col, hz, busClass(m), /^ATS-[24]/.test(m.name)); g.userData.cls = busClass(m); g.userData.booms = /^ATS-[24]/.test(m.name); return g; }
+  if (!k && !rk) { const g = spacecraft(type, col, hz, busClass(m), /^ATS-[24](?! \/)/.test(m.name)); g.userData.cls = busClass(m); g.userData.booms = /^ATS-[24](?! \/)/.test(m.name);   // series entries mix spinners (ATS-3, -5) with boom craft: no booms there return g; }
   let s, o;
   if (k) { s = new THREE.Group(); o = SHAPES[k](s); if (FIXED_ARRAYS.has(k)) s.traverse(c => { c.userData.sadm = false; }); } else { s = spacecraft(type, col, hz); s.remove(s.userData.thr); o = { x: -0.17, scale: 1 }; }
   const t = thruster(type, col, hz); t.position.x = o.x; t.scale.setScalar(Math.min(1, 0.75 / o.scale)); s.add(t); s.userData.thr = t; s.userData.shape = k || rk; s.userData.k = o.scale;
@@ -1213,7 +1213,7 @@ function clusterMarkers(mdl) {
   const sel = objs.find(o => o.m.id === S.sel), L = [];
   for (const o of objs) if (o.earth && o.items[0].hit.visible) for (const it of o.items) {
     it.clHidden = false; it.px ??= { x: 0, y: 0, z: 0 }; toPx(it.pos, it.px);
-    it.front = it.px.z < 1 && !behindEarth(it.pos); it.rank = o === sel && it === o.items[0] ? 0 : o.m.kind === 'single' ? 1 : 2; L.push(it); }
+    it.front = it.px.z < 1 && !behindEarth(it.pos); it.rank = o === sel && it === selItem(o) ? 0 : o.m.kind === 'single' ? 1 : 2; L.push(it); }
   L.sort((a, b) => a.rank - b.rank);
   let selR = CL_R;   // the detailed model of the selected craft covers more of the screen
   if (mdl && mdl.visible) { const d = camera.position.distanceTo(mdl.position); selR = Math.max(CL_R, (mdl.userData.R ?? MODEL_R) * mdl.scale.x / (d * tanHalf()) * stage.clientHeight / 2 * 0.8); }
@@ -1257,7 +1257,7 @@ function openCluster(g) {
   clPop.hidden = false;
   const p = toPx(g.lead.pos, _p2), W = stage.clientWidth, r = clPop.getBoundingClientRect();
   clPop.style.left = Math.max(8, Math.min(W - r.width - 8, p.x + 16)) + 'px'; clPop.style.top = Math.max(8, Math.min(H - r.height - 60, p.y - 20)) + 'px';
-  clPop.querySelectorAll('li button').forEach(b => b.onclick = () => { const it = items[+b.dataset.i]; closeCluster(); select(it.o.m.id); follow(true); });
+  clPop.querySelectorAll('li button').forEach(b => b.onclick = () => { const it = items[+b.dataset.i]; closeCluster(); select(it.o.m.id, it.o.items.indexOf(it)); follow(true); });
   clPop.querySelector('.clx').onclick = closeCluster;
   const z = clPop.querySelector('.clz'); if (z) z.onclick = () => { closeCluster(); FLY = { it: g.lead }; wantDist = need; };
 }
@@ -1524,8 +1524,10 @@ const PARAMS = [['power_W', 'Input power', 'W'], ['thrust_mN', 'Thrust', 'mN'], 
 const fmtV = p => p == null ? '' : Array.isArray(p.v) ? `${p.v[0]}–${p.v[1]}` : String(p.v);
 function pulseHz(m) { for (const d of modelsOf(m)) { const p = (d.params || {}).pulse_rate_Hz; if (p) { const x = parseFloat(String(Array.isArray(p.v) ? p.v[0] : p.v)); if (x > 0) return x; } } return 0; }
 function modelsOf(m) { return (m.models || []).map(k => MODELS[k]).filter(Boolean); }
-function select(id) {
-  S.sel = id; const m = ms.find(x => x.id === id); renderList();
+let SEL_I = 0;   // which member of a series / constellation was clicked (follow, model, ground track use it)
+const selItem = o => o.items[Math.min(SEL_I, o.items.length - 1)];
+function select(id, idx = 0) {
+  S.sel = id; SEL_I = Math.max(0, idx); const m = ms.find(x => x.id === id); renderList();
   $('#dart-go').hidden = !(m.name.startsWith('DART') && DI); dAuto = false;
   const md = modelsOf(m);
   const pc = propColor(m);
@@ -1682,7 +1684,7 @@ renderer.domElement.addEventListener('pointermove', e => {
     tip.innerHTML = `${flag(m.country)} ${esc(it && it.ob && m.kind !== 'single' ? it.ob.member : m.name)} · ${esc(m.thruster)}`; renderer.domElement.style.cursor = 'pointer'; }
   else { tip.hidden = true; renderer.domElement.style.cursor = ''; }
 });
-renderer.domElement.addEventListener('click', () => { ray.setFromCamera(mouse, VIEW === 'earth' ? camera : scam); const hit = ray.intersectObjects(curPick())[0]; if (hit) { select(hit.object.userData.o.m.id); follow(true); } });
+renderer.domElement.addEventListener('click', () => { ray.setFromCamera(mouse, VIEW === 'earth' ? camera : scam); const hit = ray.intersectObjects(curPick())[0]; if (hit) { const { o, it } = hit.object.userData; select(o.m.id, it ? o.items.indexOf(it) : 0); follow(true); } });
 
 // ---------- view, scale and time controls ----------
 function setView(v) {
@@ -1762,7 +1764,7 @@ function frame(now) {
         itemScene(it, simMs, it.pos); itemScene(it, simMs + 30000, it.next);
         it.hit.position.copy(it.pos); it.craft.position.copy(it.pos);
         attitude(it.craft, it.pos, it.next, o.m.orbit === 'Lunar' ? moon.position : ORIGIN, _q); it.craft.quaternion.slerp(_q, Math.min(1, dt * 5));
-        it.craft.visible = !(o.m.id === S.sel && it === o.items[0] && !MODEL_SMALL) && !it.clHidden;
+        it.craft.visible = !(o.m.id === S.sel && it === selItem(o) && !MODEL_SMALL) && !it.clHidden;
         if (!it.craft.visible) continue;
         const sh = inShadow(it), [fi] = firing(o, it), U = it.craft.userData;
         setMiniShade(it.craft, sh); U.plume.visible = fi; sizeMarker(it);
@@ -1777,7 +1779,7 @@ function frame(now) {
         p.needsUpdate = true;
       }
     }
-    const o = objs.find(x => x.m.id === S.sel), it = o && o.earth && o.items[0].hit.visible ? o.items[0] : null;
+    const o = objs.find(x => x.m.id === S.sel), it = o && o.earth && o.items[0].hit.visible ? selItem(o) : null;
     if (model) {
       if (it) {
         model.visible = true; model.position.copy(it.pos);
@@ -1844,11 +1846,11 @@ function frame(now) {
   if (ithr) { ithr.rotation.y = 0.22 * Math.sin(t * 0.35); ithr.rotation.x = 0.1 * Math.sin(t * 0.27); ithr.userData.update(dt, now / 1000); ir.render(iscene, icam); }
   const m = S.sel != null ? ms.find(x => x.id === S.sel) : null, dk = m && Object.keys(DEST).find(n => m.name.startsWith(n));
   const sc = m && SC.find(s => s.o.m === m);
-  $('#hud').innerHTML = VIEW === 'launch' ? LAUNCH.hud() : VIEW === 'impact' ? impactHUD() : (m ? `<b>${flag(m.country)} ${esc(m.name)}</b><br>${esc(m.thruster)} · ${esc(m.orbit)}${dk ? ' → ' + esc(DEST[dk]) : ''} · ${esc(m.launch)}<br>` : '') +
+  $('#hud').innerHTML = VIEW === 'launch' ? LAUNCH.hud() : VIEW === 'impact' ? impactHUD() : (m ? `<b>${flag(m.country)} ${esc(m.name)}</b>${(() => { if (m.kind === 'single' || VIEW !== 'earth') return ''; const ox = objs.find(x => x.m === m), it = ox && selItem(ox); return it && it.ob && it.ob.member ? '<br>▸ ' + esc(it.ob.member) : ''; })()}<br>${esc(m.thruster)} · ${esc(m.orbit)}${dk ? ' → ' + esc(DEST[dk]) : ''} · ${esc(m.launch)}<br>` : '') +
     (VIEW === 'earth' ? `<span class="clk">${fmtUTC(simMs)} · ×${SPEED}</span>${m && m.orbit !== 'Deep space' ? ` · <span class="clk">${({ live: 'real position (CelesTrak elements)', catalogue: 'catalogued orbit', representative: 'representative orbit' })[objs.find(x => x.m === m).orbitSource]}${objs.find(x => x.m === m).reentered ? ', not in orbit since ' + objs.find(x => x.m === m).reentered.slice(0, 10) : ''}</span>` : ''}`
       : `<span class="clk">${new Date(solarMs).toISOString().slice(0, 10)} · JPL Horizons trajectory${sc ? '' : ' (none available for this mission)'}${sc && sc.note ? ' · ' + esc(sc.note) : ''}</span>`);
   if (m && VIEW !== 'impact' && VIEW !== 'launch') { const ex = []; const L_ = dsnOf(m); if (L_) ex.push(`📡 live DSN contact: ${L_[0].site} ${L_[0].dish}`);
-    if (VIEW === 'earth' && m.orbit !== 'Deep space') { { const it0 = objs.find(x => x.m === m)?.items[0]; if (it0 && it0.ob && ORBIT_FIX[it0.ob.norad]) ex.push(ORBIT_FIX[it0.ob.norad][3]); } if (SHADOW_NOW) ex.push('in the Earth\u2019s shadow'); if (FIRE === 'schedule' && FIRE_TXT) ex.push(FIRE_TXT + ' (illustrative schedule)'); }
+    if (VIEW === 'earth' && m.orbit !== 'Deep space') { { const ox = objs.find(x => x.m === m), it0 = ox && selItem(ox); if (it0 && it0.ob && ORBIT_FIX[it0.ob.norad]) ex.push(ORBIT_FIX[it0.ob.norad][3]); } if (SHADOW_NOW) ex.push('in the Earth\u2019s shadow'); if (FIRE === 'schedule' && FIRE_TXT) ex.push(FIRE_TXT + ' (illustrative schedule)'); }
     const cm = VIEW === 'solar' ? solarModel : model; if (shapeKey(m) && cm && (VIEW === 'solar' || m.orbit !== 'Deep space')) ex.push(cm.userData.real === 'generic' ? 'generic CubeSat (NASA 3D Resources), not this mission\u2019s own design' : cm.userData.real ? 'NASA 3D model (NASA 3D Resources)' : 'simplified spacecraft shape');
     else if (cm && cm.userData.cls && VIEW === 'earth' && m.orbit !== 'Deep space') ex.push(cm.userData.booms ? 'drum with gravity-gradient booms (representative, not the exact shape)' : 'representative ' + ({ geo: 'GEO comsat', flat: 'flat-pack constellation', spin: 'early drum-shaped (body-mounted cells)', station: 'station module', leo: 'small-satellite', cube: 'CubeSat' })[cm.userData.cls] + ' bus, not the exact shape');
     if (ex.length) $('#hud').insertAdjacentHTML('beforeend', `<br><span class="clk">${ex.join(' · ')}</span>`); }
