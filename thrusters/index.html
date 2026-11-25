@@ -80,6 +80,22 @@ h1 { margin: 8px 0 0; font-size: 26px; letter-spacing: -.025em; }
 .hud .clk { color: #aeb6c8; font-size: 11.5px; }
 .legend { left: auto !important; right: 14px; bottom: 56px !important; flex-direction: column; align-items: flex-end; gap: 3px !important; } @media (max-width: 860px) { .legend { display: none !important; } }
 @media (max-width: 860px) { .vseg button { padding: 4px 6px; font-size: 11px; } .vseg input { width: 140px; } }
+.clhost { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.clb { position: absolute; left: 0; top: 0; pointer-events: auto; min-width: 19px; height: 19px; padding: 0 6px; border-radius: 10px; border: 1px solid rgba(255,255,255,.28);
+  background: rgba(22,25,36,.78); color: #fff; font: 600 11px/17px var(--font); font-variant-numeric: tabular-nums; cursor: pointer; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(0,0,0,.35); transition: background .2s, border-color .2s; }
+.clb:hover { background: rgba(10,132,255,.85); border-color: rgba(255,255,255,.5); } .clb.sel { background: rgba(255,255,255,.16); color: #e8eaf2; }
+@media (pointer: coarse) { .clb { min-width: 24px; height: 24px; font-size: 12px; line-height: 22px; } }
+.clpop { position: absolute; z-index: 5; width: 290px; max-width: calc(100% - 16px); max-height: 320px; display: flex; flex-direction: column; border-radius: 12px; overflow: hidden;
+  background: rgba(22,25,36,.86); border: 1px solid rgba(255,255,255,.14); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); color: #e8eaf2; box-shadow: 0 12px 32px rgba(0,0,0,.45); }
+.clpop .clh { display: flex; align-items: center; gap: 8px; padding: 9px 10px 8px 12px; border-bottom: 1px solid rgba(255,255,255,.1); font-size: 12.5px; }
+.clpop .clh b { flex: 1; } .clpop .clh span { color: #98989d; font-size: 11px; }
+.clpop .clz { border: 0; border-radius: 980px; background: #0a84ff; color: #fff; font: 600 11.5px var(--font); padding: 3px 10px; cursor: pointer; }
+.clpop .clx { border: 0; background: none; color: #98989d; font-size: 13px; cursor: pointer; padding: 2px 4px; }
+.clpop ul { list-style: none; margin: 0; padding: 4px; overflow-y: auto; }
+.clpop li button { display: block; width: 100%; text-align: left; border: 0; background: none; color: inherit; font: 12.5px var(--font); padding: 6px 8px; border-radius: 7px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.clpop li button:hover { background: rgba(255,255,255,.1); } .clpop li i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px; vertical-align: 0; }
+.clpop li small { display: block; color: #98989d; font-size: 11px; margin-left: 15px; overflow: hidden; text-overflow: ellipsis; }
 .tip { position: absolute; pointer-events: none; background: rgba(20,22,30,.9); color: #fff; font-size: 12px; padding: 5px 8px; border-radius: 7px; transform: translate(12px, -50%); white-space: nowrap; }
 .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--sep); padding: 16px 18px; margin-top: 14px; }
 .card h2 { margin: 0; font-size: 19px; letter-spacing: -.02em; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -168,7 +184,7 @@ td.ck { text-align: center; } td.ck input { accent-color: var(--cmpc); cursor: p
         <div class="vseg" id="v-fire"><button data-f="always" aria-pressed="true">Plumes always on</button><button data-f="schedule" aria-pressed="false">Firing schedule</button></div>
         <div class="vseg" id="v-gt"><button aria-pressed="true">Ground track</button></div>
         <div class="vseg" id="v-follow"><button aria-pressed="false" title="Keep the camera on the selected spacecraft (Esc to stop)">◎ Follow</button></div>
-        <div class="vseg" id="v-speed"><button data-s="1">Real time</button><button data-s="60">×60</button><button data-s="600" aria-pressed="true">×600</button><button data-s="3600">×3600</button><button id="v-now" title="Jump the clock to the current time">⟲ Now</button></div>
+        <div class="vseg" id="v-speed"><button data-s="1">Real time</button><button data-s="60" aria-pressed="true">×60</button><button data-s="600">×600</button><button data-s="3600">×3600</button><button id="v-now" title="Jump the clock to the current time">⟲ Now</button></div>
         <div class="vseg" id="v-solar" hidden><input type="range" id="v-replay" min="0" max="1000" value="0" aria-label="Replay date"><button id="dart-go" hidden>DART impact close-up ▶</button></div>
         <div class="vseg" id="v-ss" hidden><button data-s="0">⏸</button><button data-s="5">5 d/s</button><button data-s="25" aria-pressed="true">25 d/s</button><button data-s="100">100 d/s</button><button id="v-alltr" aria-pressed="false">All trajectories</button></div>
         <div class="vseg" id="v-dart" hidden><button id="dart-back">◀ Solar system</button><button id="dart-video">▶ NASA replay video</button></div>
@@ -213,6 +229,7 @@ import * as THREE from 'three';
 import { OrbitControls } from './vendor/OrbitControls.js';
 import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
 import { DRACOLoader } from './vendor/loaders/DRACOLoader.js';
+import { mergeGeometries } from './vendor/utils/BufferGeometryUtils.js';
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const [M, MOD] = await Promise.all(['missions', 'models'].map(n => fetch('data/' + n + '.json').then(r => r.json())));
@@ -420,9 +437,19 @@ const GRID_ALPHA = canvasTex(512, 512, x => { x.fillStyle = '#000'; x.fillRect(0
   x.fillStyle = '#000'; const p = 15.5, r = 5.2;
   for (let j = -18; j <= 18; j++) for (let i = -18; i <= 18; i++) { const px = 256 + (i + (j & 1) * 0.5) * p, py = 256 + j * p * 0.866;
     if ((px - 256) ** 2 + (py - 256) ** 2 < 228 ** 2) { x.beginPath(); x.arc(px, py, r, 0, 7); x.fill(); } } });
-const PANEL = canvasTex(256, 512, x => { x.fillStyle = '#16255a'; x.fillRect(0, 0, 256, 512); x.strokeStyle = 'rgba(160,190,255,.35)'; x.lineWidth = 2;
-  for (let i = 0; i <= 256; i += 32) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, 512); x.stroke(); }
-  for (let j = 0; j <= 512; j += 32) { x.beginPath(); x.moveTo(0, j); x.lineTo(256, j); x.stroke(); } });
+// solar array: triple-junction cells (cut corners, slight colour scatter) on silver interconnects, panel frame at the edges
+const PANEL = canvasTex(256, 512, x => { x.fillStyle = '#5d6676'; x.fillRect(0, 0, 256, 512);
+  for (let i = 0; i < 8; i++) for (let j = 0; j < 16; j++) { const X = i * 32 + 1.5, Y = j * 32 + 1.5, w = 29, c = 4, l = 13 + Math.random() * 5;
+    const g = x.createLinearGradient(X, Y, X + w, Y + w); g.addColorStop(0, `hsl(226,58%,${l + 4}%)`); g.addColorStop(1, `hsl(229,62%,${l - 3}%)`); x.fillStyle = g;
+    x.beginPath(); x.moveTo(X + c, Y); x.lineTo(X + w - c, Y); x.lineTo(X + w, Y + c); x.lineTo(X + w, Y + w - c); x.lineTo(X + w - c, Y + w); x.lineTo(X + c, Y + w); x.lineTo(X, Y + w - c); x.lineTo(X, Y + c); x.closePath(); x.fill();
+    x.strokeStyle = 'rgba(170,190,235,.16)'; x.lineWidth = 1; for (let k = 1; k < 4; k++) { x.beginPath(); x.moveTo(X + 2, Y + k * w / 4); x.lineTo(X + w - 2, Y + k * w / 4); x.stroke(); } }
+  x.strokeStyle = '#a9b0bc'; x.lineWidth = 4; x.strokeRect(0, 0, 256, 512); });
+// back of a panel (graphite face sheet) and optical solar reflector radiators (small mirror tiles)
+const panelBack = new THREE.MeshStandardMaterial({ color: 0x3b3f46, metalness: 0.25, roughness: 0.72 });
+const OSR = canvasTex(128, 128, x => { x.fillStyle = '#7d8590'; x.fillRect(0, 0, 128, 128);
+  for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) { const l = 86 + Math.random() * 8; x.fillStyle = `hsl(210,12%,${l}%)`; x.fillRect(i * 16 + 1, j * 16 + 1, 14, 14); } });
+OSR.wrapS = OSR.wrapT = THREE.RepeatWrapping;
+const radMat = new THREE.MeshStandardMaterial({ map: OSR, metalness: 0.85, roughness: 0.14, envMapIntensity: 1.2 });
 const panelMat = new THREE.MeshStandardMaterial({ map: PANEL, metalness: 0.35, roughness: 0.38, emissive: 0x050a1c });
 
 // soft plume: open frustum along +Y from the exit plane; brightness falls with distance and towards the silhouette
@@ -757,29 +784,76 @@ const INSET_TXT = { ion: 'Gridded ion engine: grids + ion beam', hall: 'Hall thr
   mpd: 'Pulsed MPD: coaxial arc discharge', hempt: 'HEMPT: stacked ring magnets (cusped field)', rf: 'RF plasma: antenna-heated tube + magnetic nozzle',
   hct: 'Hollow cathode thruster', qct: 'Quad confinement thruster: square channel, four cusps' };
 const VIS_PULSED = new Set(['ppt', 'vat', 'mpd']);
-function spacecraft(type, col, hz) {
-  const s = new THREE.Group();
-  const bus = new THREE.Mesh(rbox(0.34, 0.3, 0.3, 0.012), mli); s.add(bus);
-  const deck = new THREE.Mesh(rbox(0.35, 0.012, 0.31, 0.004), alu); deck.position.y = 0.156; s.add(deck);
-  for (const z of [-1, 1]) {
-    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.16, 10), steel); arm.rotation.x = Math.PI / 2; arm.position.set(0, 0, z * 0.23); s.add(arm);
-    for (const k of [0, 1]) { const w = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.008, 0.3), panelMat); w.position.set(0, 0, z * (0.47 + k * 0.31)); s.add(w); }
+// generic detailed spacecraft for missions without their own shape: one representative bus per class (see busClass)
+function arrayPanel(g, w, L, x, z) {   // one solar panel (cells on +Y, graphite back) in a sun-tracking wing group
+  const p = new THREE.Mesh(new THREE.BoxGeometry(w, 0.008, L), [alu, alu, cellMat, panelBack, alu, alu]); p.position.set(x, 0, z); g.add(p); return p; }
+function sadmWing(s, side, n, w, L, z0, x = 0, y = 0) {   // yoke + n panels along +-Z, turning about the Z axis (solar array drive)
+  const g = new THREE.Group(); g.position.set(x, y, 0); g.userData.sadm = true; s.add(g);
+  const yoke = new THREE.Mesh(new THREE.CylinderGeometry(0.007, 0.007, z0, 10), steel); yoke.rotation.x = Math.PI / 2; yoke.position.z = side * z0 / 2; g.add(yoke);
+  for (let k = 0; k < n; k++) arrayPanel(g, w, L * 0.97, 0, side * (z0 + L * (k + 0.5)));
+  return g; }
+function reflector(s, r, x, y, side) {   // deployed antenna reflector on an east/west face, dish opening towards the Earth deck
+  const d = new THREE.Mesh(new THREE.SphereGeometry(r, 40, 10, 0, Math.PI * 2, 0, 0.62), new THREE.MeshStandardMaterial({ color: 0xf2f1ec, roughness: 0.65, side: THREE.DoubleSide }));
+  d.position.set(x, y, 0); d.rotation.z = -side * 2.1; s.add(d);
+  const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.12, 8), alu); arm.position.set(x - side * 0.05, y + 0.06, 0); arm.rotation.z = side * 0.9; s.add(arm); }
+function spacecraft(type, col, hz, cls = 'leo', booms = false) {
+  const s = new THREE.Group(); let tx = -0.17;
+  if (cls === 'geo') {   // GEO comsat: tall bus, OSR radiators on the north/south faces, Earth deck, two big reflectors, long N/S wings
+    s.add(new THREE.Mesh(rbox(0.34, 0.4, 0.32, 0.012), mli));
+    for (const z of [-1, 1]) { const r = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.36, 0.006), radMat); r.position.z = z * 0.163; s.add(r); sadmWing(s, z, 4, 0.26, 0.3, 0.2); }
+    const deck = new THREE.Mesh(rbox(0.33, 0.014, 0.31, 0.004), whitePaint); deck.position.y = 0.207; s.add(deck);
+    const horn = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.035, 0.08, 16), alu); horn.position.set(0.05, 0.25, 0.06); s.add(horn);
+    for (const sd of [-1, 1]) reflector(s, 0.16, sd * 0.28, 0.05, sd);
+    tx = -0.17;
+  } else if (cls === 'flat') {   // flat-pack constellation satellite: thin chassis, phased arrays on the Earth face, one long wing
+    s.add(new THREE.Mesh(rbox(0.52, 0.06, 0.3, 0.008), alu));
+    for (const x of [-0.16, 0, 0.16]) { const a = new THREE.Mesh(rbox(0.14, 0.012, 0.14, 0.003), anodized); a.position.set(x, 0.036, 0.04); s.add(a); }
+    const g = sadmWing(s, -1, 1, 0.3, 1.3, 0.2); g.position.x = 0.05;
+    tx = -0.26;
+  } else if (cls === 'spin') {   // spin-stabilised drum: body-mounted cells, despun antenna mast
+    const dr = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.3, 24), [cellMat, mli, mli]); dr.rotation.x = Math.PI / 2; s.add(dr);
+    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.22, 8), alu); mast.rotation.x = Math.PI / 2; mast.position.z = 0.26; s.add(mast);
+    if (booms) {   // gravity-gradient stabilisation (ATS-2, ATS-4): four long booms in an X along the local vertical, tip masses, damper boom
+      const rod = new THREE.CylinderGeometry(0.0045, 0.0045, 1.6, 6), tipG = new THREE.SphereGeometry(0.018, 12, 8);
+      for (const sx of [-1, 1]) for (const sy of [-1, 1]) { const a = 0.32, d = new THREE.Vector3(sx * Math.sin(a), sy * Math.cos(a), 0);
+        const r = new THREE.Mesh(rod, steel); r.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d); r.position.copy(d).multiplyScalar(0.8 + 0.15); s.add(r);
+        const tp = new THREE.Mesh(tipG, steel); tp.position.copy(d).multiplyScalar(1.75 + 0.15); s.add(tp); }
+      const dmp = new THREE.Mesh(new THREE.CylinderGeometry(0.0045, 0.0045, 0.7, 6), steel); dmp.rotation.x = Math.PI / 2; dmp.position.z = -0.5; s.add(dmp);
+      const dt = new THREE.Mesh(tipG, steel); dt.position.z = -0.86; s.add(dt);
+    }
+    tx = -0.25;
+  } else if (cls === 'station') {   // space-station core module: stepped white cylinders, docking node, two long flexible wings
+    const c1 = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.55, 32), whitePaint); c1.rotation.z = Math.PI / 2; s.add(c1);
+    const c2 = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.25, 32), whitePaint); c2.rotation.z = Math.PI / 2; c2.position.x = 0.4; s.add(c2);
+    const nd = new THREE.Mesh(new THREE.SphereGeometry(0.12, 32, 16), whitePaint); nd.position.x = 0.6; s.add(nd);
+    for (const z of [-1, 1]) sadmWing(s, z, 1, 0.22, 1.1, 0.2, -0.1);
+    tx = -0.3;
+  } else {   // small LEO satellite (default): box bus, two 2-panel wings, nadir dish
+    s.add(new THREE.Mesh(rbox(0.34, 0.3, 0.3, 0.012), mli));
+    const deck = new THREE.Mesh(rbox(0.35, 0.012, 0.31, 0.004), alu); deck.position.y = 0.156; s.add(deck);
+    for (const z of [-1, 1]) { const r = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.26, 0.006), radMat); r.position.z = z * 0.153; s.add(r); sadmWing(s, z, 2, 0.24, 0.31, 0.16); }
+    const dish = new THREE.Mesh(new THREE.SphereGeometry(0.12, 32, 12, 0, Math.PI * 2, 0, Math.PI / 3.2), new THREE.MeshStandardMaterial({ color: 0xeeeef2, roughness: 0.6, side: THREE.DoubleSide }));
+    dish.position.set(0.05, 0.27, 0); dish.rotation.x = Math.PI; s.add(dish);
+    const feed = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.1, 8), steel); feed.position.set(0.05, 0.22, 0); s.add(feed);
   }
-  const dish = new THREE.Mesh(new THREE.SphereGeometry(0.12, 32, 12, 0, Math.PI * 2, 0, Math.PI / 3.2), new THREE.MeshStandardMaterial({ color: 0xeeeef2, roughness: 0.6, side: THREE.DoubleSide }));
-  dish.position.set(0.05, 0.27, 0); dish.rotation.x = Math.PI; s.add(dish);
-  const feed = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.1, 8), steel); feed.position.set(0.05, 0.22, 0); s.add(feed);
-  const t = thruster(type, col, hz); t.position.x = -0.17; s.add(t); s.userData.thr = t;
+  const t = thruster(type, col, hz); t.position.x = tx; s.add(t); s.userData.thr = t;
   return s;
 }
+// solar-array drive: turn every tracking wing about its own axis (local Z) so the cells face the Sun (sunDir: unit vector, world frame)
+const _sq = new THREE.Quaternion(), _sl = new THREE.Vector3();
+function sunTrack(list, sunDir, q) {   // q: world quaternion of the wings' parent when known (mini markers), else read per wing
+  for (const w of list) { if (q) _sq.copy(q); else w.parent.getWorldQuaternion(_sq);
+    _sl.copy(sunDir).applyQuaternion(_sq.invert()); w.rotation.z = Math.atan2(-_sl.x, _sl.y); } }
+function sadmList(obj) { const L = []; obj.traverse(o => { if (o.userData.sadm) L.push(o); }); return L; }
 
 // ---------- simplified shapes of well-known EP spacecraft (proportions from public images; thruster at -X, +Y = nadir/top deck) ----------
 const cellMat = new THREE.MeshStandardMaterial({ map: PANEL, metalness: 0.35, roughness: 0.38, emissive: 0x050a1c, envMapIntensity: 0.8 });
 const whitePaint = new THREE.MeshStandardMaterial({ color: 0xe9eaee, metalness: 0.1, roughness: 0.55 });
 // solar wing along +Z (side = +1) or -Z (side = -1): yoke + n panels of size w (x) by L (z), first panel starting at z0
 function wing(parent, side, n, w, L, z0, y = 0, x = 0, tilt = 0) {
-  const g = new THREE.Group(); g.position.set(x, y, 0); g.rotation.z = tilt; parent.add(g);
+  const g = new THREE.Group(); g.position.set(x, y, 0); g.rotation.z = tilt; g.userData.sadm = !tilt; parent.add(g);
   const yoke = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, z0, 8), alu); yoke.rotation.x = Math.PI / 2; yoke.position.z = side * z0 / 2; g.add(yoke);
-  for (let k = 0; k < n; k++) { const p = new THREE.Mesh(rbox(w, 0.008, L * 0.97, 0.002), cellMat); p.position.z = side * (z0 + L * (k + 0.5)); g.add(p); }
+  for (let k = 0; k < n; k++) arrayPanel(g, w, L * 0.97, 0, side * (z0 + L * (k + 0.5)));
   return g;
 }
 function dish(parent, r, x, y, z, rx = Math.PI, rz = 0) {
@@ -790,14 +864,14 @@ function dish(parent, r, x, y, z, rx = Math.PI, rz = 0) {
 const SHAPES = {
   'GOCE': (s) => {   // 5.3 m x 1 m octagonal arrow, body-mounted cells, two fixed rear wings, ion engine in the tail
     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 1.15, 8), whitePaint); body.rotation.z = Math.PI / 2; s.add(body);
-    for (const sd of [-1, 1]) { const w = new THREE.Mesh(rbox(0.42, 0.01, 0.2, 0.003), cellMat); w.position.set(-0.32, 0, sd * 0.2); w.rotation.y = sd * 0.18; s.add(w);
-      const fin = new THREE.Mesh(rbox(0.25, 0.008, 0.12, 0.003), cellMat); fin.position.set(-0.5, 0, sd * 0.16); s.add(fin); }
-    const top = new THREE.Mesh(rbox(1.0, 0.004, 0.16, 0.002), cellMat); top.position.y = 0.112; s.add(top);
+    for (const sd of [-1, 1]) { const w = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.01, 0.2), [alu, alu, cellMat, panelBack, alu, alu]); w.position.set(-0.32, 0, sd * 0.2); w.rotation.y = sd * 0.18; s.add(w);
+      const fin = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.008, 0.12), [alu, alu, cellMat, panelBack, alu, alu]); fin.position.set(-0.5, 0, sd * 0.16); s.add(fin); }
+    const top = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.004, 0.16), [alu, alu, cellMat, panelBack, alu, alu]); top.position.y = 0.112; s.add(top);
     return { x: -0.6, scale: 0.75 }; },
   'SpaceX Starlink': (s) => {   // flat-pack bus with one long solar array
     const bus = new THREE.Mesh(rbox(0.55, 0.06, 0.32, 0.01), whitePaint); s.add(bus);
     const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.12, 8), alu); arm.rotation.x = Math.PI / 2; arm.position.set(0.1, 0.03, -0.2); s.add(arm);
-    const arr = new THREE.Mesh(rbox(0.36, 0.006, 1.5, 0.003), cellMat); arr.position.set(0.1, 0.06, -1.0); arr.rotation.z = 0.35; s.add(arr);
+    const arr = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.006, 1.5), [alu, alu, cellMat, panelBack, alu, alu]); arr.position.set(0.1, 0.06, -1.0); arr.userData.sadm = true; s.add(arr);
     for (const x of [-0.18, 0, 0.18]) { const a = new THREE.Mesh(rbox(0.12, 0.012, 0.12, 0.003), anodized); a.position.set(x, -0.036, 0.08); s.add(a); }   // phased-array antennas
     return { x: -0.29, scale: 0.6 }; },
   'SMART-1': (s) => {   // ~1 m cube, two 3-panel wings, PPS-1350 at the back
@@ -812,7 +886,7 @@ const SHAPES = {
     return { x: -0.17, scale: 0.8 }; },
   'Deep Space 1': (s) => {   // bus, two SCARLET concentrator wings (4 panels each), HGA
     s.add(new THREE.Mesh(rbox(0.26, 0.24, 0.24, 0.012), mli));
-    for (const sd of [-1, 1]) { const g = wing(s, sd, 4, 0.2, 0.2, 0.17); g.children.slice(1).forEach(p => { for (let k = 0; k < 4; k++) { const l = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.004, 0.012), new THREE.MeshStandardMaterial({ color: 0xcfd6e2, metalness: 0.6, roughness: 0.2 })); l.position.set(0, 0.008, (k - 1.5) * 0.045); p.add(l); } }); }
+    for (const sd of [-1, 1]) { const g = wing(s, sd, 4, 0.2, 0.2, 0.17); g.children.filter(p => Array.isArray(p.material)).forEach(p => { for (let k = 0; k < 4; k++) { const l = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.004, 0.012), new THREE.MeshStandardMaterial({ color: 0xcfd6e2, metalness: 0.6, roughness: 0.2 })); l.position.set(0, 0.008, (k - 1.5) * 0.045); p.add(l); } }); }
     dish(s, 0.07, 0.05, 0.17, 0);
     return { x: -0.14, scale: 1 }; },
   'Hayabusa2': (s) => {   // 1 x 1.6 x 1.25 m bus, two 3-panel wings, flat HGA, sampler horn
@@ -824,7 +898,7 @@ const SHAPES = {
   'NASA Psyche': (s) => {   // bus with two large cross-shaped 5-panel arrays, HGA, SPT-140
     s.add(new THREE.Mesh(rbox(0.3, 0.3, 0.3, 0.012), mli));
     for (const sd of [-1, 1]) { const g = wing(s, sd, 3, 0.26, 0.26, 0.2);
-      for (const dx of [-1, 1]) { const p = new THREE.Mesh(rbox(0.25, 0.008, 0.25, 0.002), cellMat); p.position.set(dx * 0.26, 0, sd * (0.2 + 0.26 * 1.5)); g.add(p); } }
+      for (const dx of [-1, 1]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.008, 0.25), [alu, alu, cellMat, panelBack, alu, alu]); p.position.set(dx * 0.26, 0, sd * (0.2 + 0.26 * 1.5)); g.add(p); } }
     dish(s, 0.1, 0.06, 0.2, 0);
     return { x: -0.16, scale: 0.8 }; },
   'BepiColombo': (s) => {   // stack: MTM (two long wings, T6 engines) + MPO (one wing, radiator) + Mio (octagon)
@@ -840,7 +914,8 @@ const SHAPES = {
     const top = new THREE.Mesh(new THREE.CylinderGeometry(0.29, 0.29, 0.006, 8), cellMat); top.position.y = 0.064; s.add(top);
     return { x: -0.3, scale: 0.9 }; },
 };
-const shapeKey = m => m && (Object.keys(SHAPES).find(k => m.name.startsWith(k)) || Object.keys(REAL).find(k => m.name.startsWith(k)));
+const shapeKey = m => m && (Object.keys(SHAPES).find(k => m.name.startsWith(k)) || realKey(m));
+const FIXED_ARRAYS = new Set(['Hayabusa2', 'GOCE', 'LISA Pathfinder']);   // body-fixed arrays: no solar-array drive
 // official NASA 3D models (NASA 3D Resources, github.com/nasa/NASA-3D-Resources; DART = simplified from NASA's 3D-print file).
 // rot: rotations applied in order (axis, angle) that turn the model so its thrust axis is -X and the arrays lie along Z; L: largest extent in page units; plume: engine position after normalising
 const REAL = {
@@ -849,11 +924,12 @@ const REAL = {
   'EO-1': { f: 'eo1.glb', rot: [], L: 1.2, plume: [-0.25, 0, 0] },
   'SSL / Maxar 1300': { f: 'ssl1300.glb', rot: [['y', Math.PI / 2]], L: 2.4, plume: [-0.25, 0, 0] },
   'DART': { f: 'dart.glb', rot: [['y', Math.PI / 2]], L: 2.0, plume: [-0.12, 0, 0] },
+  'CubeSat': { f: 'cubesat.glb', rot: [], L: 0.7, plume: [-0.2, 0, 0], generic: true },   // NASA 3D Resources generic CubeSat (no mission-specific model)
 };
 const gltfL = new GLTFLoader(); { const dl = new DRACOLoader(); dl.setDecoderPath('vendor/libs/draco/gltf/'); gltfL.setDRACOLoader(dl); }
 const realCache = {};
 function loadReal(k) { return realCache[k] ??= new Promise(res => gltfL.load('vendor/models/' + REAL[k].f, g => res(g.scene), undefined, () => res(null))); }
-const realKey = m => m && Object.keys(REAL).find(k => m.name.startsWith(k));
+const realKey = m => m && (Object.keys(REAL).find(k => !REAL[k].generic && m.name.startsWith(k)) || (busClass(m) === 'cube' && !Object.keys(SHAPES).some(k => m.name.startsWith(k)) ? 'CubeSat' : undefined));
 // normalised copy of a NASA model: rotated, centred, largest extent = L
 function realCopy(k, sc) { const c = REAL[k], r = sc.clone(true), w = new THREE.Group(), g = new THREE.Group(), AX = { x: new THREE.Vector3(1, 0, 0), y: new THREE.Vector3(0, 1, 0), z: new THREE.Vector3(0, 0, 1) };
   for (const [a, ang] of c.rot) r.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(AX[a], ang)); g.add(r);
@@ -864,20 +940,22 @@ function realCopy(k, sc) { const c = REAL[k], r = sc.clone(true), w = new THREE.
 // detailed model of a mission: its own shape when known, else the generic bus
 function craftModel(m, type, col, hz) {
   const k = Object.keys(SHAPES).find(n => m && m.name.startsWith(n)), rk = realKey(m);
-  if (!k && !rk) return spacecraft(type, col, hz);
+  if (!k && !rk) { const g = spacecraft(type, col, hz, busClass(m), /^ATS-[24]/.test(m.name)); g.userData.cls = busClass(m); g.userData.booms = /^ATS-[24]/.test(m.name); return g; }
   let s, o;
-  if (k) { s = new THREE.Group(); o = SHAPES[k](s); } else { s = spacecraft(type, col, hz); s.remove(s.userData.thr); o = { x: -0.17, scale: 1 }; }
+  if (k) { s = new THREE.Group(); o = SHAPES[k](s); if (FIXED_ARRAYS.has(k)) s.traverse(c => { c.userData.sadm = false; }); } else { s = spacecraft(type, col, hz); s.remove(s.userData.thr); o = { x: -0.17, scale: 1 }; }
   const t = thruster(type, col, hz); t.position.x = o.x; t.scale.setScalar(Math.min(1, 0.75 / o.scale)); s.add(t); s.userData.thr = t; s.userData.shape = k || rk; s.userData.k = o.scale;
   if (rk) loadReal(rk).then(sc => { if (!sc) return;   // swap the placeholder for the official model when it has loaded
     for (const c of [...s.children]) if (c !== t) s.remove(c);
-    const w = realCopy(rk, sc); s.add(w); t.position.set(...REAL[rk].plume); t.scale.multiplyScalar(0.6); s.userData.real = true; shadeModel(w); s.userData.inShadow = undefined; s.userData.R = Math.min(s.userData.R ?? 9, REAL[rk].L * 0.6); });
+    const w = realCopy(rk, sc); s.add(w); t.position.set(...REAL[rk].plume); t.scale.multiplyScalar(0.6); s.userData.real = REAL[rk].generic ? 'generic' : true; s.userData.sadmL = sadmList(s); shadeModel(w); s.userData.inShadow = undefined; s.userData.R = Math.min(s.userData.R ?? 9, REAL[rk].L * 0.6); });
   return s;
 }
 // darker copies of materials for spacecraft in the Earth's shadow
-function shadeModel(obj) { obj.traverse(o => { if (o.isMesh && o.material && o.material.isMeshStandardMaterial) { o.material = o.material.clone();
-  o.userData.lit = { c: o.material.color.clone(), e: o.material.envMapIntensity ?? 1 }; } }); }
+function shadeModel(obj) { obj.traverse(o => { if (!o.isMesh || !o.material) return; const arr = Array.isArray(o.material);
+  const ms = (arr ? o.material : [o.material]).map(m => m.isMeshStandardMaterial ? m.clone() : m); if (!ms.some(m => m.isMeshStandardMaterial)) return;
+  o.material = arr ? ms : ms[0]; o.userData.lit = ms.map(m => m.isMeshStandardMaterial ? { c: m.color.clone(), e: m.envMapIntensity ?? 1 } : null); }); }
 function setShade(obj, inShadow) { if (obj.userData.inShadow === inShadow) return; obj.userData.inShadow = inShadow;
-  obj.traverse(o => { const l = o.userData.lit; if (!l) return; o.material.color.copy(l.c).multiplyScalar(inShadow ? 0.1 : 1); o.material.envMapIntensity = l.e * (inShadow ? 0.15 : 1); }); }
+  obj.traverse(o => { const L = o.userData.lit; if (!L) return; const ms = Array.isArray(o.material) ? o.material : [o.material];
+    ms.forEach((m, i) => { const l = L[i]; if (!l) return; m.color.copy(l.c).multiplyScalar(inShadow ? 0.1 : 1); m.envMapIntensity = l.e * (inShadow ? 0.15 : 1); }); }); }
 
 // ---------- Earth shadow (cylindrical umbra, true geometry) and the illustrative firing schedule ----------
 // it.eci = ECI position in km (set by itemScene). In shadow when behind the Earth and within one Earth radius of the Sun-Earth line.
@@ -931,16 +1009,76 @@ function propColor(m) {   // colour of the propellant named first (models' prope
   for (const [rx, c] of PROP_COL) { const i = p.search(rx); if (i >= 0 && i < at) { at = i; best = c; } }
   return best ?? ({ ppt: 0xd6ddff, vat: 0x9ff0ff, resistojet: 0xffa45c, arcjet: 0xffa45c })[visOf(m)] ?? COL[famOf(m)] ?? 0x8fa6ff;
 }
-// ---------- mini spacecraft markers (one per mission; shared geometry/materials) ----------
+// ---------- mini spacecraft markers: one silhouette per bus class, shared geometry/materials ----------
+// bus class from the mission record (display only): GEO comsat, flat-pack constellation, CubeSat, early spin-stabilised drum, station, LEO smallsat
+const CUBE_RE = /cube|\b\d+U\b|AeroCube|IRVINE|UWE-4|STRaND|PEGASUS|AOBA-VELOX|Horyu|PROITERES|BRICSat|CANYVAL|DUPLEX|Tenzing|EDISON|GPDM|ATHENA|AQT-D|AuroraSat|LunaH-Map|Lunar IceCube|Team Miles|EQUULEUS|ORB-12|GOMX|Pale Blue water resistojets|EWS/i;
+const SPIN_RE = /^(Vela|Advanced Vela|ATS-[2-5]|LES-6|Zond)/;
+function busClass(m) {
+  if (!m) return 'leo';
+  if (/Starlink|Qianfan|Amazon Leo/.test(m.name)) return 'flat';
+  if (/Tianhe/.test(m.name)) return 'station';
+  if (CUBE_RE.test(m.name)) return 'cube';
+  if (SPIN_RE.test(m.name)) return 'spin';
+  if (m.orbit === 'GEO') return 'geo';
+  return 'leo';
+}
+const MINI_PX = { geo: 44, station: 40, leo: 30, flat: 30, spin: 24, cube: 20 };   // on-screen span (CSS px) of each class
 const MINI = {
-  bus: new THREE.BoxGeometry(0.05, 0.042, 0.042), wing: new THREE.BoxGeometry(0.03, 0.0025, 0.085),
-  busMat: new THREE.MeshStandardMaterial({ color: 0xd9a63a, metalness: 0.7, roughness: 0.4 }),
-  wingMat: new THREE.MeshStandardMaterial({ color: 0x2a4da8, metalness: 0.4, roughness: 0.35, emissive: 0x0a1638 }),
-  busMatD: new THREE.MeshStandardMaterial({ color: 0x2a2110, metalness: 0.7, roughness: 0.4, envMapIntensity: 0.15 }),
-  wingMatD: new THREE.MeshStandardMaterial({ color: 0x0b1530, metalness: 0.4, roughness: 0.35, emissive: 0x02050c, envMapIntensity: 0.15 }),
   plume: (() => { const g = new THREE.CylinderGeometry(0.03, 0.009, 0.13, 24, 6, true); g.translate(0, 0.065, 0); g.rotateZ(Math.PI / 2); g.translate(-0.025, 0, 0); return g; })(),
-  plumeMat: {}
+  plumeMat: {}, tpl: {}
 };
+{ const W = canvasTex(64, 256, x => { x.fillStyle = '#c3c8d2'; x.fillRect(0, 0, 64, 256); const g = x.createLinearGradient(0, 0, 64, 256); g.addColorStop(0, '#1e3473'); g.addColorStop(1, '#14275c');
+    x.fillStyle = g; x.fillRect(3, 3, 58, 250); x.strokeStyle = 'rgba(150,175,230,.35)'; x.lineWidth = 1;
+    for (let i = 1; i < 4; i++) { x.beginPath(); x.moveTo(i * 16, 3); x.lineTo(i * 16, 253); x.stroke(); } for (let j = 1; j < 8; j++) { x.beginPath(); x.moveTo(3, j * 32); x.lineTo(61, j * 32); x.stroke(); } });
+  const cells = n => { const t = W.clone(); t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, n); t.needsUpdate = true;
+    return new THREE.MeshStandardMaterial({ map: t, metalness: 0.5, roughness: 0.28, emissive: 0x040814, envMapIntensity: 0.9 }); };
+  Object.assign(MINI, { cells: [null, cells(1), cells(2), cells(3), cells(4)],
+    edge: new THREE.MeshStandardMaterial({ color: 0xb9bec8, metalness: 0.7, roughness: 0.35 }),
+    back: panelBack,
+    mli: new THREE.MeshStandardMaterial({ color: 0xffd98a, map: MLI_TEX, metalness: 0.85, roughness: 0.32, envMapIntensity: 1.2 }),
+    white: new THREE.MeshStandardMaterial({ color: 0xe8e9ec, metalness: 0.05, roughness: 0.55 }),
+    rad: radMat, alu,
+    dark: new THREE.MeshStandardMaterial({ color: 0x2a2e36, metalness: 0.55, roughness: 0.4 }),
+    body: new THREE.MeshStandardMaterial({ map: PANEL, metalness: 0.45, roughness: 0.3, emissive: 0x040814 }),
+    dish: new THREE.MeshStandardMaterial({ color: 0xf2f1ec, roughness: 0.65, side: THREE.DoubleSide }) }); }
+// templates (built once per class, then cloned: clones share geometry and materials). Parts are merged per material,
+// so each marker costs ~4 draw calls; both wings share the array-drive axis (the Z line through the bus) and are one mesh.
+function miniTpl(cls) {
+  if (MINI.tpl[cls]) return MINI.tpl[cls];
+  const T = new THREE.Group(), inner = new THREE.Group(), P = new Map(), _o = new THREE.Object3D(); T.add(inner);
+  const put = (key, mat, geo, x = 0, y = 0, z = 0, rx = 0, rz = 0) => { _o.position.set(x, y, z); _o.rotation.set(rx, 0, rz); _o.updateMatrix();
+    const g = geo.index ? geo.toNonIndexed() : geo.clone(); g.applyMatrix4(_o.matrix); for (const k of Object.keys(g.attributes)) if (!['position', 'normal', 'uv'].includes(k)) g.deleteAttribute(k);
+    if (!P.has(key)) P.set(key, { mat, list: [] }); P.get(key).list.push(g); };
+  const box = (key, mat, w, h, d, x, y, z) => put(key, mat, new THREE.BoxGeometry(w, h, d), x, y, z);
+  const dish = (key, r, x, y, sd) => put(key, MINI.white, new THREE.SphereGeometry(r, 16, 5, 0, Math.PI * 2, 0, 0.62), x, y, 0, 0, -sd * 2.1);
+  let hx = 0.025;
+  if (cls === 'geo') {
+    box('bus', MINI.mli, 0.05, 0.06, 0.046); box('w', MINI.white, 0.048, 0.004, 0.044, 0, 0.032, 0); dish('w', 0.03, -0.042, 0.006, -1); dish('w', 0.03, 0.042, 0.006, 1);
+    for (const z of [-1, 1]) box('wing', MINI.cells[3], 0.042, 0.0035, 0.15, 0, 0, z * 0.115);
+    for (const z of [-1, 1]) box('rad', MINI.rad, 0.046, 0.056, 0.002, 0, 0, z * 0.0235);
+  } else if (cls === 'flat') {
+    box('bus', MINI.alu, 0.06, 0.007, 0.035); box('dk', MINI.dark, 0.05, 0.002, 0.026, 0, 0.0045, 0.002); box('wing', MINI.cells[4], 0.032, 0.0035, 0.16, 0.006, 0, -0.11); hx = 0.03;
+  } else if (cls === 'cube') {   // 6U CubeSat: body-mounted cells, two deployed fixed panels facing away from the Earth
+    box('bus', MINI.body, 0.034, 0.022, 0.024); for (const z of [-1, 1]) box('fw', MINI.cells[1], 0.034, 0.0025, 0.03, 0, -0.0105, z * 0.028); hx = 0.017;
+  } else if (cls === 'spin') {
+    put('bus', MINI.body, new THREE.CylinderGeometry(0.026, 0.026, 0.034, 16, 1, true), 0, 0, 0, Math.PI / 2);
+    put('cap', MINI.mli, new THREE.CircleGeometry(0.026, 16), 0, 0, 0.017); put('cap', MINI.mli, new THREE.CircleGeometry(0.026, 16), 0, 0, -0.017, Math.PI);
+    put('cap', MINI.mli, new THREE.CylinderGeometry(0.0018, 0.0018, 0.03, 6), 0, 0, 0.032, Math.PI / 2); hx = 0.026;
+  } else if (cls === 'station') {
+    put('bus', MINI.white, new THREE.CylinderGeometry(0.016, 0.016, 0.07, 16), 0, 0, 0, 0, Math.PI / 2); put('bus', MINI.white, new THREE.CylinderGeometry(0.011, 0.011, 0.03, 16), 0.05, 0, 0, 0, Math.PI / 2);
+    put('bus', MINI.white, new THREE.SphereGeometry(0.014, 16, 10), 0.072, 0, 0);
+    for (const z of [-1, 1]) box('wing', MINI.cells[1], 0.024, 0.0035, 0.11, -0.01, 0, z * 0.083); hx = 0.035;
+  } else {
+    box('bus', MINI.mli, 0.042, 0.04, 0.04); box('w', MINI.white, 0.043, 0.003, 0.041, 0, 0.0215, 0);
+    for (const z of [-1, 1]) box('wing', MINI.cells[2], 0.036, 0.0035, 0.08, 0, 0, z * 0.07);
+    hx = 0.021;
+  }
+  for (const [key, { mat, list }] of P) { const m = new THREE.Mesh(mergeGeometries(list), mat); if (key === 'wing') m.userData.wing = true; if (cls === 'spin') m.userData.spin = true; inner.add(m); }
+  const b = new THREE.Box3().setFromObject(inner), sz = b.getSize(new THREE.Vector3());
+  inner.scale.setScalar(0.22 / Math.max(sz.x, sz.y, sz.z));   // every class spans 0.22 page units before screen sizing
+  const pl = new THREE.Mesh(MINI.plume); pl.position.x = (-hx + 0.025) * inner.scale.x; pl.scale.setScalar(Math.min(1.4, inner.scale.x * 0.5)); pl.userData.plume = true; T.add(pl);
+  return MINI.tpl[cls] = T;
+}
 function miniPlumeMat(color, pulsed) {
   return MINI.plumeMat[(pulsed ? 'P' : '') + color] ??= new THREE.ShaderMaterial({
     uniforms: { uColor: { value: new THREE.Color(color) }, uF: { value: 1 } },
@@ -948,14 +1086,17 @@ function miniPlumeMat(color, pulsed) {
     fragmentShader: 'uniform vec3 uColor; uniform float uF; varying float vS; varying vec3 vN; varying vec3 vV; void main(){ float f = abs(dot(vN, vV)); float a = uF * pow(1.0 - vS, 1.4) * (0.35 + 0.65 * f * f); gl_FragColor = vec4(uColor * a * 2.2, a); }',
     transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
 }
+// darker copies of the shared materials for craft in the Earth's shadow
+const DARK = new Map();
+const darkOf = mt => Array.isArray(mt) ? mt.map(darkOf) : DARK.get(mt) ?? (() => { const d = mt.clone(); if (d.color) d.color.multiplyScalar(0.1);
+  d.envMapIntensity = 0.12; if (d.emissive) d.emissive.setRGB(0, 0, 0); DARK.set(mt, d); return d; })();
 function miniCraft(m) {
-  const g = new THREE.Group();
-  g.add(new THREE.Mesh(MINI.bus, MINI.busMat));
-  for (const z of [-1, 1]) { const w = new THREE.Mesh(MINI.wing, MINI.wingMat); w.position.z = z * 0.066; g.add(w); }
-  g.add(new THREE.Mesh(MINI.plume, miniPlumeMat(propColor(m), VIS_PULSED.has(visOf(m)))));
-  g.scale.setScalar(m.kind === 'series' ? 1.25 : 1);
+  const cls = busClass(m), g = miniTpl(cls).clone(true), U = g.userData = { cls, wings: [], meshes: [], spin: null, sh: false };
+  g.traverse(o => { if (!o.isMesh) return; if (o.userData.plume) { o.material = miniPlumeMat(propColor(m), VIS_PULSED.has(visOf(m))); U.plume = o; return; }
+    o.lit = o.material; U.meshes.push(o); if (o.userData.wing) U.wings.push(o); if (o.userData.spin) (U.spin ??= []).push(o); });
   return g;
 }
+function setMiniShade(g, sh) { const U = g.userData; if (U.sh === sh) return; U.sh = sh; for (const o of U.meshes) o.material = sh ? darkOf(o.lit) : o.lit; }
 // attitude: nose (+X) along the velocity, +Y towards the central body, wings (+Z) along the orbit normal
 const _vel = new THREE.Vector3(), _dn = new THREE.Vector3(), _z = new THREE.Vector3(), _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion();
 function attitude(obj, pos, next, centre, out) {
@@ -1022,7 +1163,7 @@ for (const m of ms) {
   for (const ob of (rec.objects.length ? rec.objects : [null])) {
     const it = { o, ob, satrec: null, kep: null, pos: new THREE.Vector3(), next: new THREE.Vector3() };
     if (ob && ob.tle && ob.tle[0] && window.satellite) { try { it.satrec = satellite.twoline2satrec(ob.tle[0], ob.tle[1]); } catch (e) {} }
-    it.craft = miniCraft(m); it.craft.visible = o.earth; scene.add(it.craft); it.base = it.craft.scale.x;
+    it.craft = miniCraft(m); it.craft.visible = o.earth; scene.add(it.craft);
     it.hit = new THREE.Mesh(HITGEO, HITMAT); it.hit.userData.o = o; it.hit.userData.it = it; scene.add(it.hit); if (o.earth) pick.push(it.hit);
     o.items.push(it);
   }
@@ -1036,29 +1177,82 @@ for (const m of ms) {
   objs.push(o);
 }
 function setObjVisible(o, on) { for (const it of o.items) { it.hit.visible = on && o.earth; it.craft.visible = on && o.earth; } if (o.swarm) o.swarm.visible = on; }
-// keep neighbouring markers from overlapping: each marker's half-span (wing tip 0.11 x scale) stays below ~45 % of the
-// distance to its nearest neighbour, and clear of the detailed model of the selected spacecraft (radius ~0.95 x its scale)
-let declutterK = 0;
-const HALF = 0.11, MODEL_R = 0.95;
-function declutter(mdl) {
-  const L = [];
-  for (const o of objs) if (o.earth && o.items[0].hit.visible) for (const it of o.items) if (it.craft.visible) L.push(it);
-  const Rm = mdl ? (mdl.userData.R ?? MODEL_R) * mdl.scale.x : 0;
-  for (let i = 0; i < L.length; i++) {
-    const a = L[i].pos; let lim = L[i].base;
-    for (let j = 0; j < L.length; j++) if (j !== i) { const d = a.distanceTo(L[j].pos); if (d < 2.2 * HALF * lim) lim = Math.min(lim, 0.45 * d / HALF); }
-    if (mdl) { const d = a.distanceTo(mdl.position) - Rm; if (d < HALF * lim) lim = Math.min(lim, Math.max(0, d) / HALF); }
-    L[i].craft.scale.setScalar(Math.max(0.12, lim));
+// ---------- screen-space markers: constant on-screen size, and overlapping markers merged into one with a count badge ----------
+const MODEL_R = 0.95, CL_R = matchMedia('(pointer: coarse)').matches ? 38 : 30;   // CL_R: markers closer than this (CSS px) are grouped
+const _ndc = new THREE.Vector3(), _cd = new THREE.Vector3();
+let clGroups = [], clK = 0, FLY = null;
+const tanHalf = () => Math.tan(camera.fov * Math.PI / 360);
+function behindEarth(p) {   // the Earth (radius 1) lies between the camera and p
+  const c = camera.position; _cd.copy(p).sub(c); const L2 = _cd.lengthSq(), t = -c.dot(_cd) / L2;
+  if (t <= 0 || t >= 1) return false; return c.lengthSq() + 2 * t * c.dot(_cd) + t * t * L2 < 1; }
+function toPx(p, out) { _ndc.copy(p).project(camera); const W = stage.clientWidth, H = stage.clientHeight;
+  out.x = (_ndc.x + 1) / 2 * W; out.y = (1 - _ndc.y) / 2 * H; out.z = _ndc.z; return out; }
+// on-screen size: span = MINI_PX of the class at every zoom; the hit sphere stays >= 24 px for taps
+function sizeMarker(it) { const H = stage.clientHeight, wpp = 2 * camera.position.distanceTo(it.pos) * tanHalf() / H, k = MINI_PX[it.craft.userData.cls] || 30;
+  it.craft.scale.setScalar(k * wpp / 0.22); it.hit.scale.setScalar(Math.max(24, k * 0.75) / 2 * wpp / 0.075); }
+function clusterMarkers(mdl) {
+  const sel = objs.find(o => o.m.id === S.sel), L = [];
+  for (const o of objs) if (o.earth && o.items[0].hit.visible) for (const it of o.items) {
+    it.clHidden = false; it.px ??= { x: 0, y: 0, z: 0 }; toPx(it.pos, it.px);
+    it.front = it.px.z < 1 && !behindEarth(it.pos); it.rank = o === sel && it === o.items[0] ? 0 : o.m.kind === 'single' ? 1 : 2; L.push(it); }
+  L.sort((a, b) => a.rank - b.rank);
+  let selR = CL_R;   // the detailed model of the selected craft covers more of the screen
+  if (mdl && mdl.visible) { const d = camera.position.distanceTo(mdl.position); selR = Math.max(CL_R, (mdl.userData.R ?? MODEL_R) * mdl.scale.x / (d * tanHalf()) * stage.clientHeight / 2 * 0.8); }
+  const G = [];
+  for (const it of L) {
+    if (!it.front) { it.lead = null; continue; }
+    let best = null, bd = 1e9;
+    for (const g of G) { const r = (g.lead.rank === 0 ? selR : CL_R) * (it.lead === g.lead ? 1.3 : 1), d = Math.hypot(it.px.x - g.lead.px.x, it.px.y - g.lead.px.y);
+      if (d < r && d < bd) { best = g; bd = d; } }
+    if (best) { best.items.push(it); it.clHidden = true; it.lead = best.lead; } else { G.push({ lead: it, items: [it] }); it.lead = it; }
+  }
+  clGroups = G.filter(g => g.items.length > 1); for (const g of clGroups) g.r = g.lead.rank === 0 ? selR / 0.8 * 0.6 : 0;
+}
+// count badges (HTML over the canvas); click opens the list of the satellites in that spot
+const clHost = document.createElement('div'); clHost.className = 'clhost'; renderer.domElement.after(clHost);   // above the canvas, below the HUD, inset and controls
+const clPop = document.createElement('div'); clPop.className = 'clpop'; clPop.hidden = true; stage.appendChild(clPop);
+const clBadges = [];
+function placeBadges() {
+  const show = VIEW === 'earth';
+  for (let i = 0; i < Math.max(clGroups.length, clBadges.length); i++) {
+    const g = clGroups[i]; let b = clBadges[i];
+    if (!g || !show) { if (b) b.hidden = true; continue; }
+    if (!b) { b = clBadges[i] = document.createElement('button'); b.className = 'clb'; b.onclick = e => { e.stopPropagation(); openCluster(b.g); }; clHost.appendChild(b); }
+    b.g = g; b.hidden = false; const p = toPx(g.lead.pos, _p2), n = g.items.length, sel = g.lead.rank === 0;
+    const txt = sel ? '+' + (n - 1) : String(n); if (b.textContent !== txt) b.textContent = txt;
+    b.classList.toggle('sel', sel);
+    const o = sel ? Math.max(18, g.r * 0.75) : 0; b.style.transform = `translate(${(p.x + 9 + o).toFixed(1)}px, ${(p.y - 19 - o).toFixed(1)}px)`;
+    b.setAttribute('aria-label', `${n} satellites here: ${g.items.slice(0, 6).map(it => itName(it)).join(', ')}${n > 6 ? '…' : ''}`);
   }
 }
+const _p2 = { x: 0, y: 0, z: 0 };
+const itName = it => it.ob && it.o.m.kind !== 'single' && it.ob.member ? it.ob.member : it.o.m.name;
+function openCluster(g) {
+  const items = [...g.items].sort((a, b) => itName(a).localeCompare(itName(b)));
+  // can zooming in separate them? (spread across the line of sight vs. the grouping radius)
+  const c = new THREE.Vector3(); items.forEach(it => c.add(it.pos)); c.multiplyScalar(1 / items.length);
+  const spread = Math.max(...items.map(it => it.pos.distanceTo(c))), H = stage.clientHeight;
+  const need = c.length() + spread * H / (3 * CL_R * tanHalf()), canZoom = need > Math.max(controls.minDistance, c.length() + 0.12) && need < camera.position.length() * 0.8 && !FOLLOW;
+  clPop.innerHTML = `<div class="clh"><b>${items.length} satellites here</b>${canZoom ? '<button class="clz">Zoom in</button>' : '<span>lined up in this view</span>'}<button class="clx" aria-label="Close">✕</button></div><ul>` +
+    items.map((it, i) => `<li><button data-i="${i}"><i style="background:${hex(COL[famOf(it.o.m)])}"></i>${flag(it.o.m.country)} ${esc(itName(it))}<small>${esc(it.o.m.thruster)}</small></button></li>`).join('') + '</ul>';
+  clPop.hidden = false;
+  const p = toPx(g.lead.pos, _p2), W = stage.clientWidth, r = clPop.getBoundingClientRect();
+  clPop.style.left = Math.max(8, Math.min(W - r.width - 8, p.x + 16)) + 'px'; clPop.style.top = Math.max(8, Math.min(H - r.height - 60, p.y - 20)) + 'px';
+  clPop.querySelectorAll('li button').forEach(b => b.onclick = () => { const it = items[+b.dataset.i]; closeCluster(); select(it.o.m.id); follow(true); });
+  clPop.querySelector('.clx').onclick = closeCluster;
+  const z = clPop.querySelector('.clz'); if (z) z.onclick = () => { closeCluster(); FLY = { it: g.lead }; wantDist = need; };
+}
+function closeCluster() { clPop.hidden = true; }
+addEventListener('keydown', e => { if (e.key === 'Escape') closeCluster(); });
+stage.addEventListener('pointerdown', e => { if (!clPop.hidden && !clPop.contains(e.target)) closeCluster(); });
 // pulsing ring on the selected spacecraft
 const hl = new THREE.Mesh(new THREE.RingGeometry(0.1, 0.125, 48), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthTest: false }));
 hl.renderOrder = 10; scene.add(hl);
 // the detailed model follows the selected spacecraft
 let model = null, modelType = null;
-let FIRE_TXT = '', SHADOW_NOW = false;
+let FIRE_TXT = '', SHADOW_NOW = false, MODEL_SMALL = false;
 function setModel(type, col, hz, m) { if (model) scene.remove(model); model = craftModel(m, type, col, hz); shadeModel(model);
-  model.userData.R = new THREE.Box3().setFromObject(model).getBoundingSphere(new THREE.Sphere()).radius; if (!model.userData.k) model.userData.R = Math.min(model.userData.R, MODEL_R); model.scale.setScalar(0.42); scene.add(model); }
+  model.userData.R = new THREE.Box3().setFromObject(model).getBoundingSphere(new THREE.Sphere()).radius; if (!model.userData.k && !model.userData.booms) model.userData.R = Math.min(model.userData.R, MODEL_R); model.scale.setScalar(0.42); scene.add(model); }
 
 // ---------- solar-system view (JPL Horizons: heliocentric ecliptic J2000, 1 AU = 4 scene units) ----------
 const sscene = new THREE.Scene(), scam = new THREE.PerspectiveCamera(40, 1, 0.01, 4000); scam.position.set(0, 18, 26);
@@ -1147,7 +1341,7 @@ if (DI) {
   dAim.copy(dimoPos).add(S_(DI.site_km));
   // DART: box bus + two roll-out (ROSA) arrays, drawn 20x enlarged (true span ~19 m would be invisible at this scale)
   dartObj = new THREE.Group(); { const bus = new THREE.Mesh(rbox(0.0018, 0.0019, 0.0026, 0.0002), mli); dartObj.add(bus);
-    for (const sd of [-1, 1]) { const arr = new THREE.Mesh(rbox(0.0024, 0.0001, 0.0085, 0.00005), cellMat); arr.position.z = sd * 0.0058; dartObj.add(arr); }
+    for (const sd of [-1, 1]) { const arr = new THREE.Mesh(new THREE.BoxGeometry(0.0024, 0.0001, 0.0085), cellMat); arr.position.z = sd * 0.0058; dartObj.add(arr); }
     const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.0006, 0.0006, 0.0002, 16), whitePaint); ant.position.y = 0.001; dartObj.add(ant); }
   dartObj.scale.setScalar(20); dscene.add(dartObj);
   loadReal('DART').then(sc => { if (!sc) return; const w = realCopy('DART', sc); w.scale.setScalar(0.0095); dartObj.children.forEach(c => { c.visible = false; }); dartObj.add(w); });   // NASA model, 19 m span before the 20x
@@ -1458,7 +1652,7 @@ addEventListener('resize', insetSize); insetSize();
 
 // ---------- picking / hover ----------
 const ray = new THREE.Raycaster(), mouse = new THREE.Vector2(); ray.params.Points = { threshold: 0.05 };
-const curPick = () => VIEW === 'earth' ? pick.filter(p => p.visible) : spick.filter(p => p.visible);
+const curPick = () => VIEW === 'earth' ? pick.filter(p => p.visible && !p.userData.it.clHidden) : spick.filter(p => p.visible);
 renderer.domElement.addEventListener('pointermove', e => {
   const r = renderer.domElement.getBoundingClientRect(); mouse.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
   ray.setFromCamera(mouse, VIEW === 'earth' ? camera : scam); const hit = ray.intersectObjects(curPick())[0];
@@ -1471,7 +1665,7 @@ renderer.domElement.addEventListener('click', () => { ray.setFromCamera(mouse, V
 
 // ---------- view, scale and time controls ----------
 function setView(v) {
-  VIEW = v; controls.enabled = v === 'earth'; sctl.enabled = v === 'solar'; dctl.enabled = false; $('#v-dart').hidden = true; setDraco(0); closeVbox();
+  VIEW = v; closeCluster(); controls.enabled = v === 'earth'; sctl.enabled = v === 'solar'; dctl.enabled = false; $('#v-dart').hidden = true; setDraco(0); closeVbox();
   $$('#v-view button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v));
   $('#v-scale').hidden = $('#v-speed').hidden = $('#v-fire').hidden = $('#v-gt').hidden = v !== 'earth'; $('#v-follow').hidden = v === 'impact'; $('#v-solar').hidden = $('#v-ss').hidden = v !== 'solar';
   $('#inset').hidden = false;
@@ -1485,7 +1679,7 @@ $('#dart-go').onclick = () => { if (DI) enterImpact(); }; $('#dart-back').onclic
 function closeVbox() { const v = $('#vbox-v'); if (v) { v.pause(); $('#vbox').hidden = true; } }
 $('#dart-video').onclick = () => { $('#vbox').hidden = false; $('#vbox-v').play().catch(() => {}); }; $('#vbox-x').onclick = closeVbox;
 $$('#v-scale button').forEach(b => b.onclick = () => ({ overview: () => setScale('compressed', 10), leo: () => setScale('true', 3.4), geo: () => setScale('true', 19), moon: () => setScale('true', 150) })[b.dataset.p]());
-let SPEED = 600, SSPEED = 25, ALLTR = false, FOLLOW = false, followT = 0;
+let SPEED = 60, SSPEED = 25, ALLTR = false, FOLLOW = false, followT = 0;
 // follow mode: the camera flies to the selected spacecraft and keeps it centred; drag orbits around it, scroll zooms; Esc / button stops
 function follow(on) { FOLLOW = on; followT = 0; $('#v-follow button').setAttribute('aria-pressed', on); $('#v-follow button').textContent = on ? '✕ Stop following' : '◎ Follow';
   controls.minDistance = on ? 0.04 : 1.25; sctl.minDistance = on ? 0.05 : 2;
@@ -1530,10 +1724,12 @@ function frame(now) {
         itemScene(it, simMs, it.pos); itemScene(it, simMs + 30000, it.next);
         it.hit.position.copy(it.pos); it.craft.position.copy(it.pos);
         attitude(it.craft, it.pos, it.next, o.m.orbit === 'Lunar' ? moon.position : ORIGIN, _q); it.craft.quaternion.slerp(_q, Math.min(1, dt * 5));
-        it.craft.visible = !(o.m.id === S.sel && it === o.items[0]);
-        const sh = inShadow(it), [fi] = firing(o, it);
-        if (it.sh !== sh) { it.sh = sh; const c = it.craft.children; c[0].material = sh ? MINI.busMatD : MINI.busMat; c[1].material = c[2].material = sh ? MINI.wingMatD : MINI.wingMat; }
-        it.craft.children[3].visible = fi;
+        it.craft.visible = !(o.m.id === S.sel && it === o.items[0] && !MODEL_SMALL) && !it.clHidden;
+        if (!it.craft.visible) continue;
+        const sh = inShadow(it), [fi] = firing(o, it), U = it.craft.userData;
+        setMiniShade(it.craft, sh); U.plume.visible = fi; sizeMarker(it);
+        if (U.wings.length) sunTrack(U.wings, SUN_DIR, it.craft.quaternion);   // arrays turn to the Sun
+        if (U.spin && !reduce) for (const o of U.spin) o.rotation.z += dt * 2;
       }
       if (o.swarm) o.swarm.material.size = 0.03 * Math.min(1, Math.max(0.15, camera.position.distanceTo(controls.target) / 3));   // small dots when the camera is close
       if (o.swarm && o.swarm.visible) {   // a quarter of the constellation sample is propagated per frame
@@ -1552,13 +1748,17 @@ function frame(now) {
         if (yax.lengthSq() > 0.5) { tm.makeBasis(vel, yax, new THREE.Vector3().crossVectors(vel, yax)); tq.setFromRotationMatrix(tm); } else tq.setFromUnitVectors(new THREE.Vector3(1, 0, 0), vel);
         model.quaternion.slerp(tq, Math.min(1, dt * 6));
         const dcam = camera.position.distanceTo(model.position);
-        model.scale.setScalar(Math.min(o.m.orbit === 'LEO' || o.m.orbit === 'Suborbital' ? 0.3 : 0.42, dcam * (FOLLOW ? 0.16 : 0.045)) * (model.userData.k ?? 1));
+        // never let the model reach into the Earth: its radius stays below ~85 % of the craft's height above the clouds
+        const Rm = model.userData.R ?? MODEL_R, clear = Math.max(0.004, it.pos.length() - 1.025) * 0.85 / Rm;
+        model.scale.setScalar(Math.min((o.m.orbit === 'LEO' || o.m.orbit === 'Suborbital' ? 0.3 : 0.42) * (model.userData.k ?? 1), dcam * (FOLLOW ? 0.16 : 0.045) * (model.userData.k ?? 1), clear));
+        // zoomed far out the model would be smaller than a marker: show the selected craft's marker instead
+        MODEL_SMALL = 2 * Rm * model.scale.x / (2 * dcam * tanHalf() / stage.clientHeight) < (MINI_PX[busClass(o.m)] || 30) * 1.2; model.visible = !MODEL_SMALL;
         const [fi, why] = firing(o, it); FIRE_TXT = why; SHADOW_NOW = inShadow(it);
-        setShade(model, SHADOW_NOW); model.userData.thr.userData.off = !fi; if (ithr) ithr.userData.off = !fi;
+        setShade(model, SHADOW_NOW); sunTrack(model.userData.sadmL ??= sadmList(model), SUN_DIR); model.userData.thr.userData.off = !fi; if (ithr) ithr.userData.off = !fi;
         model.userData.thr.userData.update(dt, now / 1000);
-      } else model.visible = false;
+      } else { model.visible = false; MODEL_SMALL = false; }
     }
-    if (++declutterK % 4 === 0) declutter(model && model.visible ? model : null);
+    if (++clK % 4 === 0 || clK < 3) clusterMarkers(model && model.visible ? model : null);
     updateGround(it, now);
     if (FOLLOW && it) {   // keep the camera's offset from the target, move the target with the spacecraft, ease in to a close view over ~1.5 s
       followT += dt; const off = tmp2.copy(camera.position).sub(controls.target), a = 1 - Math.exp(-dt * 5);
@@ -1568,9 +1768,13 @@ function frame(now) {
     } else if (controls.target.lengthSq() > 1e-6) { const off = tmp2.copy(camera.position).sub(controls.target); controls.target.lerp(ORIGIN, 1 - Math.exp(-dt * 3)); if (controls.target.lengthSq() < 1e-5) controls.target.set(0, 0, 0); camera.position.copy(controls.target).add(off); }
     hl.visible = !!it && !FOLLOW;
     if (it) { hl.position.copy(it.pos); hl.quaternion.copy(camera.quaternion); const k = 1 + 0.35 * Math.sin(now / 260); hl.scale.setScalar(k * camera.position.distanceTo(hl.position) / 9); hl.material.opacity = 0.9 - 0.4 * (k - 0.65); }
+    if (FLY && (dragging || FOLLOW)) FLY = null;
+    if (FLY) { const d = tmp.copy(FLY.it.pos).normalize(), len = camera.position.length(), cur = tmp2.copy(camera.position).normalize();
+      cur.lerp(d, 1 - Math.exp(-dt * 3)).normalize(); camera.position.copy(cur).multiplyScalar(len); if (cur.angleTo(d) < 0.004 && Math.abs(len - wantDist) < 0.06) FLY = null; }
     { const dcur = camera.position.length(); if (!FOLLOW && controls.target.lengthSq() < 1e-5 && Math.abs(dcur - wantDist) > 0.05 && !dragging) camera.position.multiplyScalar(Math.exp(Math.log(wantDist / dcur) * (1 - Math.exp(-dt * 3.5)))); }
-    controls.update(); renderer.render(scene, camera);
+    controls.update(); renderer.render(scene, camera); placeBadges();
   } else if (VIEW === 'solar') {
+    if (clBadges.some(b => !b.hidden)) placeBadges();
     const o = objs.find(x => x.m.id === S.sel), sel = SC.find(s => s.o === o);
     const t0 = sel ? sel.tr.t[0] : T_MIN, t1 = sel ? sel.tr.t[sel.tr.t.length - 1] : T_MAX;
     solarMs += dt * 86400000 * SSPEED;
@@ -1582,7 +1786,7 @@ function frame(now) {
     for (const s of SC) {
       const on = solarMs >= s.tr.t[0] && solarMs <= s.tr.t[s.tr.t.length - 1] && visible(s.o.m);
       interp(s.tr, solarMs, s.craft.position); interp(s.tr, solarMs + 5 * 86400000, tmp);
-      s.craft.lookAt(tmp); s.craft.rotateY(-Math.PI / 2);
+      s.craft.lookAt(tmp); s.craft.rotateY(-Math.PI / 2); if (s.craft.userData.wings.length) sunTrack(s.craft.userData.wings, tmp3.copy(s.craft.position).negate().normalize(), s.craft.quaternion);
       s.craft.visible = s.hit.visible = s.lab.visible = on; s.hit.position.copy(s.craft.position); s.lab.position.copy(s.craft.position);
       // selected: travelled part solid, the rest faint; others only with 'All trajectories', thin and faint
       let n = 0, lo = 0, hi = s.dts.length - 1; if (solarMs >= s.dts[hi]) n = hi + 1; else if (solarMs > s.dts[0]) { while (hi - lo > 1) { const c = (lo + hi) >> 1; if (s.dts[c] <= solarMs) lo = c; else hi = c; } n = lo + 1; }
@@ -1595,7 +1799,7 @@ function frame(now) {
     } else if (!FOLLOW && sctl.target.lengthSq() > 1e-6) { const off = tmp2.copy(scam.position).sub(sctl.target); sctl.target.lerp(ORIGIN, 1 - Math.exp(-dt * 3)); scam.position.copy(sctl.target).add(off); }
     if (solarModel) { const on = sel && sel.craft.visible; solarModel.visible = !!on;
       if (on) { sel.craft.visible = false; solarModel.position.copy(sel.craft.position); solarModel.quaternion.copy(sel.craft.quaternion);
-        solarModel.scale.setScalar(Math.min(FOLLOW ? 0.5 : 0.09, scam.position.distanceTo(solarModel.position) * (FOLLOW ? 0.09 : 0.006)) * (solarModel.userData.k ?? 1)); solarModel.userData.thr.userData.update(dt, now / 1000); } }
+        solarModel.scale.setScalar(Math.min(FOLLOW ? 0.5 : 0.09, scam.position.distanceTo(solarModel.position) * (FOLLOW ? 0.09 : 0.006)) * (solarModel.userData.k ?? 1)); solarModel.userData.thr.userData.update(dt, now / 1000); sunTrack(solarModel.userData.sadmL ??= sadmList(solarModel), tmp3.copy(solarModel.position).negate().normalize()); } }
     sctl.update(); renderer.render(sscene, scam);
   } else if (DI) stepImpact(dt);
   if (ithr) { ithr.rotation.y = 0.22 * Math.sin(t * 0.35); ithr.rotation.x = 0.1 * Math.sin(t * 0.27); ithr.userData.update(dt, now / 1000); ir.render(iscene, icam); }
@@ -1606,7 +1810,8 @@ function frame(now) {
       : `<span class="clk">${new Date(solarMs).toISOString().slice(0, 10)} · JPL Horizons trajectory${sc ? '' : ' (none available for this mission)'}${sc && sc.note ? ' · ' + esc(sc.note) : ''}</span>`);
   if (m && VIEW !== 'impact') { const ex = []; const L_ = dsnOf(m); if (L_) ex.push(`📡 live DSN contact: ${L_[0].site} ${L_[0].dish}`);
     if (VIEW === 'earth' && m.orbit !== 'Deep space') { if (SHADOW_NOW) ex.push('in the Earth\u2019s shadow'); if (FIRE === 'schedule' && FIRE_TXT) ex.push(FIRE_TXT + ' (illustrative schedule)'); }
-    const cm = VIEW === 'solar' ? solarModel : model; if (shapeKey(m) && cm && (VIEW === 'solar' || m.orbit !== 'Deep space')) ex.push(cm.userData.real ? 'NASA 3D model (NASA 3D Resources)' : 'simplified spacecraft shape');
+    const cm = VIEW === 'solar' ? solarModel : model; if (shapeKey(m) && cm && (VIEW === 'solar' || m.orbit !== 'Deep space')) ex.push(cm.userData.real === 'generic' ? 'generic CubeSat (NASA 3D Resources), not this mission\u2019s own design' : cm.userData.real ? 'NASA 3D model (NASA 3D Resources)' : 'simplified spacecraft shape');
+    else if (cm && cm.userData.cls && VIEW === 'earth' && m.orbit !== 'Deep space') ex.push(cm.userData.booms ? 'drum with gravity-gradient booms (representative, not the exact shape)' : 'representative ' + ({ geo: 'GEO comsat', flat: 'flat-pack constellation', spin: 'early drum-shaped (body-mounted cells)', station: 'station module', leo: 'small-satellite', cube: 'CubeSat' })[cm.userData.cls] + ' bus, not the exact shape');
     if (ex.length) $('#hud').insertAdjacentHTML('beforeend', `<br><span class="clk">${ex.join(' · ')}</span>`); }
   requestAnimationFrame(frame);
 }
