@@ -121,7 +121,7 @@ table.models tr:hover td { background: var(--input); } .tblwrap { max-height: 42
     <p class="sub">Each spacecraft (or series, or constellation) that has flown a gridded ion engine or a Hall-effect thruster, placed on its orbit around an animated Earth. Blue: gridded ion engines (accelerating grids, ion beam). Violet: Hall thrusters (annular channel, plasma plume). Click a spacecraft or a list entry for its thruster, the thruster's key parameters and the sources.</p>
     <div class="stage" id="stage">
       <div class="hud" id="hud"></div>
-      <div class="legend"><span><i style="background:var(--ion)"></i>Gridded ion</span><span><i style="background:var(--hall)"></i>Hall</span><span>Orbit radii compressed, not to scale</span></div>
+      <div class="legend"><span><i style="background:var(--ion)"></i>Gridded ion (blue beam)</span><span><i style="background:var(--hall)"></i>Hall (violet plume)</span><span>Orbit radii compressed, not to scale</span></div>
       <div class="counter" id="counter"></div>
       <div class="tip" id="tip" hidden></div>
       <div class="inset" id="inset"><span id="inset-l"></span></div>
@@ -181,7 +181,19 @@ const controls = new OrbitControls(camera, renderer.domElement);
 let dragging = false; controls.addEventListener('start', () => { dragging = true; }); controls.addEventListener('end', () => { dragging = false; wantDist = camera.position.length(); });
 controls.enableDamping = true; controls.minDistance = 1.6; controls.maxDistance = 40; controls.enablePan = false;
 scene.add(new THREE.AmbientLight(0xffffff, 0.22)); scene.add(new THREE.HemisphereLight(0xdfe8ff, 0x20242c, 0.45));
-const sun = new THREE.DirectionalLight(0xfff4e6, 2.2); sun.position.set(5, 2.5, 4); scene.add(sun);
+const SUN_DIR = new THREE.Vector3(1, 0.18, 0.42).normalize();
+const sun = new THREE.DirectionalLight(0xfff4e6, 2.3); sun.position.copy(SUN_DIR).multiplyScalar(20); scene.add(sun);
+// Earth's axial tilt (23.44 deg, north pole towards the Sun = northern summer): equatorial orbits tilt with it
+const TILT = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -23.44 * Math.PI / 180);
+const equator = new THREE.Group(); equator.quaternion.copy(TILT); scene.add(equator);
+{ // the Sun: bright disc + soft corona, far away along the light direction
+  const glow = (size, stops) => { const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'), g = x.createRadialGradient(128, 128, 0, 128, 128, 128);
+    stops.forEach(([o, col]) => g.addColorStop(o, col)); x.fillStyle = g; x.fillRect(0, 0, 256, 256);
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+    sp.scale.set(size, size, 1); sp.position.copy(SUN_DIR).multiplyScalar(70); scene.add(sp); };
+  glow(26, [[0, 'rgba(255,214,140,.55)'], [0.25, 'rgba(255,170,80,.18)'], [1, 'rgba(255,150,60,0)']]);
+  glow(6.5, [[0, 'rgba(255,255,245,1)'], [0.45, 'rgba(255,246,210,1)'], [0.62, 'rgba(255,220,150,.6)'], [1, 'rgba(255,200,120,0)']]);
+}
 // starfield
 { const g = new THREE.BufferGeometry(), n = 1500, p = new Float32Array(n * 3);
   for (let i = 0; i < n; i++) { const r = 60 + Math.random() * 40, t = Math.random() * Math.PI * 2, u = Math.acos(2 * Math.random() - 1);
@@ -189,7 +201,7 @@ const sun = new THREE.DirectionalLight(0xfff4e6, 2.2); sun.position.set(5, 2.5, 
   g.setAttribute('position', new THREE.BufferAttribute(p, 3));
   scene.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0x9aa3b8, size: 0.12, sizeAttenuation: true }))); }
 // Earth: NASA Blue Marble day map (land, ocean colour, sea ice), oceans-only sun glint, atmosphere rim
-const earth = new THREE.Group(); scene.add(earth);
+const earth = new THREE.Group(); equator.add(earth);
 const earthMat = new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x3a5a7a, shininess: 28 });
 const earthMesh = new THREE.Mesh(new THREE.SphereGeometry(1, 96, 64), earthMat); earth.add(earthMesh);
 new THREE.TextureLoader().load('vendor/earth_day.jpg', tex => {
@@ -219,13 +231,13 @@ const R = { LEO: 1.18, MEO: 1.95, GEO: 3.1, HEO: [1.25, 3.6], Lunar: 5.4, Suborb
 const ringMat = new THREE.LineBasicMaterial({ color: 0x8896b8, transparent: true, opacity: 0.22 });
 const ring = (r, inc = 0) => { const pts = []; for (let k = 0; k <= 128; k++) { const t = k / 128 * Math.PI * 2; pts.push(new THREE.Vector3(r * Math.cos(t), 0, r * Math.sin(t))); }
   const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), ringMat); l.rotation.x = inc; return l; };
-[R.LEO, R.MEO, R.GEO].forEach(r => scene.add(ring(r)));
+[R.LEO, R.MEO, R.GEO].forEach(r => equator.add(ring(r)));
 scene.add(ring(R.Lunar));
 // orbit labels
 const label = (txt, pos) => { const c = document.createElement('canvas'); c.width = 256; c.height = 64; const x = c.getContext('2d');
   x.font = '600 30px -apple-system, Segoe UI, sans-serif'; x.fillStyle = 'rgba(200,210,235,.75)'; x.fillText(txt, 6, 42);
-  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false })); s.scale.set(0.8, 0.2, 1); s.position.copy(pos); scene.add(s); };
-label('LEO', new THREE.Vector3(R.LEO + 0.2, 0.06, 0)); label('MEO', new THREE.Vector3(R.MEO + 0.2, 0.06, 0)); label('GEO', new THREE.Vector3(R.GEO + 0.25, 0.06, 0));
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false })); s.scale.set(0.8, 0.2, 1); s.position.copy(pos); scene.add(s); return s; };
+[['LEO', R.LEO + 0.2], ['MEO', R.MEO + 0.2], ['GEO', R.GEO + 0.25]].forEach(([n, x]) => equator.add(label(n, new THREE.Vector3(x, 0.06, 0))));
 label('Moon orbit', new THREE.Vector3(R.Lunar + 0.3, 0.06, 0)); label('→ deep space', new THREE.Vector3(7.2, 0.6, -2.5));
 
 // ---------- spacecraft models ----------
@@ -363,6 +375,50 @@ function spacecraft(type) {
   return s;
 }
 
+// ---------- mini spacecraft markers (one per mission; shared geometry/materials) ----------
+const MINI = {
+  bus: new THREE.BoxGeometry(0.05, 0.042, 0.042), wing: new THREE.BoxGeometry(0.03, 0.0025, 0.085),
+  busMat: new THREE.MeshStandardMaterial({ color: 0xd9a63a, metalness: 0.7, roughness: 0.4 }),
+  wingMat: new THREE.MeshStandardMaterial({ color: 0x2a4da8, metalness: 0.4, roughness: 0.35, emissive: 0x0a1638 }),
+  plume: (() => { const g = new THREE.CylinderGeometry(0.03, 0.009, 0.13, 24, 6, true); g.translate(0, 0.065, 0); g.rotateZ(Math.PI / 2); g.translate(-0.025, 0, 0); return g; })(),
+  plumeMat: {}
+};
+function miniPlumeMat(color) {
+  return MINI.plumeMat[color] ??= new THREE.ShaderMaterial({
+    uniforms: { uColor: { value: new THREE.Color(color) }, uF: { value: 1 } },
+    vertexShader: 'varying float vS; varying vec3 vN; varying vec3 vV; void main(){ vS = clamp((-position.x - 0.025) / 0.13, 0.0, 1.0); vec4 mv = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }',
+    fragmentShader: 'uniform vec3 uColor; uniform float uF; varying float vS; varying vec3 vN; varying vec3 vV; void main(){ float f = abs(dot(vN, vV)); float a = uF * pow(1.0 - vS, 1.4) * (0.35 + 0.65 * f * f); gl_FragColor = vec4(uColor * a * 2.2, a); }',
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
+}
+function miniCraft(m) {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(MINI.bus, MINI.busMat));
+  for (const z of [-1, 1]) { const w = new THREE.Mesh(MINI.wing, MINI.wingMat); w.position.z = z * 0.066; g.add(w); }
+  g.add(new THREE.Mesh(MINI.plume, miniPlumeMat(COL[m.thruster_type])));
+  g.scale.setScalar(m.kind === 'series' ? 1.25 : 1);
+  return g;
+}
+// attitude: nose (+X) along the velocity, +Y towards the central body, wings (+Z) along the orbit normal
+const _vel = new THREE.Vector3(), _dn = new THREE.Vector3(), _z = new THREE.Vector3(), _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion();
+function attitude(obj, pos, next, centre, out) {
+  _vel.copy(next).sub(pos).normalize();
+  _dn.copy(centre).sub(pos).normalize(); _dn.sub(_z.copy(_vel).multiplyScalar(_dn.dot(_vel))).normalize();
+  if (_dn.lengthSq() < 0.5) return out.setFromUnitVectors(new THREE.Vector3(1, 0, 0), _vel);
+  _z.crossVectors(_vel, _dn); _m4.makeBasis(_vel, _dn, _z); return out.setFromRotationMatrix(_m4);
+}
+
+// destinations of the deep-space missions (from the verified mission records), shown as labels that fly with them
+const DEST = { 'BepiColombo': 'Mercury', 'Dawn': 'Vesta, Ceres', 'Hayabusa2': 'Ryugu', 'Hayabusa': 'Itokawa', 'Deep Space 1': 'Braille, Borrelly',
+  'DART': 'Didymos / Dimorphos', 'Tianwen-2': "Kamo'oalewa", 'NASA Psyche': '(16) Psyche', 'PROCYON': '2000 DP107 (flyby cancelled)' };
+function destLabel(m) {
+  const k = Object.keys(DEST).find(n => m.name.startsWith(n)); if (!k) return null;
+  const txt = `${k === 'NASA Psyche' ? 'Psyche' : k} → ${DEST[k]}`, c = document.createElement('canvas'), x = c.getContext('2d');
+  x.font = '600 30px -apple-system, Segoe UI, sans-serif'; const w = Math.ceil(x.measureText(txt).width) + 16; c.width = w; c.height = 44;
+  x.font = '600 30px -apple-system, Segoe UI, sans-serif'; x.fillStyle = 'rgba(225,232,250,.92)'; x.fillText(txt, 8, 32);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, sizeAttenuation: false, depthTest: false }));
+  sp.renderOrder = 11; sp.scale.set(0.00042 * w, 0.00042 * 44, 1); sp.center.set(-0.12, -0.6); scene.add(sp); return sp;
+}
+
 // ---------- place missions ----------
 const hash = s => { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return (h >>> 0) / 4294967296; };
 const objs = [];
@@ -371,8 +427,10 @@ for (const m of ms) {
   const h1 = hash(m.name), h2 = hash(m.name + '#');
   const o = { m, phase: h1 * Math.PI * 2, inc: m.orbit === 'GEO' ? 0 : (h2 - 0.5) * 1.4, node: hash(m.name + '$') * Math.PI * 2 };
   o.speed = { LEO: 0.55, Suborbital: 0.55, MEO: 0.22, GEO: 0.09, HEO: 0.18, Lunar: 0.05, 'Deep space': 0.05 }[m.orbit] || 0.1;
-  o.dot = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 8), new THREE.MeshBasicMaterial({ color: COL[m.thruster_type] }));
+  o.dot = new THREE.Mesh(new THREE.SphereGeometry(0.075, 10, 8), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }));
   o.dot.userData.o = o; scene.add(o.dot); pick.push(o.dot);
+  o.craft = miniCraft(m); scene.add(o.craft); o.next = new THREE.Vector3();
+  o.dest = m.orbit === 'Deep space' ? destLabel(m) : null;
   o.trail = null;
   if (m.kind === 'cluster') {   // swarm of tiny dots on the shell
     const n = Math.min(240, Math.max(30, (m.count || 60) / 20 | 0)), p = new Float32Array(n * 3);
@@ -395,7 +453,7 @@ function posAt(o, t, out) {
   let r = R[m.orbit] || R.LEO, a = o.phase + t * o.speed;
   if (m.orbit === 'HEO') { const e = 0.48, rp = 1.25, ra = 3.6; const E = a; r = (rp + ra) / 2 * (1 - e * Math.cos(E)); }
   out.set(r * Math.cos(a), 0, r * Math.sin(a));
-  out.applyAxisAngle(new THREE.Vector3(1, 0, 0), o.inc).applyAxisAngle(new THREE.Vector3(0, 1, 0), o.node);
+  out.applyAxisAngle(new THREE.Vector3(1, 0, 0), o.inc).applyAxisAngle(new THREE.Vector3(0, 1, 0), o.node).applyQuaternion(TILT);
   return out;
 }
 // pulsing ring on the selected spacecraft
@@ -415,7 +473,7 @@ function renderList() {
   const nIon = vis.filter(m => m.thruster_type === 'ion').length;
   $('#n-shown').textContent = `${vis.length} shown`;
   $('#counter').innerHTML = `${vis.length} entries (${nIon} ion, ${vis.length - nIon} Hall)<br>${vis.reduce((s, m) => s + (m.count || 1), 0).toLocaleString('en')} spacecraft · up to ${S.year}`;
-  for (const o of objs) { const on = visible(o.m); o.dot.visible = on; if (o.swarm) o.swarm.visible = on; }
+  for (const o of objs) { const on = visible(o.m); o.dot.visible = on; o.craft.visible = on; if (o.dest) o.dest.visible = on && o.m.id === S.sel; if (o.swarm) o.swarm.visible = on; }
 }
 const seg = (id, key) => $$(`#${id} button`).forEach(b => b.onclick = () => { S[key] = b.dataset.v; $$(`#${id} button`).forEach(x => x.setAttribute('aria-pressed', x === b)); renderList(); });
 seg('f-type', 'type');
@@ -509,18 +567,22 @@ const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), tmp3 = new THREE.Ve
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now; t += reduce ? dt * 0.15 : dt;
   earth.rotation.y = t * 0.05;
+  { const f = 0.85 + 0.1 * Math.sin(now / 140) + 0.05 * Math.sin(now / 67); for (const k in MINI.plumeMat) MINI.plumeMat[k].uniforms.uF.value = f; }
   moon.position.set(R.Lunar * Math.cos(t * 0.03), 0, R.Lunar * Math.sin(t * 0.03));
   for (const o of objs) {
     if (!o.dot.visible) continue; posAt(o, t, o.dot.position);
+    posAt(o, t + 0.02, o.next); o.craft.position.copy(o.dot.position);
+    attitude(o.craft, o.dot.position, o.next, o.m.orbit === 'Lunar' ? moon.position : ORIGIN, _q); o.craft.quaternion.slerp(_q, Math.min(1, dt * 5));
+    o.craft.visible = o.m.id !== S.sel;
+    if (o.dest) { o.dest.visible = o.m.id === S.sel; if (o.dest.visible) o.dest.position.copy(o.dot.position); }
     if (o.swarm) { const p = o.swarm.geometry.attributes.position, r = R[o.m.orbit] || R.LEO;
-      o.swarmData.forEach((d, k) => { tmp.set(r * Math.cos(d.ph + t * o.speed), 0, r * Math.sin(d.ph + t * o.speed)).applyAxisAngle(new THREE.Vector3(1, 0, 0), d.inc).applyAxisAngle(new THREE.Vector3(0, 1, 0), d.nd); p.setXYZ(k, tmp.x, tmp.y, tmp.z); });
+      o.swarmData.forEach((d, k) => { tmp.set(r * Math.cos(d.ph + t * o.speed), 0, r * Math.sin(d.ph + t * o.speed)).applyAxisAngle(new THREE.Vector3(1, 0, 0), d.inc).applyAxisAngle(new THREE.Vector3(0, 1, 0), d.nd).applyQuaternion(TILT); p.setXYZ(k, tmp.x, tmp.y, tmp.z); });
       p.needsUpdate = true; }
   }
   if (model) {
     const o = objs.find(x => x.m.id === S.sel);
     if (o && o.dot.visible) {
       model.visible = true; posAt(o, t, model.position); posAt(o, t + 0.02, tmp2);
-      for (const x of objs) x.dot.scale.setScalar(x === o ? 0.001 : 1);   // the model replaces the marker dot
       const vel = tmp2.sub(model.position).normalize();                 // thrust along the velocity: exhaust points backwards
       // satellite attitude: nose (+X) along the velocity, deck (+Y) towards the central body (Earth, or the Moon for lunar
       // missions), solar wings (+Z) along the orbit normal, so the wings never point into the globe
@@ -540,7 +602,7 @@ function frame(now) {
   controls.update(); renderer.render(scene, camera);
   if (ithr) { ithr.rotation.y = 0.22 * Math.sin(t * 0.35); ithr.rotation.x = 0.1 * Math.sin(t * 0.27);
     ithr.userData.update(dt, now / 1000); ir.render(iscene, icam); }
-  $('#hud').innerHTML = S.sel != null ? (() => { const m = ms.find(x => x.id === S.sel); return `<b>${flag(m.country)} ${esc(m.name)}</b><br>${esc(m.thruster)} · ${esc(m.orbit)} · ${esc(m.launch)}`; })() : 'Drag to rotate · scroll to zoom · click a spacecraft';
+  $('#hud').innerHTML = S.sel != null ? (() => { const m = ms.find(x => x.id === S.sel); const dk = Object.keys(DEST).find(n => m.name.startsWith(n)); return `<b>${flag(m.country)} ${esc(m.name)}</b><br>${esc(m.thruster)} · ${esc(m.orbit)}${dk ? ' → ' + esc(DEST[dk]) : ''} · ${esc(m.launch)}`; })() : 'Drag to rotate · scroll to zoom · click a spacecraft';
   requestAnimationFrame(frame);
 }
 renderList();
