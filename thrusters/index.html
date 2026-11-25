@@ -1139,9 +1139,13 @@ function destLabel(m) {
 const [ORB, SOL] = await Promise.all(['orbits', 'solar'].map(n => fetch('data/' + n + '.json').then(r => r.json())));
 const hash = s => { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return (h >>> 0) / 4294967296; };
 const REP = { LEO: [550, 550, null], MEO: [20200, 20200, 55], GEO: [35786, 35786, 0], HEO: [1000, 39700, 63.4], Suborbital: [300, 300, null] };
+// orbits where the catalogue's last pre-decay elements would mislead: the orbit the spacecraft actually flew in (sourced)
+const ORBIT_FIX = { 2743: [185, 11112, 28.2, 'orbit after the Agena upper stage failed to restart: 185 × 11,112 km (NASA ATS-2 flight report); re-entered 2 Sep 1969'] };
 function kepFor(m, ob) {
   const h = k => hash(m.name + (ob ? ob.member : '') + k);
   let per, apo, inc, how;
+  if (ob && ORBIT_FIX[ob.norad]) { [per, apo, inc, how] = ORBIT_FIX[ob.norad]; const a = RE + (per + apo) / 2;
+    return { a, e: (apo - per) / (2 * a), inc: inc * D2R, raan: h('r') * 2 * Math.PI, argp: h('w') * 2 * Math.PI, M0: h('m') * 2 * Math.PI, n: Math.sqrt(MU / a ** 3), how }; }
   if (ob && ob.center === 'EA' && ob.perigee_km != null && ob.apogee_km != null && ob.inc != null) {
     [per, apo, inc] = [ob.perigee_km, ob.apogee_km, ob.inc]; how = 'catalogued orbit (CelesTrak SATCAT)';
     if (ob.decay && per < 250 && (m.orbit === 'LEO' || m.orbit === 'Suborbital')) { per = apo = 450; how = 'catalogued inclination; final pre-decay altitude replaced by 450 km'; }
@@ -1844,7 +1848,7 @@ function frame(now) {
     (VIEW === 'earth' ? `<span class="clk">${fmtUTC(simMs)} · ×${SPEED}</span>${m && m.orbit !== 'Deep space' ? ` · <span class="clk">${({ live: 'real position (CelesTrak elements)', catalogue: 'catalogued orbit', representative: 'representative orbit' })[objs.find(x => x.m === m).orbitSource]}${objs.find(x => x.m === m).reentered ? ', not in orbit since ' + objs.find(x => x.m === m).reentered.slice(0, 10) : ''}</span>` : ''}`
       : `<span class="clk">${new Date(solarMs).toISOString().slice(0, 10)} · JPL Horizons trajectory${sc ? '' : ' (none available for this mission)'}${sc && sc.note ? ' · ' + esc(sc.note) : ''}</span>`);
   if (m && VIEW !== 'impact' && VIEW !== 'launch') { const ex = []; const L_ = dsnOf(m); if (L_) ex.push(`📡 live DSN contact: ${L_[0].site} ${L_[0].dish}`);
-    if (VIEW === 'earth' && m.orbit !== 'Deep space') { if (SHADOW_NOW) ex.push('in the Earth\u2019s shadow'); if (FIRE === 'schedule' && FIRE_TXT) ex.push(FIRE_TXT + ' (illustrative schedule)'); }
+    if (VIEW === 'earth' && m.orbit !== 'Deep space') { { const it0 = objs.find(x => x.m === m)?.items[0]; if (it0 && it0.ob && ORBIT_FIX[it0.ob.norad]) ex.push(ORBIT_FIX[it0.ob.norad][3]); } if (SHADOW_NOW) ex.push('in the Earth\u2019s shadow'); if (FIRE === 'schedule' && FIRE_TXT) ex.push(FIRE_TXT + ' (illustrative schedule)'); }
     const cm = VIEW === 'solar' ? solarModel : model; if (shapeKey(m) && cm && (VIEW === 'solar' || m.orbit !== 'Deep space')) ex.push(cm.userData.real === 'generic' ? 'generic CubeSat (NASA 3D Resources), not this mission\u2019s own design' : cm.userData.real ? 'NASA 3D model (NASA 3D Resources)' : 'simplified spacecraft shape');
     else if (cm && cm.userData.cls && VIEW === 'earth' && m.orbit !== 'Deep space') ex.push(cm.userData.booms ? 'drum with gravity-gradient booms (representative, not the exact shape)' : 'representative ' + ({ geo: 'GEO comsat', flat: 'flat-pack constellation', spin: 'early drum-shaped (body-mounted cells)', station: 'station module', leo: 'small-satellite', cube: 'CubeSat' })[cm.userData.cls] + ' bus, not the exact shape');
     if (ex.length) $('#hud').insertAdjacentHTML('beforeend', `<br><span class="clk">${ex.join(' · ')}</span>`); }
