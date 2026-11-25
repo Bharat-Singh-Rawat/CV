@@ -184,8 +184,7 @@
                 { tag: 'Software de código abierto', text: 'Extracción de haces de iones y física de colisiones Monte Carlo para fuentes de iones, propulsores y NBI de fusión, con erosión por pulverización, predicción de la vida útil de las rejillas y una interfaz gráfica en tiempo real.' },
                 { name: 'Gemelo digital de AEgIS', tag: 'CERN · antimateria', text: 'Modelos de orden reducido que combinan física de primeros principios con aprendizaje automático para predecir el comportamiento de la trampa de Penning–Malmberg y optimizar el confinamiento de antiprotones.' },
                 { name: 'Fuente de iones de cúspide anular', tag: 'Doctorado · propulsión espacial y fusión', text: 'Diseñé, construí y caractericé una fuente multicúspide con haces de Ar⁺ de 1–2 keV / hasta 100 mA y hasta un 100 % de neutralización de la carga espacial.' },
-                { name: 'Copa de Faraday de 10 kW', tag: 'Máster · diagnóstico de haces', text: 'Copa de Faraday refrigerada por agua para haces de 20–30 mA, 20 veces más potente que el sistema anterior de 1 kW, con supresión optimizada mediante SIMION y LORENTZ.' },
-                { name: 'Calentador de cátodo por inducción', tag: 'Simulación · Elmer FEM', text: 'Modelo 3D acoplado electromagnético y térmico de un cátodo de LaB₆ calentado por inducción desde temperatura ambiente, hecho con el código abierto Elmer FEM y contrastado con un modelo 2D.' },
+                { name: 'Copa de Faraday de 10 kW', tag: 'Máster · diagnóstico de haces', text: 'Copa de Faraday refrigerada por agua para haces de 20–30 mA, 20 veces más potente que el sistema anterior de 1 kW, con supresión optimizada mediante SIMION y LORENTZ.' }
             ],
             gallery: [
                 ['Fuente de iones octagonal de cúspide anular', 'La fuente ORIS de mi doctorado, con sus rejillas de extracción multiapertura.'],
@@ -267,8 +266,7 @@
                 { tag: 'Открытое ПО', text: 'Извлечение ионных пучков и физика столкновений Монте-Карло для ионных источников, двигателей и термоядерных NBI: распыление, прогноз ресурса сеток и графический интерфейс реального времени.' },
                 { name: 'Цифровой двойник AEgIS', tag: 'ЦЕРН · антиматерия', text: 'Модели пониженного порядка, объединяющие физику из первых принципов и машинное обучение, для прогнозирования поведения ловушки Пеннинга–Мальмберга и оптимизации удержания антипротонов.' },
                 { name: 'Ионный источник с кольцевым каспом', tag: 'PhD · космические двигатели и термоядерный синтез', text: 'Спроектировал, построил и исследовал многокаспный источник с пучками Ar⁺ 1–2 кэВ / до 100 мА и нейтрализацией пространственного заряда до 100%.' },
-                { name: 'Цилиндр Фарадея на 10 кВт', tag: 'Магистратура · диагностика пучков', text: 'Цилиндр Фарадея с водяным охлаждением для пучков 20–30 мА — в 20 раз мощнее прежней системы на 1 кВт, с подавлением, оптимизированным в SIMION и LORENTZ.' },
-                { name: 'Индукционный нагреватель катода', tag: 'Моделирование · Elmer FEM', text: 'Связанная трёхмерная электромагнитная и тепловая модель катода из LaB₆ с индукционным нагревом при прогреве от комнатной температуры, построенная в открытом пакете Elmer FEM и сверенная с двумерной моделью.' },
+                { name: 'Цилиндр Фарадея на 10 кВт', tag: 'Магистратура · диагностика пучков', text: 'Цилиндр Фарадея с водяным охлаждением для пучков 20–30 мА — в 20 раз мощнее прежней системы на 1 кВт, с подавлением, оптимизированным в SIMION и LORENTZ.' }
             ],
             gallery: [
                 ['Октагональный ионный источник с кольцевым каспом', 'Источник ORIS из моей диссертации с многоапертурными извлекающими сетками.'],
@@ -350,8 +348,7 @@
                 { tag: 'Logiciel libre', text: 'Extraction de faisceaux d’ions et physique des collisions Monte-Carlo pour les sources d’ions, les propulseurs et les NBI de fusion, avec érosion par pulvérisation, prédiction de la fin de vie des grilles et interface graphique en temps réel.' },
                 { name: 'Jumeau numérique d’AEgIS', tag: 'CERN · antimatière', text: 'Modèles d’ordre réduit combinant physique des premiers principes et apprentissage automatique pour prédire le comportement du piège de Penning–Malmberg et optimiser le confinement des antiprotons.' },
                 { name: 'Source d’ions à cuspide annulaire', tag: 'Doctorat · propulsion spatiale et fusion', text: 'Conception, construction et caractérisation d’une source multicuspide produisant des faisceaux d’Ar⁺ de 1–2 keV / jusqu’à 100 mA, avec jusqu’à 100 % de neutralisation de la charge d’espace.' },
-                { name: 'Cage de Faraday de 10 kW', tag: 'Master · diagnostic de faisceaux', text: 'Cage de Faraday refroidie par eau pour des faisceaux de 20–30 mA, 20 fois plus puissante que l’ancien système de 1 kW, avec une suppression optimisée via SIMION et LORENTZ.' },
-                { name: 'Chauffage de cathode par induction', tag: 'Simulation · Elmer FEM', text: 'Modèle 3D couplé électromagnétique et thermique d\u2019une cathode en LaB₆ chauffée par induction depuis la température ambiante, réalisé avec le code libre Elmer FEM et comparé à un modèle 2D.' },
+                { name: 'Cage de Faraday de 10 kW', tag: 'Master · diagnostic de faisceaux', text: 'Cage de Faraday refroidie par eau pour des faisceaux de 20–30 mA, 20 fois plus puissante que l’ancien système de 1 kW, avec une suppression optimisée via SIMION et LORENTZ.' }
             ],
             gallery: [
                 ['Source d’ions octogonale à cuspide annulaire', 'La source ORIS de mon doctorat, avec ses grilles d’extraction multi-ouvertures.'],
@@ -433,8 +430,7 @@
                 { tag: 'ઓપન-સોર્સ સૉફ્ટવેર', text: 'આયન સ્રોતો, થ્રસ્ટર્સ અને ફ્યુઝન NBI માટે આયન-બીમ એક્સટ્રેક્શન અને મોન્ટે કાર્લો કોલિઝન ભૌતિકશાસ્ત્ર — સ્પટર ઇરોઝન, ગ્રિડ આયુષ્યની આગાહી અને રિયલ-ટાઇમ GUI સાથે.' },
                 { name: 'AEgIS ડિજિટલ ટ્વિન', tag: 'CERN · પ્રતિદ્રવ્ય', text: 'પેનિંગ–માલ્મબર્ગ ટ્રેપના વર્તનની આગાહી અને એન્ટિપ્રોટોન બંધનના ઑપ્ટિમાઇઝેશન માટે મૂળભૂત ભૌતિકશાસ્ત્ર અને મશીન લર્નિંગને જોડતાં રિડ્યુસ્ડ-ઑર્ડર મોડેલ.' },
                 { name: 'રિંગ-કસ્પ આયન સ્રોત', tag: 'Ph.D. · અવકાશ પ્રોપલ્શન અને ફ્યુઝન', text: '1–2 keV / 100 mA સુધીના Ar⁺ બીમ અને 100% સુધી સ્પેસ-ચાર્જ ન્યુટ્રલાઇઝેશન ધરાવતો મલ્ટિકસ્પ સ્રોત ડિઝાઇન કર્યો, બનાવ્યો અને લાક્ષણિકૃત કર્યો.' },
-                { name: '10 kW ફેરાડે કપ', tag: 'M.Tech · બીમ ડાયગ્નોસ્ટિક્સ', text: '20–30 mA બીમ માટે પાણીથી ઠંડો થતો ફેરાડે કપ — જૂની 1 kW સિસ્ટમ કરતાં 20 ગણો સક્ષમ, SIMION અને LORENTZ વડે ઑપ્ટિમાઇઝ કરેલા સપ્રેશન સાથે.' },
-                { name: 'ઇન્ડક્શન કેથોડ હીટર', tag: 'સિમ્યુલેશન · Elmer FEM', text: 'ઓરડાના તાપમાનથી ગરમ થતા ઇન્ડક્શન-હીટેડ LaB₆ કેથોડનું 3D વિદ્યુતચુંબકીય અને થર્મલ સંયુક્ત મોડેલ, ઓપન-સોર્સ Elmer FEM માં બનાવેલું અને 2D મોડેલ સાથે ચકાસેલું.' },
+                { name: '10 kW ફેરાડે કપ', tag: 'M.Tech · બીમ ડાયગ્નોસ્ટિક્સ', text: '20–30 mA બીમ માટે પાણીથી ઠંડો થતો ફેરાડે કપ — જૂની 1 kW સિસ્ટમ કરતાં 20 ગણો સક્ષમ, SIMION અને LORENTZ વડે ઑપ્ટિમાઇઝ કરેલા સપ્રેશન સાથે.' }
             ],
             gallery: [
                 ['અષ્ટકોણીય રિંગ-કસ્પ આયન સ્રોત', 'મારા Ph.D.નો ORIS સ્રોત, તેની મલ્ટિ-એપર્ચર એક્સટ્રેક્શન ગ્રિડ સાથે.'],
