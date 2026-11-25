@@ -169,6 +169,7 @@ td.ck { text-align: center; } td.ck input { accent-color: var(--cmpc); cursor: p
         <div class="vseg" id="v-gt"><button aria-pressed="true">Ground track</button></div>
         <div class="vseg" id="v-speed"><button data-s="1">Real time</button><button data-s="60">×60</button><button data-s="600" aria-pressed="true">×600</button><button data-s="3600">×3600</button></div>
         <div class="vseg" id="v-solar" hidden><input type="range" id="v-replay" min="0" max="1000" value="0" aria-label="Replay date"><button id="dart-go" hidden>DART impact close-up ▶</button></div>
+        <div class="vseg" id="v-ss" hidden><button data-s="0">⏸</button><button data-s="5">5 d/s</button><button data-s="25" aria-pressed="true">25 d/s</button><button data-s="100">100 d/s</button><button id="v-alltr" aria-pressed="false">All trajectories</button></div>
         <div class="vseg" id="v-dart" hidden><button id="dart-back">◀ Solar system</button><button id="dart-video">▶ NASA replay video</button></div>
       </div>
     </div>
@@ -1073,8 +1074,22 @@ const track = d => ({ t: d.t.map(tms), p: d.xyz.map(([x, y, z]) => toScene(x * A
 function interp(tr, ms, out) {
   if (ms <= tr.t[0]) return out.copy(tr.p[0]); const L = tr.t.length - 1; if (ms >= tr.t[L]) return out.copy(tr.p[L]);
   let a = 0, b = L; while (b - a > 1) { const c = (a + b) >> 1; if (tr.t[c] <= ms) a = c; else b = c; }
-  return out.copy(tr.p[a]).lerp(tr.p[b], (ms - tr.t[a]) / (tr.t[b] - tr.t[a]));
+  return cr(tr.p[Math.max(0, a - 1)], tr.p[a], tr.p[b], tr.p[Math.min(L, b + 1)], (ms - tr.t[a]) / (tr.t[b] - tr.t[a]), out);
 }
+function cr(p0, p1, p2, p3, u, out) {   // uniform Catmull-Rom between p1 and p2
+  const u2 = u * u, u3 = u2 * u, f0 = -0.5 * u3 + u2 - 0.5 * u, f1 = 1.5 * u3 - 2.5 * u2 + 1, f2 = -1.5 * u3 + 2 * u2 + 0.5 * u, f3 = 0.5 * u3 - 0.5 * u2;
+  return out.set(p0.x * f0 + p1.x * f1 + p2.x * f2 + p3.x * f3, p0.y * f0 + p1.y * f1 + p2.y * f2 + p3.y * f3, p0.z * f0 + p1.z * f1 + p2.z * f2 + p3.z * f3);
+}
+// dense smooth copy of a track: k points per sample interval, with their times
+function densify(tr, k, i0 = 0, i1 = tr.t.length - 1) {
+  const pts = [], ts = [], L = tr.t.length - 1;
+  for (let i = i0; i < i1; i++) for (let j = 0; j < k; j++) { const u = j / k; pts.push(cr(tr.p[Math.max(0, i - 1)], tr.p[i], tr.p[i + 1], tr.p[Math.min(L, i + 2)], u, new THREE.Vector3())); ts.push(tr.t[i] + u * (tr.t[i + 1] - tr.t[i])); }
+  pts.push(tr.p[i1].clone()); ts.push(tr.t[i1]); return { pts, ts };
+}
+// sample index range covering one revolution about the Sun (unwrapped ecliptic longitude), for drawing a single clean orbit
+function oneRev(tr) { let acc = 0, prev = Math.atan2(-tr.p[0].z, tr.p[0].x);
+  for (let i = 1; i < tr.p.length; i++) { const a = Math.atan2(-tr.p[i].z, tr.p[i].x); let d = a - prev; d -= Math.round(d / (2 * Math.PI)) * 2 * Math.PI; acc += d; prev = a; if (Math.abs(acc) >= 2 * Math.PI) return i; }
+  return tr.p.length - 1; }
 const slabel = (txt, col = 'rgba(220,228,245,.85)') => { const c = document.createElement('canvas'), x = c.getContext('2d'); x.font = '600 28px -apple-system, Segoe UI, sans-serif';
   const w = Math.ceil(x.measureText(txt).width) + 12; c.width = w; c.height = 40; x.font = '600 28px -apple-system, Segoe UI, sans-serif'; x.fillStyle = col; x.fillText(txt, 6, 29);
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, depthTest: false, sizeAttenuation: false }));
@@ -1083,7 +1098,7 @@ const PLANET = { Mercury: [0x9c958c, 0.09], Venus: [0xe6c47f, 0.13], Earth: [0x3
 const SB = [];
 for (const [name, d] of Object.entries(SOL.bodies)) {
   const tr = track(d), pl = PLANET[name], small = !pl;
-  const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(tr.p), new THREE.LineBasicMaterial({ color: small ? 0x6f7892 : 0x8896b8, transparent: true, opacity: small ? 0.12 : 0.3 }));
+  const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(densify(tr, 12, 0, Math.min(tr.t.length - 1, oneRev(tr) + 1)).pts), new THREE.LineBasicMaterial({ color: small ? 0x6f7892 : 0x8896b8, transparent: true, opacity: small ? 0.18 : 0.38 }));
   sscene.add(line);
   const mesh = new THREE.Mesh(new THREE.SphereGeometry(pl ? pl[1] : 0.045, 24, 16), new THREE.MeshStandardMaterial({ color: pl ? pl[0] : 0xa7a39b, roughness: 0.9 }));
   sscene.add(mesh); SB.push({ name, tr, mesh, lab: slabel(name, small ? 'rgba(180,190,210,.7)' : 'rgba(220,228,245,.9)'), small });
@@ -1091,12 +1106,14 @@ for (const [name, d] of Object.entries(SOL.bodies)) {
 const SC = [];
 for (const [name, d] of Object.entries(SOL.craft)) {
   const o = objs.find(x => x.m.name.startsWith(name)); if (!o) continue;
-  const tr = track(d), col = COL[famOf(o.m)];
-  const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(tr.p), new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.55 }));
+  const tr = track(d), col = COL[famOf(o.m)], dn = densify(tr, 4), geo = new THREE.BufferGeometry().setFromPoints(dn.pts);
+  const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.95 }));
+  const geo2 = new THREE.BufferGeometry(); geo2.setAttribute('position', geo.getAttribute('position'));   // same points, own draw range
+  const ahead = new THREE.Line(geo2, new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.3 })); sscene.add(ahead);
   const craft = miniCraft(o.m); craft.scale.setScalar(2.2);
   const hit = new THREE.Mesh(HITGEO, HITMAT); hit.scale.setScalar(2.5); hit.userData.o = o;
   sscene.add(line, craft, hit);
-  SC.push({ o, tr, line, craft, hit, lab: slabel(name.replace(' (MUSES-C)', '').replace('NASA ', ''), 'rgba(255,255,255,.95)'), note: (SOL.notes || {})[name] });
+  SC.push({ o, tr, line, ahead, dts: dn.ts, craft, hit, lab: slabel(name.replace(' (MUSES-C)', '').replace('NASA ', ''), 'rgba(255,255,255,.95)'), note: (SOL.notes || {})[name] });
 }
 const spick = SC.map(s => s.hit);
 sscene.environment = studioEnv(renderer);
@@ -1161,7 +1178,7 @@ function enterImpact() { VIEW = 'impact'; DT = -150; if (DF && !DF.pre) DF.pre =
   dUser = false; const inc = dartAt(-1, new THREE.Vector3()).sub(dAim).normalize();
   dSide.copy(new THREE.Vector3(0, 1, 0).cross(inc)).normalize().multiplyScalar(0.8).addScaledVector(inc, 0.45).add(new THREE.Vector3(0, 0.35, 0)).normalize();
   dctl.target.copy(dAim); dcamr.position.copy(dAim).addScaledVector(dSide, 60); dctl.update();
-  $$('#v-view button').forEach(b => b.setAttribute('aria-pressed', false)); $('#v-scale').hidden = $('#v-speed').hidden = $('#v-fire').hidden = $('#v-gt').hidden = true; $('#v-solar').hidden = true; $('#v-dart').hidden = false; }
+  $$('#v-view button').forEach(b => b.setAttribute('aria-pressed', false)); $('#v-scale').hidden = $('#v-speed').hidden = $('#v-fire').hidden = $('#v-gt').hidden = true; $('#v-solar').hidden = $('#v-ss').hidden = true; $('#v-dart').hidden = false; }
 function stepImpact(dt) {
   // time runs ~10x near the start, slowing to real time over the last 5 s; holds 10 s after contact, then repeats
   DT += dt * (DT < -5 ? Math.min(12, -DT / 4) : DT > 4 ? 2.5 : 1); if (DT > 30) { DT = -150; dEjecta.userData.fired = false; }
@@ -1455,7 +1472,7 @@ renderer.domElement.addEventListener('click', () => { ray.setFromCamera(mouse, V
 function setView(v) {
   VIEW = v; controls.enabled = v === 'earth'; sctl.enabled = v === 'solar'; dctl.enabled = false; $('#v-dart').hidden = true; setDraco(0); closeVbox();
   $$('#v-view button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v));
-  $('#v-scale').hidden = $('#v-speed').hidden = $('#v-fire').hidden = $('#v-gt').hidden = v !== 'earth'; $('#v-solar').hidden = v !== 'solar';
+  $('#v-scale').hidden = $('#v-speed').hidden = $('#v-fire').hidden = $('#v-gt').hidden = v !== 'earth'; $('#v-solar').hidden = $('#v-ss').hidden = v !== 'solar';
   $('#inset').hidden = false;
 }
 function setScale(mode, dist) {
@@ -1467,7 +1484,9 @@ $('#dart-go').onclick = () => { if (DI) enterImpact(); }; $('#dart-back').onclic
 function closeVbox() { const v = $('#vbox-v'); if (v) { v.pause(); $('#vbox').hidden = true; } }
 $('#dart-video').onclick = () => { $('#vbox').hidden = false; $('#vbox-v').play().catch(() => {}); }; $('#vbox-x').onclick = closeVbox;
 $$('#v-scale button').forEach(b => b.onclick = () => ({ overview: () => setScale('compressed', 10), leo: () => setScale('true', 3.4), geo: () => setScale('true', 19), moon: () => setScale('true', 150) })[b.dataset.p]());
-let SPEED = 600;
+let SPEED = 600, SSPEED = 25, ALLTR = false;
+$$('#v-ss button[data-s]').forEach(b => b.onclick = () => { SSPEED = +b.dataset.s; $$('#v-ss button[data-s]').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+$('#v-alltr').onclick = e => { ALLTR = !ALLTR; e.target.setAttribute('aria-pressed', ALLTR); };
 $$('#v-fire button').forEach(b => b.onclick = () => { FIRE = b.dataset.f; $$('#v-fire button').forEach(x => x.setAttribute('aria-pressed', x === b)); });
 $('#v-gt button').onclick = e => { GROUND = !GROUND; e.target.setAttribute('aria-pressed', GROUND); };
 $$('#v-speed button').forEach(b => b.onclick = () => { SPEED = +b.dataset.s; $$('#v-speed button').forEach(x => x.setAttribute('aria-pressed', x === b)); });
@@ -1537,9 +1556,9 @@ function frame(now) {
   } else if (VIEW === 'solar') {
     const o = objs.find(x => x.m.id === S.sel), sel = SC.find(s => s.o === o);
     const t0 = sel ? sel.tr.t[0] : T_MIN, t1 = sel ? sel.tr.t[sel.tr.t.length - 1] : T_MAX;
-    solarMs += dt * 86400000 * 25;
+    solarMs += dt * 86400000 * SSPEED;
     if (solarMs > t1 && sel && sel.o.m.name.startsWith('DART') && DI && !dAuto) { dAuto = true; solarMs = t0; enterImpact(); }   // the replay ends at the impact: switch to the close-up
-    if (solarMs > t1 || solarMs < t0) solarMs = t0;          // replay: 25 days per second
+    if (solarMs > t1 || solarMs < t0) solarMs = t0;          // replay loops over the selected mission (speed: SSPEED days per second)
     $('#v-replay').value = Math.round((solarMs - T_MIN) / (T_MAX - T_MIN) * 1000);
     for (const b of SB) { interp(b.tr, solarMs, b.mesh.position); b.lab.position.copy(b.mesh.position); b.lab.visible = !b.small || (sel && DEST_OF(sel.o.m).includes(b.name)); }
     for (const s of SC) {
@@ -1547,7 +1566,11 @@ function frame(now) {
       interp(s.tr, solarMs, s.craft.position); interp(s.tr, solarMs + 5 * 86400000, tmp);
       s.craft.lookAt(tmp); s.craft.rotateY(-Math.PI / 2);
       s.craft.visible = s.hit.visible = s.lab.visible = on; s.hit.position.copy(s.craft.position); s.lab.position.copy(s.craft.position);
-      s.line.material.opacity = s === sel ? 0.9 : 0.28; s.line.visible = visible(s.o.m);
+      // selected: travelled part solid, the rest faint; others only with 'All trajectories', thin and faint
+      let n = 0, lo = 0, hi = s.dts.length - 1; if (solarMs >= s.dts[hi]) n = hi + 1; else if (solarMs > s.dts[0]) { while (hi - lo > 1) { const c = (lo + hi) >> 1; if (s.dts[c] <= solarMs) lo = c; else hi = c; } n = lo + 1; }
+      const show = visible(s.o.m) && (s === sel || ALLTR);
+      s.line.visible = show; s.line.geometry.setDrawRange(0, s === sel ? n : s.dts.length); s.line.material.opacity = s === sel ? 0.95 : 0.16;
+      s.ahead.visible = show && s === sel; s.ahead.geometry.setDrawRange(Math.max(0, n - 1), s.dts.length);
     }
     if (solarModel) { const on = sel && sel.craft.visible; solarModel.visible = !!on;
       if (on) { sel.craft.visible = false; solarModel.position.copy(sel.craft.position); solarModel.quaternion.copy(sel.craft.quaternion);
