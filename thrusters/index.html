@@ -201,7 +201,7 @@ earth.add(new THREE.Mesh(new THREE.SphereGeometry(1.06, 48, 32), new THREE.MeshB
 // Moon
 const moon = new THREE.Mesh(new THREE.SphereGeometry(0.27, 32, 24), new THREE.MeshPhongMaterial({ color: 0x9a9a9a, emissive: 0x111111 }));
 scene.add(moon);
-const R = { LEO: 1.18, MEO: 1.95, GEO: 3.1, HEO: [1.25, 3.6], Lunar: 5.4, Suborbital: 1.04 };
+const R = { LEO: 1.18, MEO: 1.95, GEO: 3.1, HEO: [1.25, 3.6], Lunar: 5.4, Suborbital: 1.12 };
 // orbit guide rings
 const ringMat = new THREE.LineBasicMaterial({ color: 0x8896b8, transparent: true, opacity: 0.22 });
 const ring = (r, inc = 0) => { const pts = []; for (let k = 0; k <= 128; k++) { const t = k / 128 * Math.PI * 2; pts.push(new THREE.Vector3(r * Math.cos(t), 0, r * Math.sin(t))); }
@@ -492,7 +492,7 @@ const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 function resize() { const w = stage.clientWidth, h = stage.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
 addEventListener('resize', resize); resize();
 let t = 0, last = performance.now(), wantDist = 11.5;
-const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), tq = new THREE.Quaternion();
+const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), tmp3 = new THREE.Vector3(), tq = new THREE.Quaternion(), tm = new THREE.Matrix4(), ORIGIN = new THREE.Vector3();
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now; t += reduce ? dt * 0.15 : dt;
   earth.rotation.y = t * 0.05;
@@ -507,8 +507,17 @@ function frame(now) {
     const o = objs.find(x => x.m.id === S.sel);
     if (o && o.dot.visible) {
       model.visible = true; posAt(o, t, model.position); posAt(o, t + 0.02, tmp2);
+      for (const x of objs) x.dot.scale.setScalar(x === o ? 0.001 : 1);   // the model replaces the marker dot
       const vel = tmp2.sub(model.position).normalize();                 // thrust along the velocity: exhaust points backwards
-      tq.setFromUnitVectors(new THREE.Vector3(1, 0, 0), vel); model.quaternion.slerp(tq, Math.min(1, dt * 6));
+      // satellite attitude: nose (+X) along the velocity, deck (+Y) towards the central body (Earth, or the Moon for lunar
+      // missions), solar wings (+Z) along the orbit normal, so the wings never point into the globe
+      const centre = o.m.orbit === 'Lunar' ? moon.position : ORIGIN;
+      const down = tmp3.copy(centre).sub(model.position).normalize();
+      const yax = down.sub(vel.clone().multiplyScalar(down.dot(vel))).normalize();
+      if (yax.lengthSq() > 0.5) { const zax = new THREE.Vector3().crossVectors(vel, yax); tm.makeBasis(vel, yax, zax); tq.setFromRotationMatrix(tm); }
+      else tq.setFromUnitVectors(new THREE.Vector3(1, 0, 0), vel);
+      model.quaternion.slerp(tq, Math.min(1, dt * 6));
+      model.scale.setScalar(o.m.orbit === 'Suborbital' ? 0.22 : o.m.orbit === 'LEO' ? 0.3 : 0.42);
       model.userData.thr.userData.update(dt, now / 1000);
     } else model.visible = false;
   }
